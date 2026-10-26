@@ -98,6 +98,19 @@ copy_vignettes <- function(path, config = list()) {
   for (vignette in find_vignettes(path)) {
     file <- file.path(out, vignette)
     lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
+    # Quarto rejects `#|` chunk options that aren't YAML, such as knitr's
+    # `#| label, echo = FALSE`, which R Markdown vignettes may use.
+    if (grepl("\\.[Rr]md$", vignette)) {
+      parts <- split_front_matter(lines)
+      front_matter <- parts$front_matter
+      if (length(front_matter) == 0) {
+        front_matter <- c("---", "---")
+      }
+      lines <- c(
+        append(front_matter, "validate-yaml: false", length(front_matter) - 1),
+        parts$body
+      )
+    }
     note <- source_note(
       file.path("vignettes", vignette),
       source,

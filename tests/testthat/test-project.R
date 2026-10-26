@@ -266,10 +266,10 @@ test_that("copy_vignettes() puts the source file under each vignette's title", {
       "content"
     )
   )
-  expect_match(
-    readLines(file.path(out, "examplepkg.Rmd"))[[5]],
-    "Source: .*<code>vignettes/examplepkg.Rmd</code>"
-  )
+  rmd <- readLines(file.path(out, "examplepkg.Rmd"))
+  # knitr's `#| label, echo = FALSE` options aren't YAML.
+  expect_identical(rmd[[3]], "validate-yaml: false")
+  expect_match(rmd[[6]], "Source: .*<code>vignettes/examplepkg.Rmd</code>")
   expect_identical(readLines(file.path(out, "data.csv")), "x")
 })
 
