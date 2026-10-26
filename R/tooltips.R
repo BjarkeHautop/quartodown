@@ -14,8 +14,10 @@ tooltip_link_re <- paste0(
   "(?|<span class=\"(fu|va|kw)\">(?:<a href=\"[^\"]*\">)?([^<]*?)(?:</a>)?</span>",
   "|<span class=\"(op|sc)\">(?:<a href=\"[^\"]*\">)?(%[^%<]+%)(?:</a>)?</span>)",
   "|",
-  # One group number for the name in either shape of inline code.
+  # One group number for the name in each shape of inline code, and one for
+  # the "()" of roxygen's `\code{\link{foo}()}`, which follows the link.
   "(?|<code>(?:<a href=\"[^\"]*\">)?([^<]*?)(?:</a>)?</code>",
+  "|<code><a href=\"[^\"]*\">([^<]*?)</a>(\\(\\))</code>",
   "|<a href=\"[^\"]*\"><code>([^<]*?)</code></a>)"
 )
 
@@ -87,7 +89,11 @@ inject_tooltips_html <- function(
     s <- starts[i]
     l <- lens[i]
     is_block <- cap_starts[i, 1] != 0L # span vs. inline <code>
-    name_html <- capture(i, if (is_block) 2L else 3L)
+    name_html <- if (is_block) {
+      capture(i, 2L)
+    } else {
+      paste0(capture(i, 3L), capture(i, 4L))
+    }
     name <- html_unescape(name_html)
     # "foo(1, 2)", "?foo", "pkg::foo" and "`foo`" all look up "foo".
     lookup <- sub("\\(.*$", "", name, perl = TRUE)

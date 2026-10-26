@@ -472,6 +472,15 @@ test_that("inline code references are linked and tagged, with or without a downl
     'href="reference/animal.html">print.animal()</a></code>',
     fixed = TRUE
   )
+
+  # roxygen's \code{\link{foo}()}, whose "()" follows the link
+  html <- sample_html('<p>See <code><a href="foo.html">foo</a>()</code>.</p>')
+  result <- inject_tooltips_html(html, foo_index, "reference/")
+  expect_match(
+    result$html,
+    'href="reference/foo.html">foo()</a></code>.',
+    fixed = TRUE
+  )
 })
 
 test_that("an inline reference to a backtick-quoted name resolves through its backticks", {

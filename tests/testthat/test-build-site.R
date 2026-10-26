@@ -1316,6 +1316,10 @@ test_that("usage_names() formats data, infix, replacement and method usages", {
     usage_names(rd_usage("\\method{print}{foo}(x, \\dots)")),
     "print(<i>&lt;foo&gt;</i>)"
   )
+  expect_identical(
+    usage_names(rd_usage("\\method{print}{`NULL`}(x, \\dots)")),
+    "print(<i>&lt;NULL&gt;</i>)"
+  )
   # A method of a generic documented in the same topic is dropped.
   expect_identical(
     usage_names(rd_usage(c(

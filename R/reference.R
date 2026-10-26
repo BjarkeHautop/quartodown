@@ -73,18 +73,28 @@ usage_code <- function(x) {
     "\\dots" = ,
     "\\ldots" = "...",
     "\\method" = ,
+    # Names may be backticked already, as in \method{print}{`NULL`}.
     "\\S3method" = sprintf(
       "S3method(`%s`, `%s`)",
-      usage_code(x[[1]]),
-      usage_code(x[[2]])
+      unbacktick(usage_code(x[[1]])),
+      unbacktick(usage_code(x[[2]]))
     ),
     "\\S4method" = sprintf(
       "S4method(`%s`, list(%s))",
-      usage_code(x[[1]]),
-      paste0("`", strsplit(usage_code(x[[2]]), ",")[[1]], "`", collapse = ",")
+      unbacktick(usage_code(x[[1]])),
+      paste0(
+        "`",
+        unbacktick(strsplit(usage_code(x[[2]]), ",")[[1]]),
+        "`",
+        collapse = ","
+      )
     ),
     collapse(x)
   )
+}
+
+unbacktick <- function(x) {
+  sub("^`(.*)`$", "\\1", x)
 }
 
 is_infix <- function(name) {

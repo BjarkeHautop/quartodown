@@ -317,8 +317,10 @@ import_markdown_files <- function(path, config = list()) {
 # Rewrites GitHub-flavored Markdown that Quarto doesn't render: alerts
 # (`> [!NOTE]` and the lines quoted after it) become callouts, and with
 # `mermaid = TRUE`, ```` ```mermaid ```` blocks become ```` ```{mermaid} ````
-# diagrams. Quarto runs those as code, so only in a .qmd file, not a .md. Code
-# blocks are left alone.
+# diagrams. Quarto runs those as code, so only in a .qmd file, not a .md.
+# Without it, executable blocks (```` ```{r} ````, which GitHub shows as R
+# code) become plain ones (```` ```r ````), as Quarto refuses to render a .md
+# with them. Code blocks are otherwise left alone.
 github_markdown_to_quarto <- function(lines, mermaid = FALSE) {
   alert_pattern <- "^\\s*>\\s*\\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\\]\\s*$"
   kinds <- code_block_lines(lines)
@@ -330,6 +332,13 @@ github_markdown_to_quarto <- function(lines, mermaid = FALSE) {
     i <- i + 1L
     if (kind == "open" && mermaid) {
       line <- sub("^(\\s*(```+|~~~+))\\s*mermaid\\s*$", "\\1{mermaid}", line)
+      out <- c(out, line)
+    } else if (kind == "open") {
+      line <- sub(
+        "^(\\s*(```+|~~~+))\\s*\\{\\s*([A-Za-z][A-Za-z0-9_]*)\\b[^}]*\\}\\s*$",
+        "\\1\\3",
+        line
+      )
       out <- c(out, line)
     } else if (nzchar(kind)) {
       out <- c(out, line)

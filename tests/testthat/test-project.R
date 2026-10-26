@@ -242,6 +242,24 @@ test_that("github_markdown_to_quarto() turns alerts into callouts and mermaid bl
   )
 })
 
+test_that("github_markdown_to_quarto() makes executable blocks plain in a .md", {
+  lines <- c(
+    "  ```{r}",
+    "  f(1)",
+    "  ```",
+    "~~~{python echo=false}",
+    "~~~",
+    "```{.r}",
+    "```",
+    "````md",
+    "```{r}",
+    "````"
+  )
+  expected <- replace(lines, 1:2 * 3 - 2, c("  ```r", "~~~python"))
+  expect_identical(github_markdown_to_quarto(lines), expected)
+  expect_identical(github_markdown_to_quarto(lines, mermaid = TRUE), lines)
+})
+
 test_that("copy_vignettes() puts the source file under each vignette's title", {
   dir <- new_pkg(articles = "technical")
   write_vignette(dir, "examplepkg.Rmd")
