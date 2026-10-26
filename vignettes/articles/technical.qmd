@@ -18,7 +18,8 @@ pages, and every Quarto feature works.
 3. **After rendering**, it links code to its documentation, adds hover tooltips
    and writes the [redirect](../customizing.qmd#redirects) pages.
 
-With [`development: mode: devel`](../customizing.qmd#development-and-release-sites),
+With
+[`development: mode: devel`](../customizing.qmd#development-and-release-sites),
 the site goes in `docs/dev/` instead, and a build into `docs/` leaves `dev/` as
 it is.
 
@@ -64,9 +65,9 @@ block as the code, prefixed with `#>`. To give a chunk's output a block of its
 own, in a vignette too, set `#| collapse: false` on it.
 
 To save Quarto starting an R process per page, all examples run beforehand in
-one R process, which resets the global environment, search path, options and
-the like between pages, as `R CMD check` does. Pages whose examples fail or
-produce HTML widgets are left for Quarto to run.
+one R process, which resets the global environment, search path, options and the
+like between pages, as `R CMD check` does. Pages whose examples fail or produce
+HTML widgets are left for Quarto to run.
 
 If `DESCRIPTION`'s `URL` includes a GitHub, GitLab or Codeberg repository, each
 reference page and vignette links to its source file under the title.

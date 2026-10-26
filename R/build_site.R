@@ -137,7 +137,11 @@ build_site <- function(
   run_examples(path, envvars, settings, freeze = freeze)
   render_project(path, envvars, config, quiet = quiet)
 
-  done <- if (isTRUE(tooltips)) "Linked code and added tooltips" else "Linked code"
+  done <- if (isTRUE(tooltips)) {
+    "Linked code and added tooltips"
+  } else {
+    "Linked code"
+  }
   cli::cli_progress_step("Linking code", msg_done = done)
   write_pkgdown_yml(path, settings$website$`site-url`, config)
   postprocess_pages(path, config, topics, tooltips = tooltips)

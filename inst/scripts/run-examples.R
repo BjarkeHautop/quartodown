@@ -14,10 +14,20 @@
 local({
   job <- readRDS(commandArgs(TRUE)[[1]])
   report <- function(page, status) {
-    cat(basename(page), "\t", status, "\n", sep = "", file = job$status, append = TRUE)
+    cat(
+      basename(page),
+      "\t",
+      status,
+      "\n",
+      sep = "",
+      file = job$status,
+      append = TRUE
+    )
   }
   if (!requireNamespace("knitr", quietly = TRUE)) {
-    for (page in job$pages) report(page, "knitr isn't installed")
+    for (page in job$pages) {
+      report(page, "knitr isn't installed")
+    }
     return(invisible())
   }
 
@@ -29,7 +39,13 @@ local({
     strrep("`", max(3L, nchar(runs) + 1L))
   }
   output_div <- function(x, classes) {
-    paste0("::: {", paste(paste0(".", classes), collapse = " "), "}\n", x, "\n:::\n\n")
+    paste0(
+      "::: {",
+      paste(paste0(".", classes), collapse = " "),
+      "}\n",
+      x,
+      "\n:::\n\n"
+    )
   }
   output_hook <- function(type, classes) {
     function(x, options) {
@@ -61,11 +77,19 @@ local({
     error = output_hook("error", "error"),
     plot = function(x, options) {
       attr <- character()
-      if (!is.null(options$fig.align) && !identical(options$fig.align, "default")) {
+      if (
+        !is.null(options$fig.align) && !identical(options$fig.align, "default")
+      ) {
         attr <- c(attr, sprintf("fig-align='%s'", options$fig.align))
       }
       if (!is.null(options$fig.alt) && nzchar(options$fig.alt)) {
-        attr <- c(attr, sprintf("fig-alt='%s'", gsub("'", "\\'", options$fig.alt, fixed = TRUE)))
+        attr <- c(
+          attr,
+          sprintf(
+            "fig-alt='%s'",
+            gsub("'", "\\'", options$fig.alt, fixed = TRUE)
+          )
+        )
       }
       attr <- paste(
         c(
@@ -79,7 +103,11 @@ local({
       attr <- if (nzchar(attr)) paste0("{", trimws(attr), "}") else ""
       cap <- if (length(options$fig.cap)) options$fig.cap else ""
       md <- sprintf("![%s](%s)%s", cap, x, attr)
-      if (identical(options$results, "asis")) md else output_div(md, "cell-output-display")
+      if (identical(options$results, "asis")) {
+        md
+      } else {
+        output_div(md, "cell-output-display")
+      }
     }
   )
 
@@ -103,7 +131,10 @@ local({
     current <- options()
     for (name in names(base$options)) {
       if (!identical(current[[name]], base$options[[name]])) {
-        try(options(stats::setNames(list(base$options[[name]]), name)), silent = TRUE)
+        try(
+          options(stats::setNames(list(base$options[[name]]), name)),
+          silent = TRUE
+        )
       }
     }
     setwd(base$wd)
@@ -135,7 +166,13 @@ local({
 
     result <- tryCatch(
       {
-        knitr::knit(input, output, quiet = TRUE, envir = globalenv(), encoding = "UTF-8")
+        knitr::knit(
+          input,
+          output,
+          quiet = TRUE,
+          envir = globalenv(),
+          encoding = "UTF-8"
+        )
         NULL
       },
       error = function(e) paste("error:", conditionMessage(e))
@@ -145,8 +182,12 @@ local({
     if (is.null(result) && length(knitr::knit_meta(clean = TRUE)) > 0) {
       result <- "HTML dependencies"
     }
-    lines <- if (is.null(result)) readLines(output, warn = FALSE, encoding = "UTF-8")
-    if (is.null(result) && any(grepl("<!--html_preserve-->", lines, fixed = TRUE))) {
+    lines <- if (is.null(result)) {
+      readLines(output, warn = FALSE, encoding = "UTF-8")
+    }
+    if (
+      is.null(result) && any(grepl("<!--html_preserve-->", lines, fixed = TRUE))
+    ) {
       result <- "preserved HTML"
     }
     if (!is.null(result)) {
@@ -158,7 +199,9 @@ local({
   }
 
   for (page in job$pages) {
-    status <- tryCatch(knit_page(page), error = function(e) paste("error:", conditionMessage(e)))
+    status <- tryCatch(knit_page(page), error = function(e) {
+      paste("error:", conditionMessage(e))
+    })
     report(page, gsub("[\r\n\t]+", " ", status))
     reset()
   }

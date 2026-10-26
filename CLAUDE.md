@@ -7,11 +7,12 @@ code in this repository.
 
 quartodown is an R package that builds Bootstrap 5 package websites with Quarto.
 It generates a Quarto website project in `_quarto/` from the package sources,
-renders it into `docs/` with `quarto render` (run through `processx`), then post-processes the
-HTML. Configuration is the optional `_quartodown/_quartodown.yml`. The exported
-API is `use_quartodown()` (one-time setup, writes `_quartodown/_quartodown.yml`
-and gitignore entries), `use_quartodown_action()` (writes the GitHub Pages
-workflow from [inst/templates/quartodown.yaml](inst/templates/quartodown.yaml)),
+renders it into `docs/` with `quarto render` (run through `processx`), then
+post-processes the HTML. Configuration is the optional
+`_quartodown/_quartodown.yml`. The exported API is `use_quartodown()` (one-time
+setup, writes `_quartodown/_quartodown.yml` and gitignore entries),
+`use_quartodown_action()` (writes the GitHub Pages workflow from
+[inst/templates/quartodown.yaml](inst/templates/quartodown.yaml)),
 `build_site()` and `preview_site()`.
 
 ## Commands
@@ -32,13 +33,13 @@ install.packages(".", repos = NULL, type = "source")
 quartodown::build_site() # also previews it when interactive
 ```
 
-`README.md` is generated from `README.qmd` — edit the `.qmd` and re-render.
+`README.md` is generated from `README.qmd` --- edit the `.qmd` and re-render.
 
 ## Architecture
 
 `build_site()` in [R/build_site.R](R/build_site.R) runs three stages:
 
-1. **Before rendering** — empties `_quarto/` (keeping `_freeze/` with
+1. **Before rendering** --- empties `_quarto/` (keeping `_freeze/` with
    `freeze = TRUE`) and writes the whole project into it
    ([R/project.R](R/project.R)): `vignettes/`, `man/figures/`, `NEWS.md` (with
    `#123`/`@user` links), `LICENSE.md`, `LICENSE` as `LICENSE-text.md`, and
@@ -82,8 +83,8 @@ quartodown::build_site() # also previews it when interactive
      `.light-content`/`.dark-content` `<img>`s.
    - `reference/index.qmd` ([R/reference.R](R/reference.R)): pkgdown-compatible
      `reference:` grouping with selectors (`starts_with()`, `has_concept()`,
-     `-`, …) evaluated against Rd topics. `\keyword{internal}` topics are listed
-     (and get a page, see `has_page()`) only when named or selected with
+     `-`, ...) evaluated against Rd topics. `\keyword{internal}` topics are
+     listed (and get a page, see `has_page()`) only when named or selected with
      `internal = TRUE`.
    - `authors.qmd` ([R/authors.R](R/authors.R)). `_quartodown.yml`'s
      pkgdown-style `authors:` links names or swaps them for HTML
@@ -100,44 +101,44 @@ quartodown::build_site() # also previews it when interactive
      paths in `quarto:` settings resolve the same (Quarto doesn't render `_`
      folders). `extra.scss` is appended to both themes and `extra.css` set as
      `css:`. `docs/.nojekyll` keeps GitHub Pages from dropping it.
-   - Then `run_examples()` ([R/examples.R](R/examples.R)) knits every
-     reference page with R chunks in one fresh `Rscript` process
+   - Then `run_examples()` ([R/examples.R](R/examples.R)) knits every reference
+     page with R chunks in one fresh `Rscript` process
      ([inst/scripts/run-examples.R](inst/scripts/run-examples.R)), with the
-     package's envvars, rather than Quarto starting one per page. Its hooks
-     copy those of Quarto's knitr engine (`share/rmd/hooks.R`) for the options
-     the pages use, and `example_knit_options()` takes Quarto's knitr options
-     from the generated `_quarto.yml` (NULL, leaving all pages to Quarto, for
+     package's envvars, rather than Quarto starting one per page. Its hooks copy
+     those of Quarto's knitr engine (`share/rmd/hooks.R`) for the options the
+     pages use, and `example_knit_options()` takes Quarto's knitr options from
+     the generated `_quarto.yml` (NULL, leaving all pages to Quarto, for
      settings it doesn't handle). Each page is overwritten with the executed
      Markdown, unless knitting fails or leaves `knit_meta` (htmlwidgets) or
      preserved HTML, in which case Quarto runs it. Between pages the script
      clears `globalenv()`, detaches new search-path entries and resets the
-     working directory, RNG kind and changed options; options added (e.g. by
-     a namespace's `.onLoad()`) and envvars aren't reset. With `freeze`,
-     results are cached in `_quarto/_freeze/quartodown/reference/<page>/`,
-     keyed by the page's source and the knitr options.
-2. **Rendering** — clears the site's folder (`site_dir()`: `docs/`, or
+     working directory, RNG kind and changed options; options added (e.g. by a
+     namespace's `.onLoad()`) and envvars aren't reset. With `freeze`, results
+     are cached in `_quarto/_freeze/quartodown/reference/<page>/`, keyed by the
+     page's source and the knitr options.
+2. **Rendering** --- clears the site's folder (`site_dir()`: `docs/`, or
    `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s pkgdown-style
    `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`; that also puts
    `site-url` under `dev/` and a `noindex` meta in `quartodown-header.html`),
    keeping `CNAME`, hidden files and, in `docs/`, `dev/` (which
-   `postprocess_pages()` then skips too), makes the
-   package available to the pages' R processes (installed into a temp library
-   prepended via `R_LIBS`, or with `devel = TRUE` a generated `R_PROFILE_USER`
-   profile that runs `pkgload::load_all()`; plus `R_CLI_NUM_COLORS=256` for
-   colored output), renders `_quarto/` into it (`output-dir: ../docs/`; with
-   `processx` rather than `quarto::quarto_render()`, whose `quiet` passes
-   `--quiet`, which hides errors too, so `render_error_log()` can show them) and
-   writes `docs/pkgdown.yml` (`urls` + `articles`, all downlit reads). The name
-   is fixed: downlit fetches `<site URL>/pkgdown.yml` to link other packages'
-   code to this site, so it must not be renamed.
-3. **After rendering** — `postprocess_pages()` ([R/code-link.R](R/code-link.R))
-   reads and writes each `docs/**/*.html` once. In between, `link_code_html()`
-   runs downlit over it (replacing Quarto's `code-link`, which would wipe code
-   annotations). `pre.code-annotated` blocks are hidden from downlit and their
-   `span.fu` tokens (and `span.sc` `%op%`s) linked one by one with
-   `downlit::autolink_url()` instead. xml2 drops the ESC of ANSI codes, so
-   `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for a private-use
-   character, and `ansi_to_html()` afterwards converts them with
+   `postprocess_pages()` then skips too), makes the package available to the
+   pages' R processes (installed into a temp library prepended via `R_LIBS`, or
+   with `devel = TRUE` a generated `R_PROFILE_USER` profile that runs
+   `pkgload::load_all()`; plus `R_CLI_NUM_COLORS=256` for colored output),
+   renders `_quarto/` into it (`output-dir: ../docs/`; with `processx` rather
+   than `quarto::quarto_render()`, whose `quiet` passes `--quiet`, which hides
+   errors too, so `render_error_log()` can show them) and writes
+   `docs/pkgdown.yml` (`urls` + `articles`, all downlit reads). The name is
+   fixed: downlit fetches `<site URL>/pkgdown.yml` to link other packages' code
+   to this site, so it must not be renamed.
+3. **After rendering** --- `postprocess_pages()`
+   ([R/code-link.R](R/code-link.R)) reads and writes each `docs/**/*.html` once.
+   In between, `link_code_html()` runs downlit over it (replacing Quarto's
+   `code-link`, which would wipe code annotations). `pre.code-annotated` blocks
+   are hidden from downlit and their `span.fu` tokens (and `span.sc` `%op%`s)
+   linked one by one with `downlit::autolink_url()` instead. xml2 drops the ESC
+   of ANSI codes, so `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for
+   a private-use character, and `ansi_to_html()` afterwards converts them with
    `fansi::sgr_to_html()` (not `cli::ansi_html()`, which loses colors of nested
    styles); `strip_search_ansi()` strips them from `search.json`. Before that,
    `add_tooltips_html()` ([R/tooltips.R](R/tooltips.R)) regex-rewrites the HTML

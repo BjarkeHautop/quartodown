@@ -28,19 +28,28 @@ test_that("example_knit_options() takes the format's settings over the project's
 
 test_that("example_knit_options() leaves pages to Quarto for settings it doesn't handle", {
   expect_null(example_knit_options(list(execute = list(eval = FALSE))))
-  expect_null(example_knit_options(list(format = list(html = list(echo = FALSE)))))
+  expect_null(example_knit_options(list(
+    format = list(html = list(echo = FALSE))
+  )))
   expect_null(example_knit_options(list(execute = list(`fig-format` = "pdf"))))
-  expect_null(example_knit_options(list(knitr = list(opts_chunk = list(cache = TRUE)))))
+  expect_null(example_knit_options(list(
+    knitr = list(opts_chunk = list(cache = TRUE))
+  )))
   expect_null(example_knit_options(list(knitr = list(opts_knit = list()))))
 })
 
 write_example_page <- function(dir, name, ...) {
   file <- file.path(dir, paste0(name, ".qmd"))
-  writeLines(c("---", paste("title:", name), "---", "", "## Examples", "", ...), file)
+  writeLines(
+    c("---", paste("title:", name), "---", "", "## Examples", "", ...),
+    file
+  )
   normalizePath(file, winslash = "/")
 }
 
-chunk <- function(...) c("```{r, collapse=TRUE, comment=\"#>\"}", ..., "```", "")
+chunk <- function(...) {
+  c("```{r, collapse=TRUE, comment=\"#>\"}", ..., "```", "")
+}
 
 example_opts <- function() {
   example_knit_options(list(
@@ -78,7 +87,10 @@ test_that("run_examples_script() writes the Markdown Quarto's knitr engine would
     lines[figure + 1],
     "![](a_files/figure-html/unnamed-chunk-2-1.png){width=672}"
   )
-  expect_true(file.exists(file.path(dir, "a_files/figure-html/unnamed-chunk-2-1.png")))
+  expect_true(file.exists(file.path(
+    dir,
+    "a_files/figure-html/unnamed-chunk-2-1.png"
+  )))
   # Not a chunk, so left as it is.
   expect_identical(lines[which(lines == "```r") + 1], "not_run()")
 })
@@ -139,7 +151,9 @@ test_that("run_examples_script() leaves a page that fails or has HTML dependenci
   widget <- write_example_page(
     dir,
     "widget",
-    chunk("knitr::knit_meta_add(list(structure(list(), class = \"html_dependency\")))")
+    chunk(
+      "knitr::knit_meta_add(list(structure(list(), class = \"html_dependency\")))"
+    )
   )
   before <- list(readLines(failing), readLines(widget))
   status <- run_examples_script(c(failing, widget), example_opts(), character())
@@ -153,8 +167,15 @@ test_that("run_examples() reuses a page's results with `freeze = TRUE` until it 
   dir <- new_pkg()
   reference <- file.path(dir, "_quarto", "reference")
   dir.create(reference)
-  counter <- normalizePath(withr::local_tempfile(), winslash = "/", mustWork = FALSE)
-  code <- c(sprintf("cat(1, file = %s, append = TRUE)", deparse(counter)), "plot(1)")
+  counter <- normalizePath(
+    withr::local_tempfile(),
+    winslash = "/",
+    mustWork = FALSE
+  )
+  code <- c(
+    sprintf("cat(1, file = %s, append = TRUE)", deparse(counter)),
+    "plot(1)"
+  )
   settings <- quarto_config(dir)
 
   build <- function(code) {
@@ -167,7 +188,10 @@ test_that("run_examples() reuses a page's results with `freeze = TRUE` until it 
   first <- build(code)
   expect_identical(build(code), first)
   expect_identical(nchar(readLines(counter, warn = FALSE)), 1L)
-  expect_true(file.exists(file.path(reference, "a_files/figure-html/unnamed-chunk-1-1.png")))
+  expect_true(file.exists(file.path(
+    reference,
+    "a_files/figure-html/unnamed-chunk-1-1.png"
+  )))
 
   build(c(code, "2"))
   expect_identical(nchar(readLines(counter, warn = FALSE)), 2L)

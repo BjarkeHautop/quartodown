@@ -404,7 +404,10 @@ test_that("dev_mode() is `development: mode:`, release by default", {
   withr::local_envvar(QUARTODOWN_DEV_MODE = NA)
   dir <- new_pkg()
   expect_identical(dev_mode(dir), "release")
-  expect_identical(dev_mode(dir, list(development = list(mode = "devel"))), "devel")
+  expect_identical(
+    dev_mode(dir, list(development = list(mode = "devel"))),
+    "devel"
+  )
   expect_error(
     dev_mode(dir, list(development = list(mode = "dev"))),
     "development: mode:"
@@ -487,10 +490,22 @@ test_that("postprocess_pages() leaves the development site to its own build", {
 
 test_that("render_inputs() lists the files Quarto renders", {
   dir <- withr::local_tempdir()
-  for (f in c("index.qmd", "NEWS.md", "reference/foo.qmd", "a/b.Rmd",
-              "_quartodown/x.md", "_freeze/y.md", ".hidden.qmd",
-              "_draft.qmd", "theme.scss")) {
-    dir.create(dirname(file.path(dir, f)), recursive = TRUE, showWarnings = FALSE)
+  for (f in c(
+    "index.qmd",
+    "NEWS.md",
+    "reference/foo.qmd",
+    "a/b.Rmd",
+    "_quartodown/x.md",
+    "_freeze/y.md",
+    ".hidden.qmd",
+    "_draft.qmd",
+    "theme.scss"
+  )) {
+    dir.create(
+      dirname(file.path(dir, f)),
+      recursive = TRUE,
+      showWarnings = FALSE
+    )
     file.create(file.path(dir, f))
   }
   expect_setequal(
@@ -526,8 +541,14 @@ test_that("render_error_log() keeps Quarto's output from the failing file", {
 })
 
 test_that("rendering_file() reads the page Quarto starts", {
-  expect_identical(rendering_file("\r[ 2/31] reference/foo.qmd\r"), "reference/foo.qmd")
-  expect_identical(rendering_file("[2/2] vignettes\\a\\b.qmd"), "vignettes/a/b.qmd")
+  expect_identical(
+    rendering_file("\r[ 2/31] reference/foo.qmd\r"),
+    "reference/foo.qmd"
+  )
+  expect_identical(
+    rendering_file("[2/2] vignettes\\a\\b.qmd"),
+    "vignettes/a/b.qmd"
+  )
   expect_identical(rendering_file("processing file: index.qmd"), NA_character_)
   expect_identical(rendering_file("1/3 [unnamed-chunk-1]"), NA_character_)
 })
@@ -564,5 +585,8 @@ test_that("render_time_bullets() sums the reference and other pages", {
     unname(render_time_bullets(c("vignettes/{x}.qmd" = 1))),
     "vignettes/{{x}}.qmd: 1.0s"
   )
-  expect_identical(render_time_bullets(numeric()), structure(character(), names = character()))
+  expect_identical(
+    render_time_bullets(numeric()),
+    structure(character(), names = character())
+  )
 })
