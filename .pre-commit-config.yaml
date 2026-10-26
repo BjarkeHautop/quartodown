@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/jolars/panache-pre-commit
-    rev: v3.17.1
+    rev: v3.17.0
 
     hooks:
       - id: panache-format
