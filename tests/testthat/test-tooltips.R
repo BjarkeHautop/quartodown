@@ -363,6 +363,31 @@ test_that("an unlinked fu span is linked and tagged too", {
   )
 })
 
+test_that("a kw span (a function Pandoc highlights as a keyword) is tagged too", {
+  index <- list(
+    R6Class = list(
+      usage = "R6Class()",
+      brief = "Makes a class.",
+      topic = "R6Class"
+    )
+  )
+  html <- sample_html(paste0(
+    "<span class=\"kw\"><a href=\"https://r6.r-lib.org/reference/R6Class.html\">",
+    "R6Class</a></span><span class=\"op\">(</span>",
+    "<span class=\"kw\">function</span>"
+  ))
+
+  result <- inject_tooltips_html(html, index, "reference/")
+
+  expect_equal(result$n, 1L)
+  expect_match(
+    result$html,
+    '<span class="kw"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/R6Class.html">R6Class</a></span>',
+    fixed = TRUE
+  )
+  expect_match(result$html, "<span class=\"kw\">function</span>", fixed = TRUE)
+})
+
 test_that("an own %op% operator in a code block is linked and tagged", {
   index <- list(
     `%+deg%` = list(

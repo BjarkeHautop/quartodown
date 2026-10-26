@@ -3,14 +3,15 @@
 # Links references to the package's own topics in docs/ to their reference
 # page, with a tooltip showing the signature and a one-line summary. Any
 # existing downlit href is replaced, as downlit can't resolve the package's
-# own, unpublished topics. Matched are `fu`/`va` spans and `%op%` `op`/`sc`
-# spans in code blocks, and inline `<code>`, linked or not, in the HTML as
-# xml2 writes it (see postprocess_pages()). The tooltip's style and script are
-# in quartodown.scss and quartodown-after-body.html.
+# own, unpublished topics. Matched are `fu`/`va`/`kw` spans and `%op%`
+# `op`/`sc` spans in code blocks, and inline `<code>`, linked or not, in the
+# HTML as xml2 writes it (see postprocess_pages()). The tooltip's style and
+# script are in quartodown.scss and quartodown-after-body.html.
 
 tooltip_link_re <- paste0(
   # One group number each for the class and the name in either kind of span.
-  "(?|<span class=\"(fu|va)\">(?:<a href=\"[^\"]*\">)?([^<]*?)(?:</a>)?</span>",
+  # Pandoc's R syntax highlights some functions (e.g. R6Class) as keywords.
+  "(?|<span class=\"(fu|va|kw)\">(?:<a href=\"[^\"]*\">)?([^<]*?)(?:</a>)?</span>",
   "|<span class=\"(op|sc)\">(?:<a href=\"[^\"]*\">)?(%[^%<]+%)(?:</a>)?</span>)",
   "|",
   # One group number for the name in either shape of inline code.

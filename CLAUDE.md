@@ -143,13 +143,14 @@ quartodown::build_site() # also previews it when interactive
    styles); `strip_search_ansi()` strips them from `search.json`. Before that,
    `add_tooltips_html()` ([R/tooltips.R](R/tooltips.R)) regex-rewrites the HTML
    xml2 wrote, linking references to the package's own topics
-   (`<span class="fu|va">` in code blocks, and `op`/`sc` spans holding a `%op%`,
-   and `<code>name()</code>` inline) to their reference page, and appends the
-   tips' contents in a hidden `.quartodown-tip-payload`; the tooltip's style and
-   script are in `quartodown.scss` and `quartodown-after-body.html`. Then
-   `write_redirects()` ([R/redirects.R](R/redirects.R)) writes redirect pages
-   for `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:`
-   needs front matter, which generated pages lack). Finally, with
+   (`<span class="fu|va|kw">` in code blocks, and `op`/`sc` spans holding a
+   `%op%`, and `<code>name()</code>` inline) to their reference page, and
+   appends the tips' contents in a hidden `.quartodown-tip-payload`; the
+   tooltip's style and script are in `quartodown.scss` and
+   `quartodown-after-body.html`. Then `write_redirects()`
+   ([R/redirects.R](R/redirects.R)) writes redirect pages for
+   `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:` needs
+   front matter, which generated pages lack). Finally, with
    `preview = interactive()`, `serve_site()` ([R/project.R](R/project.R)) serves
    `docs/` with `servr::httw()`. The server is kept in the package-level `the`
    environment and reused by later builds, whose open page live-reloads.
