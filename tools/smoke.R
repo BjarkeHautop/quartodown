@@ -153,6 +153,9 @@ install_deps <- function(dir) {
 build <- function(dir, log) {
   callr::r(
     function(quartodown, dir) {
+      # Each warning in the log as it happens, rather than "There were 15
+      # warnings" at the end.
+      options(warn = 1)
       pkgload::load_all(quartodown, quiet = TRUE)
       trace(
         "run_examples",
@@ -211,6 +214,11 @@ check_links <- function(docs, pages) {
       xml2::xml_attr(xml2::xml_find_all(html, "//script[@src]"), "src")
     )
     links <- unique(links[!grepl("^([a-zA-Z][a-zA-Z0-9+.-]*:|//)", links)])
+    # Quarto links 404.html's from the site's URL path, as it's served at any
+    # missing address.
+    if (page == "404.html") {
+      links <- links[!startsWith(links, "/")]
+    }
     for (link in links) {
       target <- sub("[?#].*", "", link)
       anchor <- if (grepl("#", link)) sub("^[^#]*#", "", link)
