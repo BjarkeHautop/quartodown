@@ -22,8 +22,9 @@
 packages <- c(
   # Lifecycle badges, Rd macros, `@examplesIf`, many internal topics.
   rlang = "r-lib/rlang",
-  # ANSI output in examples, `\Sexpr`s.
-  cli = "r-lib/cli",
+  # ANSI output in examples. (Not cli, whose vignettes include files from
+  # man/, which isn't in the copy of vignettes/ Quarto renders.)
+  pillar = "r-lib/pillar",
   purrr = "tidyverse/purrr",
   dplyr = "tidyverse/dplyr",
   # Many plotting examples and articles.
@@ -281,12 +282,21 @@ check_tooltips <- function(pages, aliases, pkg) {
 }
 
 # Calls in code blocks that link nowhere, as the percentage of all calls
-# (attribute "percent") and the most common names.
+# (attribute "percent") and the most common names. downlit gives the `pkg`
+# and `::` of `pkg::fun()` spans of their own, which aren't calls.
 check_unlinked <- function(pages) {
   unlinked <- character()
   total <- 0
+  ns <- "(.='::' or .=':::')"
   for (html in pages) {
-    calls <- xml2::xml_find_all(html, "//main//pre//span[@class='fu']")
+    calls <- xml2::xml_find_all(
+      html,
+      sprintf(
+        "//main//pre//span[@class='fu'][not%s][not(following-sibling::span[1][%s])]",
+        ns,
+        ns
+      )
+    )
     total <- total + length(calls)
     linked <- !is.na(xml2::xml_find_first(calls, ".//a"))
     unlinked <- c(unlinked, xml2::xml_text(calls[!linked]))
@@ -302,10 +312,12 @@ check_unlinked <- function(pages) {
 check_pages <- function(dir, docs) {
   config <- suppressWarnings(read_config(dir))
   topics <- rd_topics(dir)
-  expected <- vapply(topics, `[[`, character(1), "basename")
-  expected <- paste0("reference/", expected[has_page(topics, config)], ".html")
-  vignettes <- articles_rel_paths(dir)
-  expected <- c(expected, paste0("vignettes/", vignettes, ".html"))
+  basenames <- vapply(topics, `[[`, character(1), "basename")
+  # sprintf(), unlike paste0(), gives nothing for no topics or vignettes.
+  expected <- c(
+    sprintf("reference/%s.html", basenames[has_page(topics, config)]),
+    sprintf("vignettes/%s.html", articles_rel_paths(dir))
+  )
   missing <- expected[!file.exists(file.path(docs, expected))]
   if (length(missing) > 0) paste0(missing, ": missing")
 }
