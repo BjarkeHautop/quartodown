@@ -24,6 +24,7 @@ test_that("use_quartodown() writes a starter quartodown.yml listing every topic"
     "_quartodown.yml"
   ))
   expect_identical(config$reference[[1]]$contents, "foo")
+  expect_identical(config$development$mode, "auto")
 })
 
 test_that("use_quartodown() adds the .gitignore/.Rbuildignore entries the build needs", {

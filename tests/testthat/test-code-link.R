@@ -9,6 +9,28 @@ annotated_page <- function(code) {
   )
 }
 
+test_that("link_code_html() drops the other site's content", {
+  page <- paste0(
+    "<html><body>",
+    "<div class=\"quartodown-devel\">dev</div>",
+    "<p><span class=\"x quartodown-release\">release</span></p>",
+    "<p class=\"quartodown-releases\">kept</p>",
+    "</body></html>"
+  )
+  html <- link_code_html(page, drop = other_site_classes("devel"))
+  expect_match(html, "dev</div>")
+  expect_no_match(html, ">release<")
+  expect_match(html, "kept")
+
+  html <- link_code_html(page, drop = other_site_classes("release"))
+  expect_no_match(html, "dev</div>")
+  expect_match(html, ">release<")
+  expect_identical(
+    other_site_classes("unreleased"),
+    other_site_classes("devel")
+  )
+})
+
 test_that("annotated blocks keep their markup and get calls linked", {
   html <- annotated_page(paste0(
     "x <span class=\"ot\">&lt;-</span> stats<span class=\"sc\">::</span>",

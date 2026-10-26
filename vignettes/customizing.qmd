@@ -293,10 +293,26 @@ The modes are the same as pkgdown's:
 - `devel`: builds into `docs/dev/` and marks the version as in development.
 - `unreleased`: builds into `docs/` and marks the version as unreleased, for a
   package not yet on CRAN.
-- `auto`: `devel` for a version like `1.2.0.9000`, `unreleased` for
-  `0.0.0.9000`, otherwise `release`.
+- `auto` (what `use_quartodown()` sets): `devel` for a version like
+  `1.2.0.9000`, or `unreleased` if the package isn't on CRAN yet; otherwise
+  `release`.
 
 The environment variable `QUARTODOWN_DEV_MODE` overrides it.
+
+Content for only one of the two sites, such as install instructions, goes in a
+`.quartodown-release` or `.quartodown-devel` div or span:
+
+```markdown
+::: {.quartodown-release}
+Install the released version from CRAN with `install.packages("mypkg")`.
+:::
+
+::: {.quartodown-devel}
+Install the development version with `pak::pak("me/mypkg")`.
+:::
+```
+
+An unreleased site keeps the `.quartodown-devel` content.
 
 A release build keeps `docs/dev/`, and a link next to the navbar's title
 switches between the two sites. With `mode: auto` and the workflow from

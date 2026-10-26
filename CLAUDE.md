@@ -122,27 +122,30 @@ quartodown::build_site() # also previews it when interactive
      page's source and the knitr options.
 2. **Rendering** --- clears the site's folder (`site_dir()`: `docs/`, or
    `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s pkgdown-style
-   `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`; that also puts
-   `site-url` under `dev/` and a `noindex` meta in `quartodown-header.html`),
-   keeping `CNAME`, hidden files and, in `docs/`, `dev/` (which
-   `postprocess_pages()` then skips too), makes the package available to the
-   pages' R processes (installed into a temp library prepended via `R_LIBS`, or
-   with `devel = TRUE` a generated `R_PROFILE_USER` profile that runs
-   `pkgload::load_all()`; plus `R_CLI_NUM_COLORS=256` for colored output),
-   renders `_quarto/` into it (`output-dir: ../docs/`; with `processx` rather
-   than `quarto::quarto_render()`, whose `quiet` passes `--quiet`, which hides
-   errors too, so `render_error_log()` can show them) and writes
-   `docs/pkgdown.yml` (`urls` + `articles`, all downlit reads). The name is
-   fixed: downlit fetches `<site URL>/pkgdown.yml` to link other packages' code
-   to this site, so it must not be renamed.
+   `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`, which `auto` picks
+   for a `.9000` version of a package `on_cran()`; that also puts `site-url`
+   under `dev/` and a `noindex` meta in `quartodown-header.html`), keeping
+   `CNAME`, hidden files and, in `docs/`, `dev/` (which `postprocess_pages()`
+   then skips too), makes the package available to the pages' R processes
+   (installed into a temp library prepended via `R_LIBS`, or with `devel = TRUE`
+   a generated `R_PROFILE_USER` profile that runs `pkgload::load_all()`; plus
+   `R_CLI_NUM_COLORS=256` for colored output), renders `_quarto/` into it
+   (`output-dir: ../docs/`; with `processx` rather than
+   `quarto::quarto_render()`, whose `quiet` passes `--quiet`, which hides errors
+   too, so `render_error_log()` can show them) and writes `docs/pkgdown.yml`
+   (`urls` + `articles`, all downlit reads). The name is fixed: downlit fetches
+   `<site URL>/pkgdown.yml` to link other packages' code to this site, so it
+   must not be renamed.
 3. **After rendering** --- `postprocess_pages()`
    ([R/code-link.R](R/code-link.R)) reads and writes each `docs/**/*.html` once.
-   In between, `link_code_html()` runs downlit over it (replacing Quarto's
-   `code-link`, which would wipe code annotations). `pre.code-annotated` blocks
-   are hidden from downlit and their `span.fu` tokens (and `span.sc` `%op%`s)
-   linked one by one with `downlit::autolink_url()` instead. xml2 drops the ESC
-   of ANSI codes, so `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for
-   a private-use character, and `ansi_to_html()` afterwards converts them with
+   In between, `link_code_html()` drops the other site's `.quartodown-devel`/
+   `-release` elements (`other_site_classes()`) and runs downlit over it
+   (replacing Quarto's `code-link`, which would wipe code annotations).
+   `pre.code-annotated` blocks are hidden from downlit and their `span.fu`
+   tokens (and `span.sc` `%op%`s) linked one by one with
+   `downlit::autolink_url()` instead. xml2 drops the ESC of ANSI codes, so
+   `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for a private-use
+   character, and `ansi_to_html()` afterwards converts them with
    `fansi::sgr_to_html()` (not `cli::ansi_html()`, which loses colors of nested
    styles); `strip_search_ansi()` strips them from `search.json`. Before that,
    `add_tooltips_html()` ([R/tooltips.R](R/tooltips.R)) regex-rewrites the HTML

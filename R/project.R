@@ -28,8 +28,10 @@ has_dev_mode <- function(config = list()) {
 # environment variable, which takes precedence): "release" (the
 # default), "devel" (a site in dev/ for the development version, alongside
 # the released version's), or "unreleased" (in the root, for a package not
-# yet released). "auto" picks from the version: a fourth component makes it
-# devel, and a 0.0.0.* version unreleased.
+# yet released). "auto" picks from the version: a fourth component, or a
+# third of 9000 or more, makes it devel, unless it's 0.0.0.* or the package
+# isn't on CRAN, which make it unreleased, so the root isn't left without a
+# site.
 dev_mode <- function(path, config = list()) {
   mode <- Sys.getenv("QUARTODOWN_DEV_MODE")
   if (!nzchar(mode)) {
@@ -53,9 +55,12 @@ dev_mode <- function(path, config = list()) {
   }
   version <- desc::desc_get_field("Version", default = "0.0.0", file = path)
   version <- unclass(package_version(version))[[1]]
-  if (length(version) < 4) {
+  in_dev <- length(version) > 3 ||
+    (length(version) == 3 && version[[3]] >= 9000)
+  if (!in_dev) {
     "release"
-  } else if (all(version[1:3] == 0)) {
+  } else if (all(version[1:3] == 0) || isFALSE(on_cran(pkg_name(path)))) {
+    # Offline (NA), the version decides.
     "unreleased"
   } else {
     "devel"
@@ -772,6 +777,6 @@ serve_site <- function(path, config = list(), reopen) {
 }
 
 # The preview server, kept across calls so rebuilds reuse it, and the
-# packages' CRAN pages (see cran_url_if_available()).
+# packages' CRAN status (see on_cran()).
 the <- new.env(parent = emptyenv())
-the$cran_urls <- list()
+the$on_cran <- list()

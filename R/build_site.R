@@ -46,9 +46,11 @@
 #' * `development`: `mode`, `release` (the default) to build the site into
 #'   `docs/`, or `devel` to build a site for the development version into
 #'   `docs/dev/`, next to the released version's; `unreleased` marks the
-#'   version as unreleased, and `auto` picks from the version number. The
-#'   environment variable `QUARTODOWN_DEV_MODE` overrides it. The format is
-#'   the same as pkgdown's.
+#'   version as unreleased, and `auto` picks from the version number and
+#'   whether the package is on CRAN. The environment variable
+#'   `QUARTODOWN_DEV_MODE` overrides it. The format is the same as pkgdown's.
+#'   Content in `.quartodown-devel` or `.quartodown-release` shows on only
+#'   that site.
 #' * `vignettes`: `files`, files and folders outside `vignettes/` that the
 #'   vignettes use by a relative path, such as `man/rmd/` for a child document
 #'   `../man/rmd/shared.Rmd`, copied with them.

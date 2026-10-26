@@ -566,8 +566,23 @@ test_that("dev_mode() picks from the version with `mode: auto`", {
   expect_identical(dev_mode(dir, auto), "release")
   desc::desc_set_version("1.0.0.9000", file = dir)
   expect_identical(dev_mode(dir, auto), "devel")
+  desc::desc_set_version("1.0.9000", file = dir)
+  expect_identical(dev_mode(dir, auto), "devel")
   desc::desc_set_version("0.0.0.9000", file = dir)
   expect_identical(dev_mode(dir, auto), "unreleased")
+})
+
+test_that("dev_mode() with `mode: auto` keeps a package not on CRAN in the root", {
+  withr::local_envvar(QUARTODOWN_DEV_MODE = NA)
+  dir <- new_pkg()
+  auto <- list(development = list(mode = "auto"))
+  desc::desc_set_version("0.1.0.9000", file = dir)
+  local_mocked_bindings(on_cran = function(pkg) FALSE)
+  expect_identical(dev_mode(dir, auto), "unreleased")
+  local_mocked_bindings(on_cran = function(pkg) TRUE)
+  expect_identical(dev_mode(dir, auto), "devel")
+  desc::desc_set_version("0.1.0", file = dir)
+  expect_identical(dev_mode(dir, auto), "release")
 })
 
 test_that("a development site goes in docs/dev/, under the site URL's dev/", {

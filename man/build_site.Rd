@@ -90,9 +90,11 @@ such as \verb{["reference/old.html", "reference/new.html"]}.
 \item \code{development}: \code{mode}, \code{release} (the default) to build the site into
 \verb{docs/}, or \code{devel} to build a site for the development version into
 \verb{docs/dev/}, next to the released version's; \code{unreleased} marks the
-version as unreleased, and \code{auto} picks from the version number. The
-environment variable \code{QUARTODOWN_DEV_MODE} overrides it. The format is
-the same as pkgdown's.
+version as unreleased, and \code{auto} picks from the version number and
+whether the package is on CRAN. The environment variable
+\code{QUARTODOWN_DEV_MODE} overrides it. The format is the same as pkgdown's.
+Content in \code{.quartodown-devel} or \code{.quartodown-release} shows on only
+that site.
 \item \code{vignettes}: \code{files}, files and folders outside \verb{vignettes/} that the
 vignettes use by a relative path, such as \verb{man/rmd/} for a child document
 \code{../man/rmd/shared.Rmd}, copied with them.
