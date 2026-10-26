@@ -638,6 +638,7 @@ build_website_readme <- function(lines, path = ".", config = list()) {
   # A .qmd's front matter stays at the top.
   parts <- split_front_matter(lines)
   lines <- github_markdown_to_quarto(parts$body, mermaid = TRUE)
+  lines <- link_community_files(lines, path)
   lines <- theme_pictures_to_images(lines)
   if (!isFALSE(config$home$sidebar)) {
     lines <- home_page_with_sidebar(lines, path, config)

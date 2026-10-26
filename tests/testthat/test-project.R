@@ -25,13 +25,28 @@ test_that("import_markdown_files() imports NEWS, the license and community files
   writeLines("YEAR: 2026", file.path(dir, "LICENSE"))
   dir.create(file.path(dir, ".github"))
   writeLines("Be nice.", file.path(dir, ".github", "CODE_OF_CONDUCT.md"))
+  # Links to .github/'s files, copied to the root.
+  writeLines(
+    "See the [code of conduct](.github/CODE_OF_CONDUCT.md).",
+    file.path(dir, "CONTRIBUTING.md")
+  )
 
   import_markdown_files(dir)
 
   project <- file.path(dir, "_quarto")
   expect_setequal(
     list.files(project),
-    c("NEWS.md", "LICENSE.md", "LICENSE-text.md", "CODE_OF_CONDUCT.md")
+    c(
+      "NEWS.md",
+      "LICENSE.md",
+      "LICENSE-text.md",
+      "CODE_OF_CONDUCT.md",
+      "CONTRIBUTING.md"
+    )
+  )
+  expect_identical(
+    readLines(file.path(project, "CONTRIBUTING.md")),
+    "See the [code of conduct](CODE_OF_CONDUCT.md)."
   )
   expect_identical(
     readLines(file.path(project, "CODE_OF_CONDUCT.md")),

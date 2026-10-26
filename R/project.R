@@ -275,6 +275,23 @@ community_file_source <- function(path, name) {
   if (length(found) == 0) NULL else found[[1]]
 }
 
+# Links in `lines` to a community file in .github/ (e.g. the root
+# CONTRIBUTING.md's `.github/CODE_OF_CONDUCT.md`), pointed at its page, which
+# is at the site's root.
+link_community_files <- function(lines, path) {
+  for (name in community_files) {
+    src <- file.path(".github", name)
+    if (identical(community_file_source(path, name), src)) {
+      pattern <- paste0(
+        "(\\]\\(|href=\")(\\./)?",
+        gsub(".", "\\.", src, fixed = TRUE)
+      )
+      lines <- gsub(pattern, paste0("\\1", name), lines)
+    }
+  }
+  lines
+}
+
 # NEWS.md and the community files keep their name; LICENSE.md is the full
 # license, and a plain LICENSE file (e.g. the "YEAR:/COPYRIGHT HOLDER:" stub
 # of "MIT + file LICENSE") becomes LICENSE-text.md.
@@ -292,7 +309,9 @@ import_markdown_files <- function(path, config = list()) {
   }
   for (name in community_files) {
     src <- community_file_source(path, name)
-    if (!is.null(src)) write(read_md(file.path(path, src)), name)
+    if (!is.null(src)) {
+      write(link_community_files(read_md(file.path(path, src)), path), name)
+    }
   }
   if (file.exists(file.path(path, "LICENSE.md"))) {
     write(read_md(file.path(path, "LICENSE.md")), "LICENSE.md")
