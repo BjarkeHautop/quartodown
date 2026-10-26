@@ -420,6 +420,43 @@ img.ror {
   vertical-align: text-bottom;
 }
 
+/* diagrams =================================================================== */
+
+// Quarto colors mermaid's labels `$primary` and its edges `$secondary`, which
+// some dark themes' background swallows (darkly's). Mix them toward the text
+// color until readable: 4.5:1 for the labels, 3:1 (WCAG's for graphics) for
+// the edges. The nodes' tint is faint enough to compare with `$body-bg`.
+$quartodown-mermaid-label-color: $primary;
+$quartodown-mix: 100%;
+@while $quartodown-mix > 0% and
+  contrast-ratio($body-bg, $quartodown-mermaid-label-color) < 4.5 {
+  $quartodown-mix: $quartodown-mix - 10%;
+  $quartodown-mermaid-label-color: mix($primary, $body-color, $quartodown-mix);
+}
+
+$quartodown-mermaid-edge-color: $secondary;
+$quartodown-mix: 100%;
+@while $quartodown-mix > 0% and
+  contrast-ratio($body-bg, $quartodown-mermaid-edge-color) < 3 {
+  $quartodown-mix: $quartodown-mix - 10%;
+  $quartodown-mermaid-edge-color: mix($secondary, $body-color, $quartodown-mix);
+}
+
+:root {
+  --mermaid-label-fg-color: #{$quartodown-mermaid-label-color};
+  --mermaid-edge-color: #{$quartodown-mermaid-edge-color};
+}
+
+// Mermaid gives edge labels' inner `<p>` and `.labelBkg` its own theme's gray,
+// which Quarto's mermaid variables don't reach. `!important` beats mermaid's
+// rules, scoped to the diagram's id.
+.edgeLabel,
+.edgeLabel p,
+.labelBkg {
+  background-color: var(--mermaid-label-bg-color) !important;
+  color: var(--mermaid-fg-color) !important;
+}
+
 /* tooltips =================================================================== */
 
 // References to the package's own topics, linked by add_tooltips_html(). One
