@@ -41,7 +41,11 @@ quartodown::build_site() # also previews it when interactive
 
 1. **Before rendering** --- empties `_quarto/` (keeping `_freeze/` with
    `freeze = TRUE`) and writes the whole project into it
-   ([R/project.R](R/project.R)): `vignettes/`, `man/figures/`, `NEWS.md` (with
+   ([R/project.R](R/project.R)): `vignettes/`, `man/figures/`,
+   `_quartodown.yml`'s `vignettes: files:` (`vignette_files()`, so vignettes'
+   `../` paths resolve; `check_vignette_paths()` warns about uncopied ones, and
+   documents in them are kept from rendering by an explicit `project: render:`
+   list, `render_list()`, as Quarto ignores a negated `!man/`), `NEWS.md` (with
    `#123`/`@user` links), `LICENSE.md`, `LICENSE` as `LICENSE-text.md`, and
    CODE_OF_CONDUCT/CONTRIBUTING/SUPPORT `.md` from the root or `.github/`
    (pkgdown's layout), plus:

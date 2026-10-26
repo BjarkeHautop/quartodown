@@ -55,6 +55,11 @@ _quarto/
 └── quartodown.scss               # theme on top of Quarto's HTML
 ```
 
+The files listed under `vignettes: files:` (see [Customizing your
+site](../customizing.qmd#files-the-vignettes-use)) are copied to the same paths,
+so that the vignettes' relative paths to them resolve as in the package.
+Documents in them aren't rendered as pages.
+
 ## The man pages
 
 Each `man/*.Rd` file becomes a reference page, served at

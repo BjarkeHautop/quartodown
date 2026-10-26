@@ -133,11 +133,127 @@ insert_after_front_matter <- function(lines, insert) {
 }
 
 # man/figures/ holds the images README.md and `\figure{}` use. README.Rmd's
-# knitr figures can land in README_files/ instead.
-copy_figures <- function(path) {
-  for (dir in c("man/figures", "README_files")) {
-    copy_dir(file.path(path, dir), file.path(project_dir(path), dir))
+# knitr figures can land in README_files/ instead. The `vignettes: files:` are
+# copied to the same paths, so that a vignette's path out of vignettes/, such
+# as a child document `../man/rmd/shared.Rmd`, resolves as in the package.
+copy_package_files <- function(path, config = list()) {
+  files <- c("man/figures", "README_files", vignette_files(path, config))
+  for (file in files) {
+    from <- file.path(path, file)
+    to <- file.path(project_dir(path), file)
+    if (dir.exists(from)) {
+      copy_dir(from, to)
+    } else if (file.exists(from)) {
+      dir.create(dirname(to), recursive = TRUE, showWarnings = FALSE)
+      file.copy(from, to, overwrite = TRUE)
+    }
   }
+}
+
+# _quartodown.yml's `vignettes: files:`, paths in the package outside
+# vignettes/, without trailing slashes.
+vignette_files <- function(path, config = list()) {
+  if (!is.null(config$vignettes) && !is.list(config$vignettes)) {
+    config_abort(
+      "vignettes",
+      "must be a list, such as {.code files: [man/rmd/]}."
+    )
+  }
+  files <- config$vignettes$files
+  if (is.null(files)) {
+    return(character())
+  }
+  is_path <- function(x) is.character(x) && length(x) == 1 && !is.na(x)
+  if (
+    !is.list(files) &&
+      !is.character(files) ||
+      !all(vapply(files, is_path, logical(1)))
+  ) {
+    config_abort("vignettes: files", "must be a list of paths.")
+  }
+  files <- sub("/+$", "", unlist(files))
+  for (file in files) {
+    parts <- strsplit(file, "/", fixed = TRUE)[[1]]
+    if (grepl("^([/~\\\\]|[A-Za-z]:)", file) || ".." %in% parts) {
+      config_abort(
+        "vignettes: files",
+        "has {.path {file}}, which isn't a path in the package."
+      )
+    }
+    if (parts[[1]] %in% c(".", "", "vignettes", "_quarto")) {
+      config_abort(
+        "vignettes: files",
+        "has {.path {file}}, which isn't outside {.path vignettes/}."
+      )
+    }
+    if (!file.exists(file.path(path, file))) {
+      config_abort(
+        "vignettes: files",
+        "has {.path {file}}, which doesn't exist."
+      )
+    }
+  }
+  files
+}
+
+# Warns about quoted paths out of vignettes/ in the vignettes, such as
+# `read.csv("../data-raw/x.csv")`, to files that aren't copied with them (see
+# copy_package_files()), so won't be found. Only paths to files that exist
+# count, as other `../` strings may not be paths.
+check_vignette_paths <- function(path, config = list()) {
+  copied <- c("man/figures", "README_files", vignette_files(path, config))
+  root <- normalizePath(path, winslash = "/")
+  found <- character()
+  suggest <- character()
+  for (vignette in find_vignettes(path)) {
+    file <- file.path(path, "vignettes", vignette)
+    lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
+    refs <- regmatches(
+      lines,
+      gregexpr("(?<=[\"'])(\\.\\./)+[^\"'\\s]+(?=[\"'])", lines, perl = TRUE)
+    )
+    for (ref in unique(unlist(refs))) {
+      target <- file.path(dirname(file), ref)
+      if (!file.exists(target)) {
+        next
+      }
+      target <- normalizePath(target, winslash = "/")
+      if (!startsWith(target, paste0(root, "/"))) {
+        next
+      }
+      rel <- substring(target, nchar(root) + 2)
+      if (startsWith(rel, "vignettes/") || is_under(rel, copied)) {
+        next
+      }
+      found <- c(
+        found,
+        cli::format_inline("{.path vignettes/{vignette}}: {.path {ref}}")
+      )
+      dir <- if (dir.exists(target)) rel else dirname(rel)
+      suggest <- c(suggest, if (dir == ".") rel else paste0(dir, "/"))
+    }
+  }
+  if (length(found) == 0) {
+    return(invisible())
+  }
+  # Braces escaped so cli doesn't interpolate them again.
+  found <- gsub("([{}])", "\\1\\1", found)
+  suggest <- unique(suggest)
+  cli::cli_warn(c(
+    "Vignettes refer to files outside {.path vignettes/} that aren't copied with them, so won't be found:",
+    structure(found, names = rep("*", length(found))),
+    "i" = "To copy them, add {.val {suggest}} to {.field vignettes: files:} in {.path {config_file}}."
+  ))
+}
+
+# Whether each of `files` is one of `paths` or in one of them.
+is_under <- function(files, paths) {
+  vapply(
+    files,
+    function(file) any(file == paths | startsWith(file, paste0(paths, "/"))),
+    logical(1),
+    USE.NAMES = FALSE
+  )
 }
 
 # _quartodown/, with the files _quartodown.yml's `quarto:` settings refer to.
@@ -271,7 +387,7 @@ check_quarto <- function() {
 render_project <- function(path, envvars, config = list(), quiet = TRUE) {
   clear_site(path, config)
 
-  n <- length(render_inputs(project_dir(path)))
+  n <- length(render_inputs(project_dir(path), vignette_files(path, config)))
   # Quarto's own output goes to the console unless `quiet`, and a progress
   # step's line would be redrawn over it.
   current <- ""
@@ -399,15 +515,27 @@ run_quarto_render <- function(path, envvars, quiet, on_line = NULL) {
 }
 
 # The files Quarto renders in the project `dir`: those it can render, outside
-# `_`/`.` folders and not themselves `_`/`.`-prefixed.
-render_inputs <- function(dir) {
+# `_`/`.` folders and `exclude` (the `vignettes: files:`, which aren't pages),
+# and not themselves `_`/`.`-prefixed.
+render_inputs <- function(dir, exclude = character()) {
   files <- list.files(
     dir,
     pattern = "\\.(qmd|md|Rmd|ipynb)$",
     recursive = TRUE,
     ignore.case = TRUE
   )
-  files[!grepl("(^|/)[_.]", files)]
+  files[!grepl("(^|/)[_.]", files) & !is_under(files, exclude)]
+}
+
+# `project: render:` for the project `dir`: NULL, leaving Quarto to render
+# every document, unless some are in `exclude`. Quarto (1.9) still renders
+# those under a negated `!man/`, so this lists the pages instead.
+render_list <- function(dir, exclude = character()) {
+  pages <- render_inputs(dir, exclude)
+  if (length(pages) == length(render_inputs(dir))) {
+    return(NULL)
+  }
+  as.list(pages)
 }
 
 # The end of Quarto's output, from the line naming the file that failed

@@ -304,6 +304,24 @@ switches between the two sites. With `mode: auto` and the workflow from
 later pushes update the dev site, as long as you bump the version to `.9000`
 right after each release.
 
+## Files the vignettes use
+
+The vignettes are built from a copy of `vignettes/` in `_quarto/vignettes/`, so
+a relative path out of it, such as `read.csv("../data-raw/example.csv")` or a
+child document `child = "../man/rmd/shared.Rmd"`, doesn't find the file. List
+such files and folders under `vignettes: files:`, and they are copied too, to
+the same paths:
+
+```yaml
+vignettes:
+  files:
+    - man/rmd/
+    - data-raw/example.csv
+```
+
+Documents in them aren't rendered as pages. When a vignette has a quoted `../`
+path to a file that isn't copied, the build warns and names the entry to add.
+
 ## Other Quarto settings
 
 quartodown writes a Quarto configuration into `_quarto/_quarto.yml` (overwritten

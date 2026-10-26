@@ -93,6 +93,9 @@ such as \verb{["reference/old.html", "reference/new.html"]}.
 version as unreleased, and \code{auto} picks from the version number. The
 environment variable \code{QUARTODOWN_DEV_MODE} overrides it. The format is
 the same as pkgdown's.
+\item \code{vignettes}: \code{files}, files and folders outside \verb{vignettes/} that the
+vignettes use by a relative path, such as \verb{man/rmd/} for a child document
+\code{../man/rmd/shared.Rmd}, copied with them.
 \item \code{quarto}: settings merged over the generated Quarto configuration.
 }
 

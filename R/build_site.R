@@ -49,6 +49,9 @@
 #'   version as unreleased, and `auto` picks from the version number. The
 #'   environment variable `QUARTODOWN_DEV_MODE` overrides it. The format is
 #'   the same as pkgdown's.
+#' * `vignettes`: `files`, files and folders outside `vignettes/` that the
+#'   vignettes use by a relative path, such as `man/rmd/` for a child document
+#'   `../man/rmd/shared.Rmd`, copied with them.
 #' * `quarto`: settings merged over the generated Quarto configuration.
 #'
 #' `_quartodown/extra.scss` and `_quartodown/extra.css`, if they exist, style
@@ -121,7 +124,7 @@ build_site <- function(
   )
   reset_project(path, freeze = freeze)
   copy_vignettes(path, config)
-  copy_figures(path)
+  copy_package_files(path, config)
   with_libpaths(envvars, write_man_pages(path, config, topics))
   import_markdown_files(path, config)
   copy_theme_files(path, config)
@@ -130,7 +133,6 @@ build_site <- function(
   build_reference_qmd(path, config, topics)
   build_authors_qmd(path, config)
   settings <- write_quarto_config(path, config, freeze, topics)
-  write_404(path, settings$website$`site-url`)
 
   cli::cli_progress_done()
 
@@ -203,9 +205,13 @@ read_config <- function(path) {
       "theme",
       "redirects",
       "development",
+      "vignettes",
       "quarto"
     )
   )
+  if (is.list(config$vignettes)) {
+    warn_unknown_fields(names(config$vignettes), "files", "vignettes")
+  }
   if (is.list(config$home)) {
     warn_unknown_fields(
       names(config$home),
@@ -251,6 +257,7 @@ check_config <- function(path, config, topics) {
   navbar_style(config)
   navbar_layout(path, config)
   reference_block_topics(reference_blocks(config, topics), topics)
+  check_vignette_paths(path, config)
   invisible()
 }
 
@@ -485,7 +492,9 @@ merge_quarto_config <- function(x, val) {
   x
 }
 
-# Returns, invisibly, the settings written.
+# Also writes the 404 page, as the render list (see render_list()), set unless
+# the `quarto:` settings have one, needs every page written. Returns,
+# invisibly, the settings written.
 write_quarto_config <- function(
   path,
   config = list(),
@@ -493,6 +502,13 @@ write_quarto_config <- function(
   topics = rd_topics(path)
 ) {
   settings <- quarto_config(path, config, freeze = freeze, topics = topics)
+  write_404(path, settings$website$`site-url`)
+  if (is.null(settings$project$render)) {
+    settings$project$render <- render_list(
+      project_dir(path),
+      vignette_files(path, config)
+    )
+  }
   yaml::write_yaml(
     settings,
     file.path(project_dir(path), "_quarto.yml"),

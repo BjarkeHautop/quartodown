@@ -285,18 +285,122 @@ test_that("insert_after_front_matter() inserts after the front matter, or at the
   )
 })
 
-test_that("copy_figures() copies man/figures/ and README_files/", {
+write_files <- function(dir, files) {
+  for (f in files) {
+    dir.create(
+      dirname(file.path(dir, f)),
+      recursive = TRUE,
+      showWarnings = FALSE
+    )
+    writeLines("x", file.path(dir, f))
+  }
+}
+
+test_that("copy_package_files() copies man/figures/, README_files/ and `vignettes: files:`", {
   dir <- new_pkg_with_man()
   write_rd(dir, "foo")
-  dir.create(file.path(dir, "man", "figures"))
-  dir.create(file.path(dir, "README_files", "figure-gfm"), recursive = TRUE)
-  writeLines("x", file.path(dir, "man", "figures", "logo.svg"))
-  writeLines("x", file.path(dir, "README_files", "figure-gfm", "plot.png"))
+  write_files(
+    dir,
+    c(
+      "man/figures/logo.svg",
+      "man/rmd/shared.Rmd",
+      "data-raw/y.csv",
+      "data-raw/z.csv",
+      "notes.txt",
+      "README_files/figure-gfm/plot.png"
+    )
+  )
+  config <- list(vignettes = list(files = list("man/rmd/", "data-raw/y.csv")))
 
-  copy_figures(dir)
+  copy_package_files(dir, config)
   expect_setequal(
     list.files(file.path(dir, "_quarto"), recursive = TRUE),
-    c("man/figures/logo.svg", "README_files/figure-gfm/plot.png")
+    c(
+      "man/figures/logo.svg",
+      "man/rmd/shared.Rmd",
+      "data-raw/y.csv",
+      "README_files/figure-gfm/plot.png"
+    )
+  )
+})
+
+test_that("vignette_files() checks `vignettes: files:`", {
+  dir <- new_pkg()
+  write_files(dir, c("man/rmd/shared.Rmd", "vignettes/x.csv"))
+  files <- function(...) list(vignettes = list(files = list(...)))
+
+  expect_identical(vignette_files(dir), character())
+  expect_identical(vignette_files(dir, files("man/rmd/")), "man/rmd")
+  expect_error(vignette_files(dir, list(vignettes = "man")), "must be a list")
+  expect_error(vignette_files(dir, files(1)), "list of paths")
+  expect_error(vignette_files(dir, files("man/none")), "doesn't exist")
+  expect_error(vignette_files(dir, files("../x")), "isn't a path in")
+  expect_error(vignette_files(dir, files("/tmp")), "isn't a path in")
+  expect_error(vignette_files(dir, files("vignettes/x.csv")), "isn't outside")
+  expect_error(vignette_files(dir, files(".")), "isn't outside")
+})
+
+test_that("check_vignette_paths() warns about paths out of vignettes/ that aren't copied", {
+  dir <- new_pkg()
+  write_files(
+    dir,
+    c(
+      "man/rmd/shared.Rmd",
+      "man/figures/logo.png",
+      "data-raw/y.csv",
+      "vignettes/articles/data.csv"
+    )
+  )
+  writeLines(
+    c(
+      "```{r, child = '../man/rmd/shared.Rmd'}",
+      "```",
+      "read.csv(\"../data-raw/y.csv\")",
+      "read.csv(\"../data-raw/missing.csv\")",
+      "![](../man/figures/logo.png)",
+      "<img src=\"../man/figures/logo.png\">"
+    ),
+    file.path(dir, "vignettes", "intro.Rmd")
+  )
+  writeLines(
+    "read.csv('../articles/data.csv')",
+    file.path(dir, "vignettes", "articles", "a.qmd")
+  )
+
+  warning <- conditionMessage(expect_warning(check_vignette_paths(dir)))
+  expect_match(warning, "intro.Rmd': '../man/rmd/shared.Rmd'", fixed = TRUE)
+  expect_match(warning, "intro.Rmd': '../data-raw/y.csv'", fixed = TRUE)
+  expect_match(warning, "add \"man/rmd/\" and \"data-raw/\" to", fixed = TRUE)
+  expect_no_match(warning, "missing.csv|logo.png|data.csv")
+  expect_no_warning(check_vignette_paths(
+    dir,
+    list(vignettes = list(files = list("man/rmd", "data-raw/")))
+  ))
+})
+
+test_that("write_quarto_config() lists the pages only when `vignettes: files:` hold documents", {
+  dir <- new_pkg()
+  write_vignette(dir, "intro.qmd")
+  write_files(dir, c("data-raw/y.csv", "man/rmd/shared.Rmd"))
+  reset_project(dir)
+  copy_vignettes(dir)
+  writeLines("# x", file.path(dir, "_quarto", "index.qmd"))
+
+  config <- list(vignettes = list(files = list("data-raw")))
+  copy_package_files(dir, config)
+  expect_null(write_quarto_config(dir, config)$project$render)
+
+  config <- list(vignettes = list(files = list("data-raw", "man/rmd")))
+  copy_package_files(dir, config)
+  expect_setequal(
+    unlist(write_quarto_config(dir, config)$project$render),
+    c("index.qmd", "vignettes/intro.qmd")
+  )
+
+  config$quarto <- list(project = list(render = list("index.qmd")))
+  expect_identical(
+    write_quarto_config(dir, config)$project$render,
+    list("index.qmd")
   )
 })
 
@@ -495,6 +599,7 @@ test_that("render_inputs() lists the files Quarto renders", {
     "NEWS.md",
     "reference/foo.qmd",
     "a/b.Rmd",
+    "man/rmd/c.Rmd",
     "_quartodown/x.md",
     "_freeze/y.md",
     ".hidden.qmd",
@@ -510,7 +615,11 @@ test_that("render_inputs() lists the files Quarto renders", {
   }
   expect_setequal(
     render_inputs(dir),
-    c("index.qmd", "NEWS.md", "reference/foo.qmd", "a/b.Rmd")
+    c("index.qmd", "NEWS.md", "reference/foo.qmd", "a/b.Rmd", "man/rmd/c.Rmd")
+  )
+  expect_setequal(
+    render_inputs(dir, exclude = c("man", "a/b.Rmd")),
+    c("index.qmd", "NEWS.md", "reference/foo.qmd")
   )
 })
 
