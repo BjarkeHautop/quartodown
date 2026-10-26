@@ -19,7 +19,7 @@
 #' `_quartodown/_quartodown.yml` is optional; [use_quartodown()] creates
 #' one. It can contain:
 #'
-#' * `url`: the site's address, if it isn't the first `URL` in `DESCRIPTION`
+#' * `url`: the site's address. It defaults to the first `URL` in `DESCRIPTION`
 #'   that isn't a source repository.
 #' * `reference`: the sections of the function reference index and the topics
 #'   each lists, by name or with selectors such as `starts_with()`. The format
@@ -36,8 +36,8 @@
 #'   replace it; and under `sidebar` and `footer`, the `roles` shown, with
 #'   `before`/`after` text in the sidebar and `text` in the footer.
 #' * `repo`: the repository's `url`s (`home`, and the prefixes of links to a
-#'   file, `source`; an issue, `issue`; and a user, `user`) and `branch`, if
-#'   not from DESCRIPTION's GitHub, GitLab or Codeberg `URL`.
+#'   file, `source`; an issue, `issue`; and a user, `user`) and `branch`. They
+#'   default to those of DESCRIPTION's GitHub, GitLab or Codeberg `URL`.
 #' * `theme`: the `light` and `dark` themes: names of Quarto's built-in
 #'   themes, such as `flatly` and `darkly`, or `.scss` files in
 #'   `_quartodown/`. By default, `default` and `darkly`.

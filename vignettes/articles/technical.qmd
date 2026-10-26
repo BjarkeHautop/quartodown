@@ -74,8 +74,8 @@ one R process, which resets the global environment, search path, options and the
 like between pages, as `R CMD check` does. Pages whose examples fail or produce
 HTML widgets are left for Quarto to run.
 
-If `DESCRIPTION`'s `URL` includes a GitHub, GitLab or Codeberg repository, each
-reference page and vignette links to its source file under the title.
+Under its title, each reference page and vignette links to its source file in
+the package's [repository](../customizing.qmd#the-repository), if it has one.
 
 ## Code links and tooltips
 
@@ -94,11 +94,16 @@ build without tooltips, use `build_site(tooltips = FALSE)`.
 
 ## The theme
 
-The site uses Quarto's `default` theme in light mode and `darkly` in dark mode,
-or the themes `theme:` picks, with `quartodown.scss` on top of each, and then
-`_quartodown/extra.scss` if the package has one. With the `default` light theme,
-`quartodown-fonts.scss` also gives the dark theme the same system fonts and
-heading sizes. The mode follows the browser's preference.
+The site has a light and a dark theme, and follows the browser's preference.
+Each is built in layers:
+
+1. the Quarto theme: `default` in light mode and `darkly` in dark mode, unless
+   [`theme:`](../customizing.qmd#styling-and-layout) picks others,
+2. `quartodown.scss`, quartodown's own styling,
+3. `_quartodown/extra.scss`, if the package has one.
+
+With the `default` light theme, `quartodown-fonts.scss` also gives the dark
+theme the same system fonts and heading sizes.
 
 Code output keeps the colors packages such as cli give it in a terminal, in
 shades that suit the light or dark theme.

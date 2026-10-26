@@ -63,7 +63,7 @@ packages can check.
 \verb{_quartodown/_quartodown.yml} is optional; \code{\link[=use_quartodown]{use_quartodown()}} creates
 one. It can contain:
 \itemize{
-\item \code{url}: the site's address, if it isn't the first \code{URL} in \code{DESCRIPTION}
+\item \code{url}: the site's address. It defaults to the first \code{URL} in \code{DESCRIPTION}
 that isn't a source repository.
 \item \code{reference}: the sections of the function reference index and the topics
 each lists, by name or with selectors such as \code{starts_with()}. The format
@@ -80,8 +80,8 @@ page as written, without it; and \code{links}, added to the sidebar's links.
 replace it; and under \code{sidebar} and \code{footer}, the \code{roles} shown, with
 \code{before}/\code{after} text in the sidebar and \code{text} in the footer.
 \item \code{repo}: the repository's \code{url}s (\code{home}, and the prefixes of links to a
-file, \code{source}; an issue, \code{issue}; and a user, \code{user}) and \code{branch}, if
-not from DESCRIPTION's GitHub, GitLab or Codeberg \code{URL}.
+file, \code{source}; an issue, \code{issue}; and a user, \code{user}) and \code{branch}. They
+default to those of DESCRIPTION's GitHub, GitLab or Codeberg \code{URL}.
 \item \code{theme}: the \code{light} and \code{dark} themes: names of Quarto's built-in
 themes, such as \code{flatly} and \code{darkly}, or \code{.scss} files in
 \verb{_quartodown/}. By default, \code{default} and \code{darkly}.
