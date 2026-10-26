@@ -248,6 +248,12 @@ code_span <- paste0(
   collapse = " or "
 )
 
+# Code blocks of R or of no language, not e.g. a BibTeX citation.
+r_block <- paste0(
+  "contains(concat(' ', @class, ' '), ' r ') or ",
+  "not(contains(@class, 'sourceCode'))"
+)
+
 # Names in code blocks and inline code (`foo()`, `pkg::foo`, `foo`) naming
 # one of `aliases`, the own topics with a page, without a tooltip link.
 # Independent of add_tooltips_html()'s regex, so also catches tokens it
@@ -264,7 +270,9 @@ check_tooltips <- function(pages, aliases, pkg) {
     nodes <- xml2::xml_find_all(
       main,
       paste0(
-        ".//pre//span[",
+        ".//pre[",
+        r_block,
+        "]//span[",
         code_span,
         "] | ",
         ".//code[not(ancestor::pre) and not(.//span)]"
@@ -387,9 +395,10 @@ check_empty_sections <- function(pages) {
 }
 
 # ANSI escapes (or protect_ansi()'s placeholder) left in the pages or the
-# search index. xml2 drops the ESC itself, so "[31m" is what's left of one.
+# search index. xml2 drops the ESC itself, so "[31m" is what's left of one,
+# unless the text shows the escape (a printed string's "\033[31m").
 check_ansi <- function(docs, pages) {
-  pattern <- "\033||\\[(?:[0-9]{1,3};)*(?:3[0-9]|9[0-7]|1|22|39|49)m"
+  pattern <- "\033||(?<!\\\\033|\\\\u001b|\\\\x1b)\\[(?:[0-9]{1,3};)*(?:3[0-9]|9[0-7]|1|22|39|49)m"
   out <- character()
   for (page in names(pages)) {
     text <- xml2::xml_text(xml2::xml_find_all(pages[[page]], "//main"))
