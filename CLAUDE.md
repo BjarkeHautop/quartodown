@@ -52,7 +52,10 @@ quartodown::build_site() # also previews it when interactive
    - These `.md` files and the README go through `github_markdown_to_quarto()`:
      GitHub alerts (`> [!NOTE]`) → callouts; in the README only (written as
      `.qmd`, since Quarto won't run code cells in `.md`), ```` ```mermaid ```` →
-     ```` ```{mermaid} ````.
+     ```` ```{mermaid} ````. Executable ```` ```{r} ```` blocks become plain,
+     except in a `.qmd` `home: file:`, and a README.md's code blocks holding a
+     chunk's fence become raw HTML (`escape_knitr_blocks()`), since knitr runs
+     fences nested in code blocks too.
    - `reference/<topic>.qmd` ([R/rd2qmd.R](R/rd2qmd.R)): each Rd parsed with the
      package's Rd macros ([R/rd-macros.R](R/rd-macros.R)), rendered with
      `tools::Rd2HTML()` running build/install/render `\Sexpr` stages (with the
@@ -63,7 +66,9 @@ quartodown::build_site() # also previews it when interactive
      `../../pkg/html/` hrefs likewise. Usage and R6 method usage → fenced
      ```` ```r ````; prose stays HTML except inline `<code>` → Markdown code
      spans, `reqn` → `$`/`$$` math, `$` escaped, language-tagged `<pre>` →
-     fenced blocks. A `Source:` line under the title links the files roxygen's
+     fenced blocks. Inline `` `r x` `` and blocks holding a chunk's fence stay
+     raw HTML (`html_code()`, `html_code_block()`), as knitr would run them. A
+     `Source:` line under the title links the files roxygen's
      `% Please edit documentation in` header names (else the `.Rd`) to
      `<GitHub URL>/blob/HEAD/` (`source_note()`, shared with the authors page
      and the vignettes, which `copy_vignettes()` gives one after their front

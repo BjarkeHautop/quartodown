@@ -42,6 +42,64 @@ code_block_lines <- function(lines) {
   kinds
 }
 
+# knitr runs inline `r expr` and code chunks even where Markdown only shows
+# them: in a code span, and a chunk's fence inside a code block. Text that
+# wasn't written for knitr (a README.md, Rd) shows them as raw HTML instead,
+# with no backticks for knitr to find. Simplified from
+# `knitr::all_patterns$md`.
+knitr_inline_pattern <- "`r[ #][^`]+`"
+knitr_chunk_pattern <- "^[\t >]*```+\\s*\\{"
+
+# `code` as raw HTML `<code>`, with its punctuation as character references,
+# so Pandoc reads none of it as Markdown.
+html_code <- function(code) {
+  chars <- strsplit(code, "", fixed = TRUE)[[1]]
+  punct <- grepl("^[!-/:-@[-`{-~]$", chars)
+  chars[punct] <- sprintf("&#%d;", vapply(chars[punct], utf8ToInt, integer(1)))
+  paste0("<code>", paste(chars, collapse = ""), "</code>")
+}
+
+# The `code` lines as a raw HTML code block in `lang`, the lines of a fenced
+# one otherwise.
+html_code_block <- function(code, lang = "") {
+  code <- gsub("`", "&#96;", html_escape(code), fixed = TRUE)
+  class <- if (nzchar(lang)) sprintf(" class=\"sourceCode %s\"", lang) else ""
+  code[1] <- sprintf("<pre%s><code>%s", class, code[1])
+  code[length(code)] <- paste0(code[length(code)], "</code></pre>")
+  code
+}
+
+# `lines` of Markdown with each code block holding a chunk's fence as raw
+# HTML (see html_code_block()).
+escape_knitr_blocks <- function(lines) {
+  kinds <- code_block_lines(lines)
+  opens <- rev(which(kinds == "open"))
+  for (open in opens) {
+    end <- open
+    while (end < length(lines) && kinds[[end + 1L]] == "code") {
+      end <- end + 1L
+    }
+    code <- lines[seq_len(end - open) + open]
+    if (!any(grepl(knitr_chunk_pattern, code))) {
+      next
+    }
+    lang <- sub(
+      "^\\s*(```+|~~~+)\\s*\\{?\\.?([A-Za-z0-9_+-]*).*$",
+      "\\2",
+      lines[[open]]
+    )
+    closed <- end < length(lines) && kinds[[end + 1L]] == "close"
+    lines <- c(
+      lines[seq_len(open - 1L)],
+      "",
+      html_code_block(code, lang),
+      "",
+      lines[-seq_len(end + closed)]
+    )
+  }
+  lines
+}
+
 # `lines` as its YAML `front_matter` (`---` to `---` or `...`, after any
 # blank lines, empty if there's none) and the `body` after it.
 split_front_matter <- function(lines) {

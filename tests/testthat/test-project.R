@@ -272,7 +272,38 @@ test_that("github_markdown_to_quarto() makes executable blocks plain in a .md", 
   )
   expected <- replace(lines, 1:2 * 3 - 2, c("  ```r", "~~~python"))
   expect_identical(github_markdown_to_quarto(lines), expected)
-  expect_identical(github_markdown_to_quarto(lines, mermaid = TRUE), lines)
+  expect_identical(github_markdown_to_quarto(lines, mermaid = TRUE), expected)
+  expect_identical(
+    github_markdown_to_quarto(lines, mermaid = TRUE, executable = TRUE),
+    lines
+  )
+})
+
+test_that("escape_knitr_blocks() makes code blocks holding a chunk's fence HTML", {
+  lines <- c(
+    "```r",
+    "f()",
+    "```",
+    "~~~",
+    "  ```{python}",
+    "",
+    "~~~",
+    "````",
+    "```{r}"
+  )
+  expect_identical(
+    escape_knitr_blocks(lines),
+    c(
+      lines[1:3],
+      "",
+      "<pre><code>  &#96;&#96;&#96;{python}",
+      "</code></pre>",
+      "",
+      "",
+      "<pre><code>&#96;&#96;&#96;{r}</code></pre>",
+      ""
+    )
+  )
 })
 
 test_that("copy_vignettes() puts the source file under each vignette's title", {

@@ -531,7 +531,12 @@ write_home <- function(path, config = list()) {
     readLines(file.path(path, file), warn = FALSE, encoding = "UTF-8")
   }
   writeLines(
-    enc2utf8(build_website_readme(lines, path, config)),
+    enc2utf8(build_website_readme(
+      lines,
+      path,
+      config,
+      qmd = !is.null(file) && grepl("\\.qmd$", file, ignore.case = TRUE)
+    )),
     file.path(project_dir(path), "index.qmd"),
     useBytes = TRUE
   )
@@ -635,11 +640,24 @@ description_home <- function(path) {
 }
 
 # With _quartodown.yml's `home: sidebar: false`, the page is `lines` as
-# written, only made to render like on GitHub.
-build_website_readme <- function(lines, path = ".", config = list()) {
+# written, only made to render like on GitHub. Its code runs only if it's a
+# .qmd (`qmd = TRUE`).
+build_website_readme <- function(
+  lines,
+  path = ".",
+  config = list(),
+  qmd = FALSE
+) {
   # A .qmd's front matter stays at the top.
   parts <- split_front_matter(lines)
-  lines <- github_markdown_to_quarto(parts$body, mermaid = TRUE)
+  lines <- github_markdown_to_quarto(
+    parts$body,
+    mermaid = TRUE,
+    executable = qmd
+  )
+  if (!qmd) {
+    lines <- escape_knitr_blocks(lines)
+  }
   lines <- link_community_files(lines, path)
   lines <- theme_pictures_to_images(lines)
   if (!isFALSE(config$home$sidebar)) {

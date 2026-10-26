@@ -595,11 +595,43 @@ test_that("a .qmd home page keeps its front matter and code comments", {
     "```"
   )
 
-  home <- build_website_readme(lines, dir)
+  home <- build_website_readme(lines, dir, qmd = TRUE)
 
   expect_identical(home[1:4], lines[1:4])
   expect_true("# not a title" %in% home)
   expect_identical(sum(home == "```{r}"), 1L)
+})
+
+test_that("a .md home page's code doesn't run", {
+  dir <- new_pkg()
+  lines <- c(
+    "```{r}",
+    "1 + 1",
+    "```",
+    "",
+    "````markdown",
+    "```{r}",
+    "x < 1",
+    "```",
+    "````"
+  )
+
+  home <- build_website_readme(lines, dir, list(home = list(sidebar = FALSE)))
+
+  expect_identical(
+    home,
+    c(
+      "```r",
+      "1 + 1",
+      "```",
+      "",
+      "",
+      "<pre class=\"sourceCode markdown\"><code>&#96;&#96;&#96;{r}",
+      "x &lt; 1",
+      "&#96;&#96;&#96;</code></pre>",
+      ""
+    )
+  )
 })
 
 test_that("`home: sidebar: false` shows the home page as written", {

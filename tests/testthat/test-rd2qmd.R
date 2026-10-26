@@ -71,6 +71,31 @@ test_that("rd_html_to_markdown() turns inline code into code spans", {
   expect_identical(rd_html_to_markdown(marked), marked)
 })
 
+test_that("rd_html_to_markdown() keeps code knitr would run from it", {
+  expect_identical(
+    rd_html_to_markdown(
+      "Write <code>`r x$y`</code>, <code>r x</code> or <code>r</code>."
+    ),
+    "Write <code>&#96;r x&#36;y&#96;</code>, <code>r x</code> or `r`."
+  )
+  expect_identical(
+    rd_html_to_markdown(
+      "<div class=\"sourceCode markdown\"><pre>```{r}\n1\n```\n</pre></div>"
+    ),
+    c(
+      "",
+      "<pre class=\"sourceCode markdown\"><code>&#96;&#96;&#96;{r}",
+      "1",
+      "&#96;&#96;&#96;</code></pre>",
+      ""
+    )
+  )
+  expect_identical(
+    rd_html_to_markdown("<pre>```{r}\n</pre>"),
+    c("<pre>&#96;&#96;&#96;{r}", "</pre>")
+  )
+})
+
 test_that("rd_html_to_markdown() turns R6 method usage into a fenced block", {
   expect_identical(
     rd_html_to_markdown(c(

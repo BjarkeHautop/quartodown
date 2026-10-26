@@ -252,9 +252,11 @@ trim_blank_lines <- function(lines) {
 #
 # * Inline `<code>` becomes a Markdown code span, as Pandoc would otherwise
 #   smart-quote its text, and a trailing backslash would escape `</code>`.
+#   Code knitr would run stays HTML (see knitr_inline_pattern).
 # * `\eqn{}`/`\deqn{}` become `$...$`/`$$...$$`; any other `$` is escaped.
 # * `<p>` tags are dropped, as paragraphs are separated by blank lines anyway.
-# * Language-tagged `<pre>` blocks become fenced code blocks.
+# * Language-tagged `<pre>` blocks become fenced code blocks, unless they hold
+#   a chunk's fence, which knitr would run.
 
 rd_html_token_pattern <- paste0(
   # One group number for the language and code of either kind of block.
@@ -304,11 +306,15 @@ rd_html_to_markdown <- function(lines) {
       pieces,
       rd_html_text(substr(text, pos, starts[i] - 1L)),
       if (!is.na(lang) && nzchar(lang)) {
-        code <- split_lines(html_unescape(capture(i, 2)))
-        fenced <- c(paste0("```", tolower(lang)), trim_blank_lines(code), "```")
-        paste(c("", fenced, ""), collapse = "\n")
+        code <- trim_blank_lines(split_lines(html_unescape(capture(i, 2))))
+        block <- if (any(grepl(knitr_chunk_pattern, code))) {
+          html_code_block(code, tolower(lang))
+        } else {
+          c(paste0("```", tolower(lang)), code, "```")
+        }
+        paste(c("", block, ""), collapse = "\n")
       } else if (startsWith(token, "<pre")) {
-        token
+        gsub("`", "&#96;", token, fixed = TRUE)
       } else if (!is.na(capture(i, 3))) {
         paste0("\n\n$$", html_unescape(capture(i, 3)), "$$\n\n")
       } else if (!is.na(capture(i, 6))) {
@@ -343,7 +349,8 @@ code_span <- function(code) {
   longest <- if (runs[1] == -1) 0L else max(attr(runs, "match.length"))
   fence <- strrep("`", longest + 1L)
   pad <- if (grepl("^`|`$", code)) " " else ""
-  paste0(fence, pad, code, pad, fence)
+  span <- paste0(fence, pad, code, pad, fence)
+  if (grepl(knitr_inline_pattern, span)) html_code(code) else span
 }
 
 # ---- Examples ---------------------------------------------------------------------
