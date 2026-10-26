@@ -12,12 +12,17 @@
 #   Rscript tools/smoke.R --no-deps rlang # skip installing dependencies
 #   Rscript tools/smoke.R --preview rlang # then serve the results to browse
 #   Rscript tools/smoke.R --no-build --preview  # browse the last results
+#   Rscript tools/smoke.R --prepare       # only clone and install dependencies
+#   Rscript tools/smoke.R --offline       # build the clones as they are, without
+#                                         # updating them or their dependencies
 #
 # Clones, a library of the packages' dependencies (kept apart from yours) and
-# the results are kept in SMOKE_DIR (default: quartodown's user cache folder),
-# so later runs only update them. Per package, <pkg>.log holds the build's
-# output and <pkg>-issues.txt what each check found; summary.csv (one row per
-# package ever run) and index.html, the page --preview opens, sum them up.
+# the results are kept in SMOKE_DIR (default: smoke/, gitignored), so later runs
+# only update them. Not under a hidden folder such as ~/.cache: Quarto doesn't
+# render files whose path has one, and would build empty sites. Per package,
+# <pkg>.log holds the build's output and <pkg>-issues.txt what each check
+# found; summary.csv (one row per package ever run) and index.html, the page
+# --preview opens, sum them up.
 
 packages <- c(
   # Lifecycle badges, Rd macros, `@examplesIf`, many internal topics.
@@ -39,10 +44,7 @@ packages <- c(
   testthat = "r-lib/testthat"
 )
 
-smoke_dir <- Sys.getenv(
-  "SMOKE_DIR",
-  file.path(tools::R_user_dir("quartodown", "cache"), "smoke")
-)
+smoke_dir <- normalizePath(Sys.getenv("SMOKE_DIR", "smoke"), mustWork = FALSE)
 lib <- file.path(smoke_dir, "library")
 
 # pkgdown's top-level fields that quartodown reads too; the others (template:,
@@ -468,17 +470,24 @@ empty_row <- function(name, error) {
   row
 }
 
-smoke <- function(name, repo, deps = TRUE) {
+smoke <- function(name, repo, deps = TRUE, offline = FALSE, prepare = FALSE) {
   dir <- file.path(smoke_dir, "packages", name)
   log <- file.path(smoke_dir, paste0(name, ".log"))
   issues <- file.path(smoke_dir, paste0(name, "-issues.txt"))
-  unlink(issues)
   message("== ", name, " (", repo, ")")
-  clone(repo, dir)
-  write_config(dir)
-  if (deps) {
+  if (!offline) {
+    clone(repo, dir)
+  } else if (!dir.exists(dir)) {
+    stop("No clone of ", name, "; run with --prepare first", call. = FALSE)
+  }
+  if (deps && !offline) {
     install_deps(dir)
   }
+  if (prepare) {
+    return(NULL)
+  }
+  unlink(issues)
+  write_config(dir)
   start <- Sys.time()
   result <- build(dir, log)
   seconds <- round(as.numeric(Sys.time() - start, units = "secs"))
@@ -601,8 +610,10 @@ write_index <- function(results) {
 }
 
 args <- commandArgs(trailingOnly = TRUE)
-flags <- c("--no-deps", "--no-build", "--preview")
+flags <- c("--no-deps", "--no-build", "--preview", "--prepare", "--offline")
 deps <- !"--no-deps" %in% args
+offline <- "--offline" %in% args
+prepare <- "--prepare" %in% args
 run <- !"--no-build" %in% args
 preview <- "--preview" %in% args
 args <- setdiff(args, flags)
@@ -633,7 +644,7 @@ if (run) {
     Map(
       function(name, repo) {
         tryCatch(
-          smoke(name, repo, deps),
+          smoke(name, repo, deps, offline, prepare),
           error = function(e) {
             message("   FAILED: ", conditionMessage(e))
             empty_row(name, conditionMessage(e))
@@ -644,6 +655,9 @@ if (run) {
       repos
     )
   )
+  if (prepare) {
+    quit(status = if (is.null(results)) 0 else 1)
+  }
   rownames(results) <- NULL
   all <- results
   previous <- if (file.exists(summary_file)) utils::read.csv(summary_file)
