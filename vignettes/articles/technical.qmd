@@ -54,7 +54,7 @@ _quarto/
 ├── authors.qmd                   # authors and citation page
 ├── vignettes/                    # the vignettes, as they are
 ├── man/figures/                  # images for the README and man pages
-├── NEWS.md                       # changelog, with issues and users linked
+├── NEWS.md                       # changelog, titled, with issues and users linked
 ├── _quartodown/                  # the package's _quartodown/, as it is
 └── quartodown.scss               # theme on top of Quarto's HTML
 ```

@@ -309,7 +309,8 @@ import_markdown_files <- function(path, config = list()) {
 
   news <- file.path(path, "NEWS.md")
   if (file.exists(news)) {
-    write(link_news(read_md(news), pkg_repo(path, config)), "NEWS.md")
+    repo <- pkg_repo(path, config)
+    write(news_page(link_news(read_md(news), repo), repo$source), "NEWS.md")
   }
   for (name in community_files) {
     src <- community_file_source(path, name)
@@ -385,6 +386,25 @@ github_markdown_to_quarto <- function(
     }
   }
   out
+}
+
+# NEWS.md as the "Changelog" page, with a source_note() under the title. Its
+# `#` headings, usually one per version, are shifted down a level so the title
+# is the page's only `<h1>`. Front matter of its own is kept.
+news_page <- function(lines, source = NA_character_) {
+  if (length(split_front_matter(lines)$front_matter) == 0) {
+    text <- !nzchar(code_block_lines(lines))
+    shift <- any(grepl("^#\\s", lines[text]))
+    lines <- c(
+      "---",
+      "title: Changelog",
+      if (shift) "shift-heading-level-by: 1",
+      "---",
+      lines
+    )
+  }
+  note <- source_note("NEWS.md", source, class = "source-note")
+  insert_after_front_matter(lines, c(note, ""))
 }
 
 # Links issues and pull requests (`#123`) and users (`@user`) to `repo`'s

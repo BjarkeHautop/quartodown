@@ -58,6 +58,36 @@ test_that("import_markdown_files() imports NEWS, the license and community files
   )
 })
 
+test_that("news_page() titles the page and shifts `#` headings down", {
+  note <- source_note("NEWS.md", "https://x.org/", class = "source-note")
+  expect_identical(
+    news_page(c("# pkg 1.0.0", "", "```", "# code", "```"), "https://x.org/"),
+    c(
+      "---",
+      "title: Changelog",
+      "shift-heading-level-by: 1",
+      "---",
+      "",
+      note,
+      "",
+      "# pkg 1.0.0",
+      "",
+      "```",
+      "# code",
+      "```"
+    )
+  )
+  expect_identical(
+    news_page(c("## pkg 1.0.0", "```", "# code", "```"), "https://x.org/")[1:3],
+    c("---", "title: Changelog", "---")
+  )
+  # Front matter of its own is kept.
+  expect_identical(
+    news_page(c("---", "title: News", "---", "# pkg 1.0.0"), "https://x.org/"),
+    c("---", "title: News", "---", "", note, "", "# pkg 1.0.0")
+  )
+})
+
 test_that("link_news() links issues and users, but not in code or existing links", {
   lines <- c(
     "* Fixed a bug (#12, @jane-doe).",

@@ -45,10 +45,11 @@ quartodown::build_site() # also previews it when interactive
    `_quartodown.yml`'s `vignettes: files:` (`vignette_files()`, so vignettes'
    `../` paths resolve; `check_vignette_paths()` warns about uncopied ones, and
    documents in them are kept from rendering by an explicit `project: render:`
-   list, `render_list()`, as Quarto ignores a negated `!man/`), `NEWS.md` (with
-   `#123`/`@user` links), `LICENSE.md`, `LICENSE` as `LICENSE-text.md`, and
-   CODE_OF_CONDUCT/CONTRIBUTING/SUPPORT `.md` from the root or `.github/`
-   (pkgdown's layout), plus:
+   list, `render_list()`, as Quarto ignores a negated `!man/`), `NEWS.md`
+   (titled "Changelog", with a source note, `#` headings shifted down a level
+   and `#123`/`@user` links, `news_page()`), `LICENSE.md`, `LICENSE` as
+   `LICENSE-text.md`, and CODE_OF_CONDUCT/CONTRIBUTING/SUPPORT `.md` from the
+   root or `.github/` (pkgdown's layout), plus:
    - These `.md` files and the README go through `github_markdown_to_quarto()`:
      GitHub alerts (`> [!NOTE]`) → callouts; in the README only (written as
      `.qmd`, since Quarto won't run code cells in `.md`), ```` ```mermaid ```` →
