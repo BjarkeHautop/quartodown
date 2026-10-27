@@ -152,17 +152,17 @@ quartodown::build_site() # also previews it when interactive
    ([R/code-link.R](R/code-link.R)) reads and writes each `docs/**/*.html` once.
    In between, `add_logo_html()` puts `site_logo()`
    (`man/figures/logo.svg`/`.png`, with a `logo-light` variant; off with
-   `logo: false`) before the first `<h1>` of every page but the home and 404
-   pages (on `page-columns` grid pages, `wrap_title_block()` makes the title
-   block and intro one grid item so text wraps around it), and
-   `link_code_html()` drops the other site's `.quartodown-devel`/ `-release`
-   elements (`other_site_classes()`) and runs downlit over it (replacing
-   Quarto's `code-link`, which would wipe code annotations).
-   `pre.code-annotated` blocks are hidden from downlit and their `span.fu`
-   tokens (and `span.sc` `%op%`s) linked one by one with
-   `downlit::autolink_url()` instead. xml2 drops the ESC of ANSI codes, so
-   `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for a private-use
-   character, and `ansi_to_html()` afterwards converts them with
+   `logo: false`) before the first `<h1>` of every page but 404.html and those
+   already showing `man/figures/logo*`, such as the README home page, (on
+   `page-columns` grid pages, `wrap_title_block()` makes the title block and
+   intro one grid item so text wraps around it), and `link_code_html()` drops
+   the other site's `.quartodown-devel`/ `-release` elements
+   (`other_site_classes()`) and runs downlit over it (replacing Quarto's
+   `code-link`, which would wipe code annotations). `pre.code-annotated` blocks
+   are hidden from downlit and their `span.fu` tokens (and `span.sc` `%op%`s)
+   linked one by one with `downlit::autolink_url()` instead. xml2 drops the ESC
+   of ANSI codes, so `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for
+   a private-use character, and `ansi_to_html()` afterwards converts them with
    `fansi::sgr_to_html()` (not `cli::ansi_html()`, which loses colors of nested
    styles); `strip_search_ansi()` strips them from `search.json`. Before that,
    `add_tooltips_html()` ([R/tooltips.R](R/tooltips.R)) regex-rewrites the HTML

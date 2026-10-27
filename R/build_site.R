@@ -56,8 +56,7 @@
 #'   vignettes use by a relative path, such as `man/rmd/` for a child document
 #'   `../man/rmd/shared.Rmd`, copied with them.
 #' * `logo`: `false` to leave the logo, `man/figures/logo.svg` or `.png`
-#'   (and in light mode `logo-light`, if it exists), off the title of every
-#'   page but the home page.
+#'   (and in light mode `logo-light`, if it exists), off the pages' titles.
 #' * `quarto`: settings merged over the generated Quarto configuration.
 #'
 #' `_quartodown/extra.scss` and `_quartodown/extra.css`, if they exist, style
@@ -501,7 +500,7 @@ logo_file <- function(path, light = FALSE, exts = c("png", "svg")) {
   if (length(logos) > 0) logos[[1]]
 }
 
-# The logo shown by the title of every page but the home page, unless
+# The logo shown by the title of every page not showing it already, unless
 # `logo: false`: the `logo_file()`, preferring an SVG, which stays sharp at
 # any size, or with a `-light` variant, both, named by the theme they show
 # in. NULL without a logo.

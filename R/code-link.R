@@ -38,9 +38,8 @@ postprocess_pages <- function(
 
 postprocess_page <- function(f, docs, index, pkg, drop, logo = NULL) {
   html <- paste(read_utf8(f), collapse = "\n")
-  # The home page has the README's logo; 404.html is served at any URL, so
-  # a relative link would break.
-  if (!f %in% file.path(docs, c("index.html", "404.html"))) {
+  # 404.html is served at any URL, so a relative link would break.
+  if (fs::path_rel(f, docs) != "404.html") {
     html <- add_logo_html(html, logo, fs::path_rel(docs, start = dirname(f)))
   }
   html <- link_code_html(protect_ansi(html), drop = drop)
@@ -56,7 +55,8 @@ postprocess_page <- function(f, docs, index, pkg, drop, logo = NULL) {
 #
 # The site's logo (site_logo()) floats right of each page's title, its first
 # `<h1>`: the title block's, or on pages without one, such as the changelog,
-# their first heading's.
+# their first heading's. Pages that show it already, typically the home page,
+# don't get it twice.
 
 # Copies the `logo` files into the site, which Quarto copies only when a page
 # links them.
@@ -75,7 +75,9 @@ copy_logo <- function(path, docs, logo) {
 # The page `html` with the `logo` before its first `<h1>`; `root` is the
 # relative path from the page to the site's root.
 add_logo_html <- function(html, logo, root = ".") {
-  if (length(logo) == 0) {
+  # Nor on a page showing it already, such as a README with it in its title.
+  shown <- "<img\\b[^>]*\\bsrc=[\"'][^\"']*man/figures/logo"
+  if (length(logo) == 0 || grepl(shown, html, perl = TRUE)) {
     return(html)
   }
   class <- "quartodown-logo"

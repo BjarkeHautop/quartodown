@@ -104,8 +104,7 @@ that site.
 vignettes use by a relative path, such as \verb{man/rmd/} for a child document
 \code{../man/rmd/shared.Rmd}, copied with them.
 \item \code{logo}: \code{false} to leave the logo, \code{man/figures/logo.svg} or \code{.png}
-(and in light mode \code{logo-light}, if it exists), off the title of every
-page but the home page.
+(and in light mode \code{logo-light}, if it exists), off the pages' titles.
 \item \code{quarto}: settings merged over the generated Quarto configuration.
 }
 
