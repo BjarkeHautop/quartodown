@@ -18,6 +18,63 @@ html_unescape <- function(text) {
   gsub("&amp;", "&", text, fixed = TRUE) # must come last
 }
 
+read_utf8 <- function(file, ...) {
+  readLines(file, warn = FALSE, encoding = "UTF-8", ...)
+}
+
+write_utf8 <- function(lines, file, ...) {
+  writeLines(enc2utf8(lines), file, useBytes = TRUE, ...)
+}
+
+is_string <- function(x) is.character(x) && length(x) == 1
+
+# `x` with runs of whitespace made one space, and none at the ends.
+squish <- function(x) trimws(gsub("\\s+", " ", x))
+
+# `x` with its braces escaped, so cli doesn't interpolate them.
+cli_escape <- function(x) gsub("([{}])", "\\1\\1", x)
+
+# The lines `x` as cli bullets of the kind `bullet`, shown as is.
+cli_lines <- function(x, bullet = " ") {
+  structure(cli_escape(x), names = rep(bullet, length(x)))
+}
+
+# Each of `text` with every match of the Perl regex `pattern` replaced by
+# `fn(match, groups)`, `groups` being its capture groups (NA where a group
+# didn't take part), and the text between matches by `between()`.
+gsub_fn <- function(text, pattern, fn, between = identity) {
+  one <- function(text) {
+    m <- gregexpr(pattern, text, perl = TRUE)[[1]]
+    if (m[1] == -1) {
+      return(between(text))
+    }
+    starts <- as.integer(m)
+    ends <- starts + attr(m, "match.length") - 1L
+    # Without capture groups, there are no capture attributes.
+    cap_starts <- attr(m, "capture.start")
+    cap_lens <- attr(m, "capture.length")
+    if (is.null(cap_starts)) {
+      cap_starts <- cap_lens <- matrix(0L, length(starts), 0)
+    }
+    cap_ends <- cap_starts + cap_lens - 1L
+    pieces <- character(2L * length(starts) + 1L)
+    pos <- 1L
+    for (i in seq_along(starts)) {
+      groups <- character()
+      if (ncol(cap_starts) > 0) {
+        groups <- substring(text, cap_starts[i, ], cap_ends[i, ])
+        groups[cap_starts[i, ] < 1] <- NA
+      }
+      pieces[[2L * i - 1L]] <- between(substr(text, pos, starts[i] - 1L))
+      pieces[[2L * i]] <- fn(substr(text, starts[i], ends[i]), unname(groups))
+      pos <- ends[i] + 1L
+    }
+    pieces[[length(pieces)]] <- between(substr(text, pos, nchar(text)))
+    paste(pieces, collapse = "")
+  }
+  vapply(text, one, character(1), USE.NAMES = FALSE)
+}
+
 split_lines <- function(text) {
   # The sentinel keeps trailing empty lines, which strsplit() would drop.
   utils::head(strsplit(paste0(text, "\n."), "\n", fixed = TRUE)[[1]], -1)

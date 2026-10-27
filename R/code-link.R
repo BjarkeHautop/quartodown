@@ -21,7 +21,7 @@ postprocess_pages <- function(
     pages <- pages[!fs::path_has_parent(pages, file.path(docs, "dev"))]
   }
   for (f in pages) {
-    lines <- readLines(f, warn = FALSE, encoding = "UTF-8")
+    lines <- read_utf8(f)
     html <- link_code_html(
       protect_ansi(paste(lines, collapse = "\n")),
       drop = drop
@@ -31,7 +31,7 @@ postprocess_pages <- function(
       html <- add_tooltips_html(html, index, prefix, pkg = pkg)$html
     }
     html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
-    writeLines(enc2utf8(html), f, sep = "", useBytes = TRUE)
+    write_utf8(html, f, sep = "")
   }
   strip_search_ansi(docs)
   invisible()

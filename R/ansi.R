@@ -34,9 +34,9 @@ ansi_to_html <- function(lines) {
 strip_search_ansi <- function(docs) {
   search <- file.path(docs, "search.json")
   if (file.exists(search)) {
-    json <- readLines(search, warn = FALSE, encoding = "UTF-8")
+    json <- read_utf8(search)
     json <- gsub("\\\\u001b\\[[0-9;]*m", "", json)
-    writeLines(json, search, useBytes = TRUE)
+    write_utf8(json, search)
   }
   invisible()
 }

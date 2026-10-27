@@ -48,6 +48,15 @@ rd_tags <- function(rd) {
   vapply(rd, function(x) attr(x, "Rd_tag"), character(1))
 }
 
+topic_internal <- function(topics) {
+  vapply(topics, `[[`, logical(1), "internal")
+}
+
+# The name each of `topics` is listed under in `reference:`.
+topic_first_alias <- function(topics) {
+  vapply(topics, function(t) t$alias[[1]], character(1))
+}
+
 # ---- index names from \usage ------------------------------------------------
 #
 # A topic's index row lists every function in its \usage: `f()`, `name` for
@@ -226,7 +235,7 @@ match_env <- function(topics) {
     assign(topics[[i]]$basename, i, envir = env)
   }
 
-  internal_topics <- vapply(topics, `[[`, logical(1), "internal")
+  internal_topics <- topic_internal(topics)
   selectable <- function(match, internal) {
     which(match & (internal | !internal_topics))
   }
@@ -338,7 +347,7 @@ select_topics <- function(match_strings, topics) {
   }
 
   sign1 <- all_sign(indexes[[1]], match_strings[[1]])
-  public <- which(!vapply(topics, `[[`, logical(1), "internal"))
+  public <- which(!topic_internal(topics))
   sel <- switch(sign1, "+" = integer(), "-" = public)
 
   for (i in seq_along(indexes)) {
@@ -360,18 +369,14 @@ build_reference_qmd <- function(
   out_dir <- file.path(project_dir(path), "reference")
   dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
   out_path <- file.path(out_dir, "index.qmd")
-  internal <- vapply(topics, `[[`, logical(1), "internal")
+  internal <- topic_internal(topics)
   blocks <- reference_blocks(config, topics)
   block_indexes <- reference_block_topics(blocks, topics)
 
   # Internal topics needn't be listed.
   unlisted <- setdiff(which(!internal), unique(unlist(block_indexes)))
   if (length(unlisted) > 0) {
-    unlisted_names <- vapply(
-      topics[unlisted],
-      function(t) t$alias[[1]],
-      character(1)
-    )
+    unlisted_names <- topic_first_alias(topics[unlisted])
     cli::cli_warn(
       "man/*.Rd defines {.val {unlisted_names}}, which {?is/are} not listed under `reference:` in _quartodown.yml and won't appear on the reference page."
     )
@@ -423,7 +428,7 @@ build_reference_qmd <- function(
 
   lines <- c('---', 'title: "Function reference"', '---', "", unlist(sections))
   lines <- lines[-length(lines)] # drop trailing blank line
-  writeLines(lines, out_path)
+  write_utf8(lines, out_path)
 }
 
 # The sections of the reference index: `reference:`, or without it, one
@@ -432,10 +437,10 @@ reference_blocks <- function(config, topics) {
   if (!is.null(config$reference)) {
     return(config$reference)
   }
-  public <- !vapply(topics, `[[`, logical(1), "internal")
+  public <- !topic_internal(topics)
   list(list(
     title = "All functions",
-    contents = vapply(topics[public], function(t) t$alias[[1]], character(1))
+    contents = topic_first_alias(topics[public])
   ))
 }
 
@@ -451,5 +456,5 @@ reference_block_topics <- function(blocks, topics) {
 has_page <- function(topics, config = list()) {
   blocks <- reference_blocks(config, topics)
   listed <- unlist(reference_block_topics(blocks, topics))
-  !vapply(topics, `[[`, logical(1), "internal") | seq_along(topics) %in% listed
+  !topic_internal(topics) | seq_along(topics) %in% listed
 }

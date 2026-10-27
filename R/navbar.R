@@ -94,14 +94,14 @@ navbar_layout <- function(
 }
 
 is_builtin_item <- function(item) {
-  is.character(item) && length(item) == 1 && item %in% builtin_navbar_items
+  is_string(item) && item %in% builtin_navbar_items
 }
 
 # A `navbar:` item as a Quarto navbar item. A string is a vignette (its path
 # relative to vignettes/, without extension); in a `menu:`, a string ending in
 # "/" is every vignette in that folder. Other items are Quarto's own.
 nav_item <- function(item, path, vignettes) {
-  if (is.character(item) && length(item) == 1) {
+  if (is_string(item)) {
     return(nav_vignette(path, match_vignette(item, vignettes)))
   }
   if (!is.null(item$menu)) {

@@ -29,7 +29,7 @@ write_redirects <- function(path, config = list()) {
   for (from in names(redirects)) {
     file <- file.path(docs, from)
     dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
-    writeLines(redirect_page(redirect_href(from, redirects[[from]])), file)
+    write_utf8(redirect_page(redirect_href(from, redirects[[from]])), file)
   }
   invisible(redirects)
 }

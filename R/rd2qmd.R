@@ -22,11 +22,7 @@ write_man_pages <- function(path, config = list(), topics = rd_topics(path)) {
         cli::cli_abort("Failed to convert {.file {rd_file}}.", parent = e)
       }
     )
-    writeLines(
-      enc2utf8(lines),
-      file.path(out_dir, paste0(topic$basename, ".qmd")),
-      useBytes = TRUE
-    )
+    write_utf8(lines, file.path(out_dir, paste0(topic$basename, ".qmd")))
   }
   invisible()
 }
@@ -35,7 +31,7 @@ write_man_pages <- function(path, config = list(), topics = rd_topics(path)) {
 # as its header names them: "% Please edit documentation in R/a.R, R/b.R",
 # wrapped onto "%   " lines. A hand-written Rd file is its own source.
 rd_source_files <- function(rd_file) {
-  lines <- readLines(rd_file, n = 20, warn = FALSE, encoding = "UTF-8")
+  lines <- read_utf8(rd_file, n = 20)
   start <- grep("^% Please edit documentation in ", lines)[1]
   if (is.na(start)) {
     return(file.path("man", basename(rd_file)))
@@ -105,7 +101,7 @@ rd_html <- function(rd) {
     # `toc`'s default changed in R 4.6.0.
     tools::Rd2HTML(rd, out = out, toc = FALSE, stages = stages)
   })
-  lines <- readLines(out, warn = FALSE, encoding = "UTF-8")
+  lines <- read_utf8(out)
   start <- grep("^<h2", lines)[1]
   end <- grep("^</main>", lines)[1]
   end <- if (is.na(end)) length(lines) else end - 1L
@@ -199,20 +195,11 @@ rd_link_url <- function(link, pkg, pages) {
 # system: `href='../../<package>/html/<topic>.html#<method>'`.
 link_help_hrefs <- function(html, pkg, pages) {
   pattern <- "href=(['\"])\\.\\./\\.\\./([^/'\"]+)/html/([^/'\"#]+)\\.html(#[^'\"]*)?\\1"
-  m <- gregexpr(pattern, html, perl = TRUE)
-  regmatches(html, m) <- lapply(regmatches(html, m), function(hrefs) {
-    vapply(
-      hrefs,
-      function(href) {
-        parts <- regmatches(href, regexec(pattern, href, perl = TRUE))[[1]]
-        url <- topic_url(parts[[4]], parts[[3]], pkg, pages)
-        if (is.na(url)) href else sprintf("href=\"%s%s\"", url, parts[[5]])
-      },
-      character(1),
-      USE.NAMES = FALSE
-    )
+  gsub_fn(html, pattern, function(href, groups) {
+    url <- topic_url(groups[[3]], groups[[2]], pkg, pages)
+    anchor <- if (is.na(groups[[4]])) "" else groups[[4]]
+    if (is.na(url)) href else sprintf("href=\"%s%s\"", url, anchor)
   })
-  html
 }
 
 # The file `rd` was parsed from, e.g. "man/foo.Rd".
@@ -282,57 +269,36 @@ rd_html_to_markdown <- function(lines) {
     fixed = TRUE
   )
 
-  m <- gregexpr(rd_html_token_pattern, text, perl = TRUE)[[1]]
-  if (m[1] == -1) {
-    return(split_lines(rd_html_text(text)))
-  }
-  starts <- as.integer(m)
-  ends <- starts + attr(m, "match.length") - 1L
-  cap_start <- attr(m, "capture.start")
-  cap_len <- attr(m, "capture.length")
-  capture <- function(i, col) {
-    if (cap_start[i, col] < 1) {
-      return(NA_character_)
-    }
-    substr(text, cap_start[i, col], cap_start[i, col] + cap_len[i, col] - 1L)
-  }
+  split_lines(gsub_fn(
+    text,
+    rd_html_token_pattern,
+    rd_html_token_to_markdown,
+    between = rd_html_text
+  ))
+}
 
-  pieces <- character()
-  pos <- 1L
-  for (i in seq_along(starts)) {
-    token <- substr(text, starts[i], ends[i])
-    lang <- capture(i, 1)
-    pieces <- c(
-      pieces,
-      rd_html_text(substr(text, pos, starts[i] - 1L)),
-      if (!is.na(lang) && nzchar(lang)) {
-        code <- trim_blank_lines(split_lines(html_unescape(capture(i, 2))))
-        block <- if (any(grepl(knitr_chunk_pattern, code))) {
-          html_code_block(code, tolower(lang))
-        } else {
-          c(paste0("```", tolower(lang)), code, "```")
-        }
-        paste(c("", block, ""), collapse = "\n")
-      } else if (startsWith(token, "<pre")) {
-        gsub("`", "&#96;", token, fixed = TRUE)
-      } else if (!is.na(capture(i, 3))) {
-        paste0("\n\n$$", html_unescape(capture(i, 3)), "$$\n\n")
-      } else if (!is.na(capture(i, 6))) {
-        sprintf(
-          "[%s](%s)",
-          code_span(html_unescape(capture(i, 7))),
-          capture(i, 6)
-        )
-      } else if (grepl("class=\"reqn\"", token, fixed = TRUE)) {
-        paste0("$", html_unescape(capture(i, 5)), "$")
-      } else {
-        code_span(html_unescape(capture(i, 5)))
-      }
-    )
-    pos <- ends[i] + 1L
+# A match of `rd_html_token_pattern`, with its capture `groups`.
+rd_html_token_to_markdown <- function(token, groups) {
+  lang <- groups[[1]]
+  if (!is.na(lang) && nzchar(lang)) {
+    code <- trim_blank_lines(split_lines(html_unescape(groups[[2]])))
+    block <- if (any(grepl(knitr_chunk_pattern, code))) {
+      html_code_block(code, tolower(lang))
+    } else {
+      c(paste0("```", tolower(lang)), code, "```")
+    }
+    paste(c("", block, ""), collapse = "\n")
+  } else if (startsWith(token, "<pre")) {
+    gsub("`", "&#96;", token, fixed = TRUE)
+  } else if (!is.na(groups[[3]])) {
+    paste0("\n\n$$", html_unescape(groups[[3]]), "$$\n\n")
+  } else if (!is.na(groups[[6]])) {
+    sprintf("[%s](%s)", code_span(html_unescape(groups[[7]])), groups[[6]])
+  } else if (grepl("class=\"reqn\"", token, fixed = TRUE)) {
+    paste0("$", html_unescape(groups[[5]]), "$")
+  } else {
+    code_span(html_unescape(groups[[5]]))
   }
-  pieces <- c(pieces, rd_html_text(substr(text, pos, nchar(text))))
-  split_lines(paste(pieces, collapse = ""))
 }
 
 # HTML outside code and math.
@@ -408,7 +374,7 @@ example_segments <- function(rd) {
   if (!file.exists(out)) {
     return(list())
   }
-  lines <- readLines(out, warn = FALSE, encoding = "UTF-8")
+  lines <- read_utf8(out)
   start <- grep("^### \\*\\* Examples$", lines)[1]
   lines <- if (is.na(start)) character() else lines[-seq_len(start)]
 

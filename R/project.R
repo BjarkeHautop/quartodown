@@ -39,7 +39,7 @@ dev_mode <- function(path, config = list()) {
     if (is.null(mode)) {
       mode <- "release"
     }
-    if (!is.character(mode) || length(mode) != 1 || !mode %in% dev_modes) {
+    if (!is_string(mode) || !mode %in% dev_modes) {
       config_abort(
         "development: mode",
         "must be one of {.or {.val {dev_modes}}}."
@@ -102,7 +102,7 @@ copy_vignettes <- function(path, config = list()) {
   source <- pkg_repo(path, config)$source
   for (vignette in find_vignettes(path)) {
     file <- file.path(out, vignette)
-    lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
+    lines <- read_utf8(file)
     # Quarto rejects `#|` chunk options that aren't YAML, such as knitr's
     # `#| label, echo = FALSE`, which R Markdown vignettes may use.
     if (grepl("\\.[Rr]md$", vignette)) {
@@ -121,11 +121,7 @@ copy_vignettes <- function(path, config = list()) {
       source,
       class = "source-note"
     )
-    writeLines(
-      enc2utf8(insert_after_front_matter(lines, c(note, ""))),
-      file,
-      useBytes = TRUE
-    )
+    write_utf8(insert_after_front_matter(lines, c(note, "")), file)
   }
 }
 
@@ -142,8 +138,7 @@ insert_after_front_matter <- function(lines, insert) {
 # copied to the same paths, so that a vignette's path out of vignettes/, such
 # as a child document `../man/rmd/shared.Rmd`, resolves as in the package.
 copy_package_files <- function(path, config = list()) {
-  files <- c("man/figures", "README_files", vignette_files(path, config))
-  for (file in files) {
+  for (file in package_files(path, config)) {
     from <- file.path(path, file)
     to <- file.path(project_dir(path), file)
     if (dir.exists(from)) {
@@ -153,6 +148,11 @@ copy_package_files <- function(path, config = list()) {
       file.copy(from, to, overwrite = TRUE)
     }
   }
+}
+
+# The files and folders copy_package_files() copies, relative to `path`.
+package_files <- function(path, config = list()) {
+  c("man/figures", "README_files", vignette_files(path, config))
 }
 
 # _quartodown.yml's `vignettes: files:`, paths in the package outside
@@ -168,7 +168,7 @@ vignette_files <- function(path, config = list()) {
   if (is.null(files)) {
     return(character())
   }
-  is_path <- function(x) is.character(x) && length(x) == 1 && !is.na(x)
+  is_path <- function(x) is_string(x) && !is.na(x)
   if (
     !is.list(files) &&
       !is.character(files) ||
@@ -206,13 +206,13 @@ vignette_files <- function(path, config = list()) {
 # copy_package_files()), so won't be found. Only paths to files that exist
 # count, as other `../` strings may not be paths.
 check_vignette_paths <- function(path, config = list()) {
-  copied <- c("man/figures", "README_files", vignette_files(path, config))
+  copied <- package_files(path, config)
   root <- normalizePath(path, winslash = "/")
   found <- character()
   suggest <- character()
   for (vignette in find_vignettes(path)) {
     file <- file.path(path, "vignettes", vignette)
-    lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
+    lines <- read_utf8(file)
     refs <- regmatches(
       lines,
       gregexpr("(?<=[\"'])(\\.\\./)+[^\"'\\s]+(?=[\"'])", lines, perl = TRUE)
@@ -241,12 +241,10 @@ check_vignette_paths <- function(path, config = list()) {
   if (length(found) == 0) {
     return(invisible())
   }
-  # Braces escaped so cli doesn't interpolate them again.
-  found <- gsub("([{}])", "\\1\\1", found)
   suggest <- unique(suggest)
   cli::cli_warn(c(
     "Vignettes refer to files outside {.path vignettes/} that aren't copied with them, so won't be found:",
-    structure(found, names = rep("*", length(found))),
+    cli_lines(found, "*"),
     "i" = "To copy them, add {.val {suggest}} to {.field vignettes: files:} in {.path {config_file}}."
   ))
 }
@@ -302,11 +300,8 @@ link_community_files <- function(lines, path) {
 # of "MIT + file LICENSE") becomes LICENSE-text.md.
 import_markdown_files <- function(path, config = list()) {
   out <- project_dir(path)
-  read <- function(file) readLines(file, warn = FALSE, encoding = "UTF-8")
-  read_md <- function(file) github_markdown_to_quarto(read(file))
-  write <- function(lines, name) {
-    writeLines(enc2utf8(lines), file.path(out, name), useBytes = TRUE)
-  }
+  read_md <- function(file) github_markdown_to_quarto(read_utf8(file))
+  write <- function(lines, name) write_utf8(lines, file.path(out, name))
 
   news <- file.path(path, "NEWS.md")
   if (file.exists(news)) {
@@ -329,7 +324,7 @@ import_markdown_files <- function(path, config = list()) {
         "---",
         "",
         "```",
-        read(file.path(path, "LICENSE")),
+        read_utf8(file.path(path, "LICENSE")),
         "```"
       ),
       "LICENSE-text.md"
@@ -455,7 +450,7 @@ render_project <- function(path, envvars, config = list(), quiet = TRUE) {
       pages <<- c(pages, file)
       starts <<- c(starts, as.numeric(Sys.time()))
       if (show_page) {
-        current <<- paste0(": ", gsub("([{}])", "\\1\\1", file))
+        current <<- paste0(": ", cli_escape(file))
         cli::cli_progress_update(id = step, force = TRUE)
       }
     } else if (is.na(end) && grepl("^\\s*Output created", line)) {
@@ -522,9 +517,7 @@ render_time_bullets <- function(times, max_vignettes = 10) {
     },
     group(times[is_other], "other page")
   )
-  # Braces escaped so cli doesn't interpolate them.
-  lines <- gsub("([{}])", "\\1\\1", lines)
-  structure(lines, names = rep("*", length(lines)))
+  cli_lines(lines, "*")
 }
 
 format_secs <- function(x) {
@@ -587,9 +580,7 @@ render_error_log <- function(stderr) {
   if (length(start) == 1) {
     lines <- lines[start:length(lines)]
   }
-  # Braces escaped so cli doesn't interpolate them.
-  lines <- gsub("([{}])", "\\1\\1", utils::tail(lines, 30))
-  structure(lines, names = rep(" ", length(lines)))
+  cli_lines(utils::tail(lines, 30))
 }
 
 # Empties the folder this build goes in (see site_dir()), as a stale page would
@@ -635,12 +626,10 @@ install_envvars <- function(path, scratch) {
   ))
   status <- attr(output, "status")
   if (!is.null(status) && status != 0) {
-    # The log's lines, with braces escaped so cli doesn't interpolate them.
-    log <- gsub("([{}])", "\\1\\1", utils::tail(output, 20))
     cli::cli_abort(c(
       "Installing {.pkg {pkg}} failed.",
       "i" = "Fix the installation, or build with {.code devel = TRUE}.",
-      structure(log, names = rep(" ", length(log)))
+      cli_lines(utils::tail(output, 20))
     ))
   }
   c(R_LIBS = paste(c(lib, .libPaths()), collapse = .Platform$path.sep))

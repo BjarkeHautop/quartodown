@@ -209,12 +209,14 @@ script's title alignment, so the title sits above the sidebar.
   a topic has a page.
 
 - Shared helpers live in [R/utils.R](R/utils.R): `html_escape()`/
-  `html_unescape()`, `split_lines()`, `code_block_lines()` (Markdown code
-  fences) and `split_front_matter()`. Use them rather than re-deriving. Errors
-  and warnings about a `_quartodown.yml` field go through
-  `config_abort()`/`config_warn()` ([R/build_site.R](R/build_site.R)); checks
-  that need the package's files belong in `check_config()`, which runs before
-  the install.
+  `html_unescape()`, `read_utf8()`/`write_utf8()`, `gsub_fn()` (replace each
+  regex match with a function of it and its groups), `cli_escape()`/
+  `cli_lines()` (text shown as is in cli messages), `is_string()`, `squish()`,
+  `split_lines()`, `code_block_lines()` (Markdown code fences) and
+  `split_front_matter()`. Use them rather than re-deriving. Errors and warnings
+  about a `_quartodown.yml` field go through `config_abort()`/`config_warn()`
+  ([R/build_site.R](R/build_site.R)); checks that need the package's files
+  belong in `check_config()`, which runs before the install.
 
 - `_quartodown/_quartodown.yml` configures this package's *own* site
   (dogfooding); `_quarto/` and `docs/` are build outputs.

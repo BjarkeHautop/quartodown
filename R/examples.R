@@ -59,7 +59,7 @@ example_pages <- function(path) {
   has_code <- vapply(
     files,
     function(file) {
-      lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
+      lines <- read_utf8(file)
       any(startsWith(lines, "```{r"))
     },
     logical(1),
@@ -206,7 +206,7 @@ run_examples_script <- function(pages, opts, envvars) {
   )
 
   lines <- if (file.exists(status)) {
-    readLines(status, warn = FALSE, encoding = "UTF-8")
+    read_utf8(status)
   } else {
     character()
   }
@@ -233,11 +233,7 @@ example_cache_dir <- function(path, page) {
 example_cache_key <- function(page, opts) {
   file <- tempfile()
   on.exit(unlink(file))
-  writeLines(
-    c(readLines(page, warn = FALSE, encoding = "UTF-8"), deparse(opts)),
-    file,
-    useBytes = TRUE
-  )
+  write_utf8(c(read_utf8(page), deparse(opts)), file)
   unname(tools::md5sum(file))
 }
 

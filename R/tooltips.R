@@ -65,34 +65,16 @@ inject_tooltips_html <- function(
   href_prefix = "reference/",
   pkg = NULL
 ) {
-  m <- gregexpr(tooltip_link_re, html, perl = TRUE)[[1]]
-  if (m[1] == -1) {
-    return(list(html = html, n = 0L, tips = list()))
-  }
-
-  starts <- as.integer(m)
-  lens <- attr(m, "match.length")
-  cap_starts <- attr(m, "capture.start")
-  cap_lens <- attr(m, "capture.length")
-  capture <- function(i, col) {
-    substr(html, cap_starts[i, col], cap_starts[i, col] + cap_lens[i, col] - 1L)
-  }
-
-  pieces <- vector("list", length(starts) * 2L + 1L)
-  pos <- 1L
-  pi <- 1L
   n_linked <- 0L
   tip_ids <- character(0)
   tips <- list()
 
-  for (i in seq_along(starts)) {
-    s <- starts[i]
-    l <- lens[i]
-    is_block <- cap_starts[i, 1] != 0L # span vs. inline <code>
+  link <- function(match, groups) {
+    is_block <- !is.na(groups[[1]]) # span vs. inline <code>
     name_html <- if (is_block) {
-      capture(i, 2L)
+      groups[[2]]
     } else {
-      paste0(capture(i, 3L), capture(i, 4L))
+      paste0(groups[[3]], if (!is.na(groups[[4]])) groups[[4]])
     }
     name <- html_unescape(name_html)
     # "foo(1, 2)", "?foo", "pkg::foo" and "`foo`" all look up "foo".
@@ -101,42 +83,36 @@ inject_tooltips_html <- function(
     if (!is.null(pkg)) {
       lookup <- sub(paste0("^", pkg, ":::?"), "", lookup)
     }
-    lookup <- sub("^`(.*)`$", "\\1", lookup)
+    lookup <- unbacktick(lookup)
 
     entry <- index[[lookup]]
-
-    pieces[[pi]] <- substr(html, pos, s - 1L)
-    pi <- pi + 1L
     if (is.null(entry)) {
-      pieces[[pi]] <- substr(html, s, s + l - 1L)
-    } else {
-      id <- tip_ids[lookup]
-      if (is.na(id)) {
-        id <- paste0("t", length(tips) + 1L)
-        tip_ids[lookup] <- id
-        entry$name <- lookup
-        tips[[id]] <- entry
-      }
-      link <- sprintf(
-        '<a class="quartodown-tip-ref" data-quartodown-tip="%s" href="%s%s.html">%s</a>',
-        id,
-        href_prefix,
-        entry$topic,
-        name_html
-      )
-      pieces[[pi]] <- if (is_block) {
-        sprintf('<span class="%s">%s</span>', capture(i, 1L), link)
-      } else {
-        paste0("<code>", link, "</code>")
-      }
-      n_linked <- n_linked + 1L
+      return(match)
     }
-    pi <- pi + 1L
-    pos <- s + l
+    id <- tip_ids[lookup]
+    if (is.na(id)) {
+      id <- paste0("t", length(tips) + 1L)
+      tip_ids[lookup] <<- id
+      entry$name <- lookup
+      tips[[id]] <<- entry
+    }
+    n_linked <<- n_linked + 1L
+    a <- sprintf(
+      '<a class="quartodown-tip-ref" data-quartodown-tip="%s" href="%s%s.html">%s</a>',
+      id,
+      href_prefix,
+      entry$topic,
+      name_html
+    )
+    if (is_block) {
+      sprintf('<span class="%s">%s</span>', groups[[1]], a)
+    } else {
+      paste0("<code>", a, "</code>")
+    }
   }
-  pieces[[pi]] <- substr(html, pos, nchar(html))
 
-  list(html = paste(unlist(pieces), collapse = ""), n = n_linked, tips = tips)
+  html <- gsub_fn(html, tooltip_link_re, link)
+  list(html = html, n = n_linked, tips = tips)
 }
 
 # ---- topic index --------------------------------------------------------------
@@ -268,7 +244,7 @@ rd_usage_leading_name <- function(block) {
     return(infix[[2]])
   }
   name <- trimws(sub("(?s)\\(.*$", "", block, perl = TRUE))
-  sub("^`(.*)`$", "\\1", name)
+  unbacktick(name)
 }
 
 # The text of a top-level Rd section, with code kept in `backticks`, or NULL.
@@ -316,7 +292,7 @@ first_sentence <- function(text, max_chars = 200) {
   if (is.null(text)) {
     return(list(text = NULL, clipped = FALSE))
   }
-  text <- gsub("\\s+", " ", trimws(text))
+  text <- squish(text)
   if (nchar(text) == 0) {
     return(list(text = NULL, clipped = FALSE))
   }

@@ -447,7 +447,7 @@ quarto_theme <- function(path, config = list()) {
     if (is.null(value)) {
       next
     }
-    if (!is.character(value) || length(value) != 1) {
+    if (!is_string(value)) {
       config_abort(
         "theme: {mode}",
         "must be a single theme name."
@@ -471,7 +471,7 @@ social_cards <- function(path) {
   logo <- "man/figures/logo.png"
   c(
     list(`open-graph` = TRUE, `twitter-card` = list(`card-style` = "summary")),
-    if (!is.na(title)) list(description = trimws(gsub("\\s+", " ", title))),
+    if (!is.na(title)) list(description = squish(title)),
     # From the site's root, not each page's folder.
     if (file.exists(file.path(path, logo))) list(image = paste0("/", logo))
   )
@@ -528,17 +528,16 @@ write_home <- function(path, config = list()) {
   lines <- if (is.null(file)) {
     description_home(path)
   } else {
-    readLines(file.path(path, file), warn = FALSE, encoding = "UTF-8")
+    read_utf8(file.path(path, file))
   }
-  writeLines(
-    enc2utf8(build_website_readme(
+  write_utf8(
+    build_website_readme(
       lines,
       path,
       config,
       qmd = !is.null(file) && grepl("\\.qmd$", file, ignore.case = TRUE)
-    )),
-    file.path(project_dir(path), "index.qmd"),
-    useBytes = TRUE
+    ),
+    file.path(project_dir(path), "index.qmd")
   )
 }
 
@@ -549,7 +548,7 @@ home_file <- function(path, config = list()) {
   if (is.null(file)) {
     return(if (file.exists(file.path(path, "README.md"))) "README.md")
   }
-  if (!is.character(file) || length(file) != 1) {
+  if (!is_string(file)) {
     config_abort(
       "home: file",
       "must be a single file path."
@@ -636,7 +635,7 @@ check_home_config <- function(home) {
 description_home <- function(path) {
   pkg <- pkg_name(path)
   description <- desc::desc_get_field("Description", default = "", file = path)
-  c(paste("#", pkg), "", trimws(gsub("\\s+", " ", description)))
+  c(paste("#", pkg), "", squish(description))
 }
 
 # With _quartodown.yml's `home: sidebar: false`, the page is `lines` as
@@ -667,12 +666,9 @@ build_website_readme <- function(
 }
 
 home_page_with_sidebar <- function(lines, path, config = list()) {
-  badges <- extract_readme_badges(lines)
-  lines <- remove_marker_block(
-    lines,
-    "<!-- badges: start -->",
-    "<!-- badges: end -->"
-  )
+  parts <- split_readme_badges(lines)
+  badges <- parts$badges
+  lines <- parts$lines
 
   # Not a `# comment` in a code block.
   in_code <- nzchar(code_block_lines(lines))
@@ -700,23 +696,16 @@ home_page_with_sidebar <- function(lines, path, config = list()) {
   }
 }
 
-extract_readme_badges <- function(lines) {
+# The README's `badges` (the non-blank lines between `<!-- badges: start -->`
+# and `<!-- badges: end -->`) and its other `lines`, without the block.
+split_readme_badges <- function(lines) {
   start <- which(lines == "<!-- badges: start -->")
   end <- which(lines == "<!-- badges: end -->")
   if (length(start) != 1 || length(end) != 1 || end <= start) {
-    return(character())
+    return(list(badges = character(), lines = lines))
   }
   badges <- lines[seq_len(end - start - 1) + start]
-  badges[nzchar(trimws(badges))]
-}
-
-remove_marker_block <- function(lines, start_marker, end_marker) {
-  start <- which(lines == start_marker)
-  end <- which(lines == end_marker)
-  if (length(start) != 1 || length(end) != 1 || end <= start) {
-    return(lines)
-  }
-  lines[-seq(start, end)]
+  list(badges = badges[nzchar(trimws(badges))], lines = lines[-seq(start, end)])
 }
 
 # ---- light/dark images --------------------------------------------------------
@@ -729,11 +718,11 @@ theme_pictures_to_images <- function(lines) {
   if (!any(grepl("<picture", lines, fixed = TRUE))) {
     return(lines)
   }
-  text <- paste(lines, collapse = "\n")
-  m <- gregexpr("(?s)<picture\\b.*?</picture>", text, perl = TRUE)
-  regmatches(text, m) <- lapply(regmatches(text, m), function(pictures) {
-    vapply(pictures, theme_picture_to_images, character(1), USE.NAMES = FALSE)
-  })
+  text <- gsub_fn(
+    paste(lines, collapse = "\n"),
+    "(?s)<picture\\b.*?</picture>",
+    function(picture, groups) theme_picture_to_images(picture)
+  )
   split_lines(text)
 }
 
