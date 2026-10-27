@@ -162,6 +162,22 @@ test_that("run_examples_script() leaves a page that fails or has HTML dependenci
   expect_identical(list(readLines(failing), readLines(widget)), before)
 })
 
+test_that("run_examples_script() splits the pages between `workers` processes", {
+  skip_on_cran()
+  dir <- withr::local_tempdir()
+  pages <- vapply(
+    1:3,
+    function(i) {
+      write_example_page(dir, paste0("p", i), chunk(paste0(i, " + 1")))
+    },
+    character(1)
+  )
+  status <- run_examples_script(pages, example_opts(), character(), workers = 2)
+  expect_setequal(names(status), basename(pages))
+  expect_true(all(status == "done"))
+  expect_true(any(grepl("#> [1] 4", readLines(pages[[3]]), fixed = TRUE)))
+})
+
 test_that("run_examples() reuses a page's results with `freeze = TRUE` until it changes", {
   skip_on_cran()
   dir <- new_pkg()

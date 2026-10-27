@@ -10,6 +10,7 @@ build_site(
   freeze = FALSE,
   quiet = TRUE,
   devel = FALSE,
+  workers = 1,
   preview = interactive()
 )
 }
@@ -34,6 +35,9 @@ the package installed from \code{path} into a temporary library. With
 \code{devel = TRUE}, they run against it loaded with \code{\link[pkgload:load_all]{pkgload::load_all()}}
 instead, which is faster, but code that starts other R processes (e.g.
 with callr or parallel workers) won't find the package there.}
+
+\item{workers}{Number of processes to build the site with. More than 1
+needs the \href{https://mirai.r-lib.org/}{mirai} package.}
 
 \item{preview}{Logical. Open the built site in a web browser with
 \code{\link[=preview_site]{preview_site()}}? By default, only in interactive sessions.}

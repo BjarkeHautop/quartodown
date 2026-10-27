@@ -42,6 +42,7 @@ Imports:
     yaml
 Suggests:
     httr2,
+    mirai (>= 2.4.1),
     pkgload,
     servr,
     testthat (>= 3.0.0),

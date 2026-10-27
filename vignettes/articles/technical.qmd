@@ -32,6 +32,9 @@ with `pkgload::load_all()` instead. It is faster, but code that starts other R
 processes (for example with callr or parallel) won't find the package, and
 build-stage `\Sexpr{}` macros in the man pages don't run.
 
+`build_site()`'s `workers` argument sets the number of processes to build with.
+More than one needs the [mirai](https://mirai.r-lib.org/) package.
+
 Throughout the build, the environment variable `IN_QUARTODOWN` is `"true"`, so
 the package's code can tell it is running for the site, and `IN_QUARTODOWN_PKG`
 is the package's name.

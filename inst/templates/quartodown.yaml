@@ -29,11 +29,11 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::knitr, any::rmarkdown, github::BjarkeHautop/quartodown
+          extra-packages: any::knitr, any::rmarkdown, any::mirai, github::BjarkeHautop/quartodown
           needs: website
 
       - name: Build site
-        run: quartodown::build_site()
+        run: quartodown::build_site(workers = 4)
         shell: Rscript {0}
 
       - name: Deploy to GitHub Pages

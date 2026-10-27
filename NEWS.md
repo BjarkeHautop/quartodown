@@ -1,5 +1,8 @@
 # quartodown (development version)
 
+- New `workers` argument to `build_site()`, to build the site with several
+  processes. `use_quartodown_action()`'s workflow uses 4.
+
 - New `development: mode:` setting in `_quartodown.yml`, as in pkgdown: with
   `devel` (or `auto` and a `.9000` version), the site for the development
   version is built into `docs/dev/`, next to the released version's. A link next

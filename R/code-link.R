@@ -20,21 +20,30 @@ postprocess_pages <- function(
   if (docs == docs_dir(path)) {
     pages <- pages[!fs::path_has_parent(pages, file.path(docs, "dev"))]
   }
-  for (f in pages) {
-    lines <- read_utf8(f)
-    html <- link_code_html(
-      protect_ansi(paste(lines, collapse = "\n")),
-      drop = drop
-    )
-    if (length(index) > 0) {
-      prefix <- reference_href_prefix(f, docs)
-      html <- add_tooltips_html(html, index, prefix, pkg = pkg)$html
-    }
-    html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
-    write_utf8(html, f, sep = "")
-  }
+  map_workers(
+    as.character(pages),
+    postprocess_page,
+    docs = docs,
+    index = index,
+    pkg = pkg,
+    drop = drop
+  )
   strip_search_ansi(docs)
   invisible()
+}
+
+postprocess_page <- function(f, docs, index, pkg, drop) {
+  lines <- read_utf8(f)
+  html <- link_code_html(
+    protect_ansi(paste(lines, collapse = "\n")),
+    drop = drop
+  )
+  if (length(index) > 0) {
+    prefix <- reference_href_prefix(f, docs)
+    html <- add_tooltips_html(html, index, prefix, pkg = pkg)$html
+  }
+  html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
+  write_utf8(html, f, sep = "")
 }
 
 # Content for only one of the released and development versions' sites is

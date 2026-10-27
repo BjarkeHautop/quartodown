@@ -13,18 +13,28 @@ write_man_pages <- function(path, config = list(), topics = rd_topics(path)) {
   pkg <- pkg_name(path)
   pages <- topic_pages(topics)
   source <- pkg_repo(path, config)$source
-  for (topic in topics) {
-    rd_file <- file.path(path, "man", paste0(topic$basename, ".Rd"))
-    note <- source_note(rd_source_files(rd_file), source)
-    lines <- tryCatch(
-      rd_to_qmd(topic$rd, pkg, pages, note),
-      error = function(e) {
-        cli::cli_abort("Failed to convert {.file {rd_file}}.", parent = e)
-      }
-    )
-    write_utf8(lines, file.path(out_dir, paste0(topic$basename, ".qmd")))
-  }
+  map_workers(
+    topics,
+    write_man_page,
+    path = path,
+    out_dir = out_dir,
+    pkg = pkg,
+    pages = pages,
+    source = source
+  )
   invisible()
+}
+
+write_man_page <- function(topic, path, out_dir, pkg, pages, source) {
+  rd_file <- file.path(path, "man", paste0(topic$basename, ".Rd"))
+  note <- source_note(rd_source_files(rd_file), source)
+  lines <- tryCatch(
+    rd_to_qmd(topic$rd, pkg, pages, note),
+    error = function(e) {
+      cli::cli_abort("Failed to convert {.file {rd_file}}.", parent = e)
+    }
+  )
+  write_utf8(lines, file.path(out_dir, paste0(topic$basename, ".qmd")))
 }
 
 # The files roxygen generated `rd_file` from, relative to the package root,

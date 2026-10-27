@@ -111,20 +111,21 @@ quartodown::build_site() # also previews it when interactive
      folders). `extra.scss` is appended to both themes and `extra.css` set as
      `css:`. `docs/.nojekyll` keeps GitHub Pages from dropping it.
    - Then `run_examples()` ([R/examples.R](R/examples.R)) knits every reference
-     page with R chunks in one fresh `Rscript` process
-     ([inst/scripts/run-examples.R](inst/scripts/run-examples.R)), with the
-     package's envvars, rather than Quarto starting one per page. Its hooks copy
-     those of Quarto's knitr engine (`share/rmd/hooks.R`) for the options the
-     pages use, and `example_knit_options()` takes Quarto's knitr options from
-     the generated `_quarto.yml` (NULL, leaving all pages to Quarto, for
-     settings it doesn't handle). Each page is overwritten with the executed
-     Markdown, unless knitting fails or leaves `knit_meta` (htmlwidgets) or
-     preserved HTML, in which case Quarto runs it. Between pages the script
-     clears `globalenv()`, detaches new search-path entries and resets the
-     working directory, RNG kind and changed options; options added (e.g. by a
-     namespace's `.onLoad()`) and envvars aren't reset. With `freeze`, results
-     are cached in `_quarto/_freeze/quartodown/reference/<page>/`, keyed by the
-     page's source and the knitr options.
+     page with R chunks in one fresh `Rscript` process (split between `workers`
+     processes) ([inst/scripts/run-examples.R](inst/scripts/run-examples.R)),
+     with the package's envvars, rather than Quarto starting one per page. Its
+     hooks copy those of Quarto's knitr engine (`share/rmd/hooks.R`) for the
+     options the pages use, and `example_knit_options()` takes Quarto's knitr
+     options from the generated `_quarto.yml` (NULL, leaving all pages to
+     Quarto, for settings it doesn't handle). Each page is overwritten with the
+     executed Markdown, unless knitting fails or leaves `knit_meta`
+     (htmlwidgets) or preserved HTML, in which case Quarto runs it. Between
+     pages the script clears `globalenv()`, detaches new search-path entries and
+     resets the working directory, RNG kind and changed options; options added
+     (e.g. by a namespace's `.onLoad()`) and envvars aren't reset. With
+     `freeze`, results are cached in
+     `_quarto/_freeze/quartodown/reference/<page>/`, keyed by the page's source
+     and the knitr options.
 2. **Rendering** --- clears the site's folder (`site_dir()`: `docs/`, or
    `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s pkgdown-style
    `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`, which `auto` picks
@@ -137,8 +138,13 @@ quartodown::build_site() # also previews it when interactive
    `R_CLI_NUM_COLORS=256` for colored output), renders `_quarto/` into it
    (`output-dir: ../docs/`; with `processx` rather than
    `quarto::quarto_render()`, whose `quiet` passes `--quiet`, which hides errors
-   too, so `render_error_log()` can show them) and writes `docs/pkgdown.yml`
-   (`urls` + `articles`, all downlit reads). The name is fixed: downlit fetches
+   too, so `render_error_log()` can show them; with `workers > 1`, split by
+   `shard_pages()` into that many Quarto processes, each on a copy in
+   `_quarto/_shards/<k>/` (inside the package, for code that finds it from the
+   working directory, e.g. testthat snapshots), whose sites
+   `merge_shard_sites()` ([R/workers.R](R/workers.R)) joins, relinking `.qmd`
+   hrefs to other shards' pages) and writes `docs/pkgdown.yml` (`urls` +
+   `articles`, all downlit reads). The name is fixed: downlit fetches
    `<site URL>/pkgdown.yml` to link other packages' code to this site, so it
    must not be renamed.
 3. **After rendering** --- `postprocess_pages()`
@@ -210,6 +216,12 @@ script's title alignment, so the title sits above the sidebar.
   `build_reference_qmd()`, `quarto_config()` and `postprocess_pages()`; their
   `topics = rd_topics(path)` default is for tests. Use `has_page()` for whether
   a topic has a page.
+
+- With `build_site(workers > 1)`, `local_workers()` starts mirai daemons (own
+  compute profile, loading the same quartodown, via pkgload when in development)
+  and `map_workers()` runs `write_man_page()` and `postprocess_page()` on them,
+  re-signalling their warnings and messages. Its `fn` must be a namespace
+  function (sent by reference), with data passed as arguments.
 
 - Shared helpers live in [R/utils.R](R/utils.R): `html_escape()`/
   `html_unescape()`, `read_utf8()`/`write_utf8()`, `gsub_fn()` (replace each

@@ -80,6 +80,8 @@
 #'   `devel = TRUE`, they run against it loaded with [pkgload::load_all()]
 #'   instead, which is faster, but code that starts other R processes (e.g.
 #'   with callr or parallel workers) won't find the package there.
+#' @param workers Number of processes to build the site with. More than 1
+#'   needs the [mirai](https://mirai.r-lib.org/) package.
 #' @param preview Logical. Open the built site in a web browser with
 #'   [preview_site()]? By default, only in interactive sessions.
 #' @return Invisibly, the path to the built site.
@@ -96,8 +98,18 @@ build_site <- function(
   freeze = FALSE,
   quiet = TRUE,
   devel = FALSE,
+  workers = 1,
   preview = interactive()
 ) {
+  if (
+    !is.numeric(workers) ||
+      length(workers) != 1 ||
+      is.na(workers) ||
+      workers < 1 ||
+      workers != round(workers)
+  ) {
+    cli::cli_abort("{.arg workers} must be a whole number of at least 1.")
+  }
   config <- read_config(path)
   check_quarto()
   topics <- rd_topics(path)
@@ -120,6 +132,7 @@ build_site <- function(
   } else {
     install_envvars(path, scratch)
   }
+  local_workers(workers)
 
   cli::cli_progress_step(
     "Writing the Quarto project to {.path _quarto/}",
@@ -139,8 +152,16 @@ build_site <- function(
 
   cli::cli_progress_done()
 
-  run_examples(path, envvars, settings, freeze = freeze)
-  render_project(path, envvars, config, quiet = quiet)
+  run_examples(path, envvars, settings, freeze = freeze, workers = workers)
+  render_project(
+    path,
+    envvars,
+    settings,
+    config,
+    quiet = quiet,
+    workers = workers,
+    scratch = scratch
+  )
 
   done <- if (isTRUE(tooltips)) {
     "Linked code and added tooltips"
@@ -512,12 +533,17 @@ write_quarto_config <- function(
       vignette_files(path, config)
     )
   }
+  write_quarto_yml(settings, project_dir(path))
+  invisible(settings)
+}
+
+# Quarto reads YAML 1.2, whose booleans are only `true`/`false`.
+write_quarto_yml <- function(settings, dir) {
   yaml::write_yaml(
     settings,
-    file.path(project_dir(path), "_quarto.yml"),
+    file.path(dir, "_quarto.yml"),
     handlers = list(logical = yaml::verbatim_logical)
   )
-  invisible(settings)
 }
 
 # ---- home page ----------------------------------------------------------------

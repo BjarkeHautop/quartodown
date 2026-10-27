@@ -13,7 +13,13 @@
 # _quarto/_freeze/quartodown/reference/<page>/ and reused while the page and
 # the options are the same, as Quarto's freeze does for the other pages.
 
-run_examples <- function(path, envvars, settings, freeze = FALSE) {
+run_examples <- function(
+  path,
+  envvars,
+  settings,
+  freeze = FALSE,
+  workers = 1
+) {
   opts <- example_knit_options(settings)
   pages <- example_pages(path)
   if (is.null(opts) || length(pages) == 0) {
@@ -33,11 +39,16 @@ run_examples <- function(path, envvars, settings, freeze = FALSE) {
     return(invisible())
   }
 
+  processes <- if (min(workers, n) > 1) {
+    sprintf(" in %d processes", min(workers, n))
+  } else {
+    ""
+  }
   cli::cli_progress_step(
-    "Running the examples of {n} reference page{?s}",
-    msg_done = "Ran the examples of {n} reference page{?s}"
+    "Running the examples of {n} reference page{?s}{processes}",
+    msg_done = "Ran the examples of {n} reference page{?s}{processes}"
   )
-  status <- run_examples_script(pages, opts, envvars)
+  status <- run_examples_script(pages, opts, envvars, workers)
   if (freeze) {
     done <- pages[status[basename(pages)] %in% "done"]
     for (page in done) {
@@ -186,30 +197,47 @@ example_chunk_options <- c(
 )
 
 # Runs run-examples.R on `pages` with the package's `envvars` (from
-# install_envvars() or load_all_envvars()), as Quarto would run them. Returns
-# each page's status, named by its file name: "done", or why it was left for
-# Quarto.
-run_examples_script <- function(pages, opts, envvars) {
-  job <- tempfile("quartodown-examples-", fileext = ".rds")
-  status <- tempfile("quartodown-examples-", fileext = ".tsv")
-  on.exit(unlink(c(job, status)))
-  saveRDS(c(list(pages = pages, status = status), opts), job)
+# install_envvars() or load_all_envvars()), as Quarto would run them, split
+# between up to `workers` R processes. Returns each page's status, named by
+# its file name: "done", or why it was left for Quarto.
+run_examples_script <- function(pages, opts, envvars, workers = 1) {
+  groups <- split(pages, rep_len(seq_len(workers), length(pages)))
+  jobs <- tempfile(
+    rep("quartodown-examples-", length(groups)),
+    fileext = ".rds"
+  )
+  status <- tempfile(
+    rep("quartodown-examples-", length(groups)),
+    fileext = ".tsv"
+  )
+  on.exit(unlink(c(jobs, status)))
+  for (k in seq_along(groups)) {
+    saveRDS(c(list(pages = groups[[k]], status = status[[k]]), opts), jobs[[k]])
+  }
 
   # As in run_quarto_render().
   local_envvars(c(envvars, R_CLI_NUM_COLORS = "256"))
   rscript <- if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"
-  processx::run(
-    file.path(R.home("bin"), rscript),
-    c(system.file("scripts", "run-examples.R", package = "quartodown"), job),
-    wd = dirname(pages[[1]]),
-    error_on_status = FALSE
+  procs <- lapply(jobs, function(job) {
+    processx::process$new(
+      file.path(R.home("bin"), rscript),
+      c(system.file("scripts", "run-examples.R", package = "quartodown"), job),
+      wd = dirname(pages[[1]]),
+      cleanup_tree = TRUE
+    )
+  })
+  on.exit(
+    for (proc in procs) {
+      proc$kill_tree()
+    },
+    add = TRUE
   )
-
-  lines <- if (file.exists(status)) {
-    read_utf8(status)
-  } else {
-    character()
+  for (proc in procs) {
+    proc$wait()
   }
+
+  status <- status[file.exists(status)]
+  lines <- unlist(lapply(status, read_utf8))
   parts <- strsplit(lines, "\t", fixed = TRUE)
   structure(
     vapply(parts, function(x) x[2], character(1)),

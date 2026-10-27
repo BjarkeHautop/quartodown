@@ -80,9 +80,13 @@ reset_project <- function(path, freeze = FALSE) {
   invisible()
 }
 
-# Copies everything in `from` to the same paths under `to`.
-copy_dir <- function(from, to) {
-  files <- list.files(from, recursive = TRUE, all.files = TRUE)
+# Copies `files` (by default everything) in `from` to the same paths under
+# `to`.
+copy_dir <- function(
+  from,
+  to,
+  files = list.files(from, recursive = TRUE, all.files = TRUE)
+) {
   for (dir in unique(file.path(to, dirname(files)))) {
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   }
@@ -419,51 +423,90 @@ check_quarto <- function() {
 
 # `envvars` makes the package available to the pages' R processes, see
 # install_envvars() and load_all_envvars().
-render_project <- function(path, envvars, config = list(), quiet = TRUE) {
+# `settings` is the project's Quarto configuration (see write_quarto_config()).
+# With `workers`, the pages are rendered in up to that many Quarto processes,
+# each on a copy of the project in `scratch` (see shard_pages()).
+render_project <- function(
+  path,
+  envvars,
+  settings,
+  config = list(),
+  quiet = TRUE,
+  workers = 1,
+  scratch = tempdir()
+) {
   clear_site(path, config)
 
-  n <- length(render_inputs(project_dir(path), vignette_files(path, config)))
+  dir <- project_dir(path)
+  pages <- unlist(settings$project$render)
+  if (is.null(pages)) {
+    pages <- render_inputs(dir)
+  }
+  shards <- shard_pages(dir, pages, workers)
+  reason <- if (!is.null(shards)) one_process_reason(dir, pages, settings)
+  if (!is.null(reason)) {
+    cli::cli_inform(c(
+      "i" = paste0("Rendering with one Quarto process, as ", reason, ".")
+    ))
+    shards <- NULL
+  }
+  projects <- dir
+  if (!is.null(shards)) {
+    on.exit(unlink(file.path(dir, shards_dir), recursive = TRUE), add = TRUE)
+    projects <- write_shard_projects(path, settings, shards, scratch)
+  }
+
+  n <- length(render_inputs(dir, vignette_files(path, config)))
+  processes <- if (length(projects) > 1) {
+    sprintf(" in %d processes", length(projects))
+  } else {
+    ""
+  }
   # Quarto's own output goes to the console unless `quiet`, and a progress
   # step's line would be redrawn over it.
   current <- ""
   step <- if (quiet) {
     cli::cli_progress_step(
-      "Rendering {n} page{?s} with Quarto{current}",
-      msg_done = "Rendered {n} page{?s} with Quarto"
+      "Rendering {n} page{?s} with Quarto{processes}{current}",
+      msg_done = "Rendered {n} page{?s} with Quarto{processes}"
     )
   } else {
-    cli::cli_inform("Rendering {n} page{?s} with Quarto.")
+    cli::cli_inform("Rendering {n} page{?s} with Quarto{processes}.")
   }
 
-  # Each page's time runs from Quarto's line starting it to the line starting
-  # the next, and the last page's to "Output created", after which Quarto only
-  # finishes the site (search index, sitemap). The first page's includes
-  # compiling the theme. The step names the page being rendered only where its
-  # line can be redrawn, else each update would print a line.
+  # In each Quarto process, a page's time runs from Quarto's line starting it
+  # to the line starting the next, and the last page's to "Output created",
+  # after which Quarto only finishes the site (search index, sitemap). The
+  # first page's includes compiling the theme. The step names the page being
+  # rendered only where its line can be redrawn, else each update would print
+  # a line.
   show_page <- quiet && cli::is_dynamic_tty()
-  pages <- character()
-  starts <- numeric()
-  end <- NA_real_
-  on_line <- function(line, proc) {
+  started <- lapply(projects, function(x) character())
+  starts <- lapply(projects, function(x) numeric())
+  ends <- rep(NA_real_, length(projects))
+  on_line <- function(line, k) {
     file <- rendering_file(line)
     if (!is.na(file)) {
-      pages <<- c(pages, file)
-      starts <<- c(starts, as.numeric(Sys.time()))
+      started[[k]] <<- c(started[[k]], file)
+      starts[[k]] <<- c(starts[[k]], as.numeric(Sys.time()))
       if (show_page) {
         current <<- paste0(": ", cli_escape(file))
         cli::cli_progress_update(id = step, force = TRUE)
       }
-    } else if (is.na(end) && grepl("^\\s*Output created", line)) {
-      end <<- as.numeric(Sys.time())
+    } else if (is.na(ends[[k]]) && grepl("^\\s*Output created", line)) {
+      ends[[k]] <<- as.numeric(Sys.time())
     }
   }
 
-  result <- run_quarto_render(path, envvars, quiet, on_line)
+  result <- run_quarto_render(projects, envvars, quiet, on_line)
   if (result$status != 0) {
     cli::cli_abort(c(
       "Quarto failed to render the site.",
       if (quiet) render_error_log(result$stderr)
     ))
+  }
+  if (!is.null(shards)) {
+    merge_shard_sites(path, projects, shards, site_dir(path, config))
   }
   # Without it, GitHub Pages runs the site through Jekyll, which drops `_`
   # folders such as _quartodown/.
@@ -472,10 +515,10 @@ render_project <- function(path, envvars, config = list(), quiet = TRUE) {
   if (quiet) {
     cli::cli_progress_done(id = step)
   }
-  if (is.na(end)) {
-    end <- as.numeric(Sys.time())
-  }
-  times <- stats::setNames(diff(c(starts, end)), pages)
+  ends[is.na(ends)] <- as.numeric(Sys.time())
+  times <- unlist(lapply(seq_along(projects), function(k) {
+    stats::setNames(diff(c(starts[[k]], ends[[k]])), started[[k]])
+  }))
   cli::cli_bullets(render_time_bullets(times))
   invisible()
 }
@@ -524,10 +567,13 @@ format_secs <- function(x) {
   sprintf("%.1fs", x)
 }
 
-# The environment variables are set only while Quarto runs, so the progress
-# step's messages aren't colored as for the pages. `on_line` is called with
-# each line Quarto writes to stderr, where its progress goes.
-run_quarto_render <- function(path, envvars, quiet, on_line = NULL) {
+# Renders each of the Quarto `projects` (folders) at once, each in its own
+# Quarto process. The environment variables are set only while Quarto runs,
+# so the progress step's messages aren't colored as for the pages. `on_line`
+# is called with each line Quarto writes to stderr, where its progress goes,
+# and the index of the project it is from. Returns the exit status and, if a
+# render failed, its stderr.
+run_quarto_render <- function(projects, envvars, quiet, on_line = NULL) {
   # Colored output, as in a terminal; see ansi_to_html(). QUARTO_R, unless set
   # already, makes Quarto run the pages' code with this R.
   local_envvars(c(
@@ -538,13 +584,57 @@ run_quarto_render <- function(path, envvars, quiet, on_line = NULL) {
   # Not quarto::quarto_render(): its `quiet` passes `--quiet`, which drops
   # Quarto's error messages too. Without it, Quarto writes its progress and
   # errors to stderr, kept here to show the error.
-  processx::run(
-    quarto::quarto_path(),
-    c("render", project_dir(path)),
-    echo = !quiet,
-    stderr_line_callback = on_line,
-    error_on_status = FALSE
+  procs <- lapply(projects, function(dir) {
+    processx::process$new(
+      quarto::quarto_path(),
+      c("render", dir),
+      stdout = if (quiet) NULL else "|",
+      stderr = "|",
+      cleanup_tree = TRUE
+    )
+  })
+  on.exit(
+    for (proc in procs) {
+      proc$kill_tree()
+    },
+    add = TRUE
   )
+
+  stderr <- lapply(procs, function(proc) character())
+  running <- rep(TRUE, length(procs))
+  while (any(running)) {
+    processx::poll(procs[running], 200)
+    for (k in which(running)) {
+      proc <- procs[[k]]
+      if (!quiet) {
+        cat(paste0(proc$read_output_lines(), "\n"), sep = "")
+      }
+      lines <- proc$read_error_lines()
+      if (!quiet) {
+        cat(paste0(lines, "\n"), sep = "", file = stderr())
+      }
+      for (line in lines) {
+        if (!is.null(on_line)) on_line(line, k)
+      }
+      stderr[[k]] <- c(stderr[[k]], lines)
+      if (
+        proc$is_incomplete_error() || (!quiet && proc$is_incomplete_output())
+      ) {
+        next
+      }
+      proc$wait()
+      running[[k]] <- FALSE
+      status <- proc$get_exit_status()
+      # One failed page fails the build, so the other processes are stopped.
+      if (status != 0) {
+        return(list(
+          status = status,
+          stderr = paste(stderr[[k]], collapse = "\n")
+        ))
+      }
+    }
+  }
+  list(status = 0L, stderr = "")
 }
 
 # The files Quarto renders in the project `dir`: those it can render, outside
