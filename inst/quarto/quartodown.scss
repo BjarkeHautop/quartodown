@@ -221,6 +221,17 @@ $quartodown-mix: 100%;
   color: $body-color;
 }
 
+// On narrow screens the box is a button whose icon Quarto colors with
+// `$navbar-dark-color`, near white on the light navbar. Color it like the
+// navbar tools.
+.navbar .aa-DetachedSearchButton .aa-DetachedSearchButtonIcon {
+  color: $body-color;
+}
+
+.navbar .aa-DetachedSearchButton:hover .aa-DetachedSearchButtonIcon {
+  color: $primary;
+}
+
 // Tighten the top of the home page.
 #quarto-document-content.page-full:has(.quartodown-home) {
   padding-top: 0 !important;
