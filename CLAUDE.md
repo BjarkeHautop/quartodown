@@ -244,7 +244,9 @@ script's title alignment, so the title sits above the sidebar.
 
 - Tests create throwaway packages in temp dirs (see `new_pkg()` helper in
   [tests/testthat/helper-pkg.R](tests/testthat/helper-pkg.R)) and test the
-  generation functions directly rather than running a full Quarto render.
+  generation functions directly rather than running a full Quarto render; only
+  [test-render.R](tests/testthat/test-render.R) runs `build_site()` end to end
+  (skipped without Quarto).
 
 - [vignettes/articles/technical.qmd](vignettes/articles/technical.qmd) is a
   user-facing overview of the build (stages, `_quarto/` layout, man pages, code
