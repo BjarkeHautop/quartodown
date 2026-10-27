@@ -134,8 +134,10 @@ quartodown::build_site() # also previews it when interactive
    under `dev/` and a `noindex` meta in `quartodown-header.html`), keeping
    `CNAME`, hidden files and, in `docs/`, `dev/` (which `postprocess_pages()`
    then skips too), makes the package available to the pages' R processes
-   (installed into a temp library prepended via `R_LIBS`, or with `devel = TRUE`
-   a generated `R_PROFILE_USER` profile that runs `pkgload::load_all()`; plus
+   (installed into a temp library prepended via `R_LIBS` and, as profiles such
+   as callr's reset `.libPaths()`, a generated `R_PROFILE_USER` profile, or
+   with `devel = TRUE` one that runs `pkgload::load_all()`; both first source
+   the user's own profile, `profile_envvars()`; plus
    `R_CLI_NUM_COLORS=256` for colored output), renders `_quarto/` into it
    (`output-dir: ../docs/`; with `processx` rather than
    `quarto::quarto_render()`, whose `quiet` passes `--quiet`, which hides errors

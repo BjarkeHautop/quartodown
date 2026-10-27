@@ -581,6 +581,52 @@ test_that("install_envvars() installs the package into a library put first on R_
   expect_message(envvars <- install_envvars(dir, scratch), "temporary library")
   lib <- strsplit(envvars[["R_LIBS"]], .Platform$path.sep, fixed = TRUE)[[1]][1]
   expect_true(file.exists(file.path(lib, "examplepkg", "DESCRIPTION")))
+  # Its profile puts the library first too, after a profile that sets
+  # `.libPaths()` (as callr's do).
+  profile <- readLines(envvars[["R_PROFILE_USER"]])
+  expect_match(profile, ".libPaths(c(", fixed = TRUE, all = FALSE)
+})
+
+test_that("profile_envvars() runs an R_PROFILE_USER already set first", {
+  withr::local_envvar(R_PROFILE_USER = "C:/callr-upr")
+  envvars <- profile_envvars(withr::local_tempdir(), "x <- 1")
+  expect_identical(
+    readLines(envvars[["R_PROFILE_USER"]]),
+    c(
+      "if (file.exists(\"C:/callr-upr\")) source(\"C:/callr-upr\")",
+      "x <- 1"
+    )
+  )
+})
+
+test_that("profile_envvars()'s profile runs under callr's environment files", {
+  # As in a process started by callr (e.g. R CMD check run by rcmdcheck): its
+  # R_ENVIRON sets R_PROFILE_USER to a profile that resets `.libPaths()`.
+  dir <- withr::local_tempdir()
+  callr_profile <- file.path(dir, "callr-upr")
+  writeLines(".libPaths(.Library)", callr_profile)
+  callr_environ <- file.path(dir, "callr-sev")
+  writeLines(
+    sprintf("R_PROFILE_USER=\"%s\"", normalizePath(callr_profile, "/")),
+    callr_environ
+  )
+  withr::local_envvar(
+    R_ENVIRON = callr_environ,
+    R_ENVIRON_USER = NA,
+    R_PROFILE_USER = callr_profile
+  )
+  lib <- normalizePath(withr::local_tempdir(), "/")
+  envvars <- profile_envvars(
+    withr::local_tempdir(),
+    sprintf(".libPaths(c(%s, .libPaths()))", deparse(lib))
+  )
+  withr::local_envvar(envvars)
+  out <- system2(
+    file.path(R.home("bin"), "Rscript"),
+    c("-e", shQuote("cat(.libPaths()[1])")),
+    stdout = TRUE
+  )
+  expect_identical(out, lib)
 })
 
 test_that("install_envvars() errors when the package doesn't install", {

@@ -709,8 +709,8 @@ clear_site <- function(path, config = list()) {
 #
 # Quarto runs each page's code in a new R process, as run_examples() does the
 # reference pages' examples, all in one. The package is either installed into
-# a temporary library first on its library path, or, with `devel = TRUE`,
-# loaded with pkgload::load_all() by an R profile.
+# a temporary library an R profile puts first on its library path, or, with
+# `devel = TRUE`, loaded with pkgload::load_all() by one.
 
 install_envvars <- function(path, scratch) {
   lib <- file.path(scratch, "library")
@@ -742,7 +742,15 @@ install_envvars <- function(path, scratch) {
       cli_lines(utils::tail(output, 20))
     ))
   }
-  c(R_LIBS = paste(c(lib, .libPaths()), collapse = .Platform$path.sep))
+  # R_LIBS alone isn't enough: a profile that sets `.libPaths()`, as callr's
+  # do (so under R CMD check run by rcmdcheck), would drop the library again.
+  c(
+    R_LIBS = paste(c(lib, .libPaths()), collapse = .Platform$path.sep),
+    profile_envvars(
+      scratch,
+      sprintf(".libPaths(c(%s, .libPaths()))", deparse(normalizePath(lib, "/")))
+    )
+  )
 }
 
 load_all_envvars <- function(path, scratch) {
@@ -752,23 +760,53 @@ load_all_envvars <- function(path, scratch) {
       "i" = "Install it with {.code install.packages(\"pkgload\")}."
     ))
   }
+  profile_envvars(
+    scratch,
+    sprintf(
+      "suppressMessages(pkgload::load_all(%s, export_all = FALSE, helpers = FALSE, quiet = TRUE))",
+      deparse(normalizePath(path))
+    )
+  )
+}
+
+# Writes an R profile running `code` after the user's own profile, which
+# R_PROFILE_USER replaces, so it's run first: an R_PROFILE_USER already set,
+# else `.Rprofile`, else `~/.Rprofile`, as R picks it. An environment file
+# setting R_PROFILE_USER, as callr's R_ENVIRON does, would override it, so it
+# is set from R_ENVIRON_USER too, read last: a copy of the one already set,
+# if any (otherwise the user's variables are inherited already).
+profile_envvars <- function(scratch, code) {
   profile <- file.path(scratch, "Rprofile.R")
+  environ <- file.path(scratch, "Renviron")
+  user_environ <- Sys.getenv("R_ENVIRON_USER")
   writeLines(
     c(
-      # R_PROFILE_USER replaces the user's own profile, so it's run first.
-      "if (file.exists('.Rprofile')) {",
-      "  source('.Rprofile')",
-      "} else if (file.exists('~/.Rprofile')) {",
-      "  source('~/.Rprofile')",
-      "}",
-      sprintf(
-        "suppressMessages(pkgload::load_all(%s, export_all = FALSE, helpers = FALSE, quiet = TRUE))",
-        deparse(normalizePath(path))
-      )
+      if (nzchar(user_environ) && file.exists(user_environ)) {
+        read_utf8(user_environ)
+      },
+      sprintf("R_PROFILE_USER=\"%s\"", normalizePath(profile, "/", FALSE))
+    ),
+    environ
+  )
+  user <- Sys.getenv("R_PROFILE_USER")
+  writeLines(
+    c(
+      if (nzchar(user)) {
+        sprintf("if (file.exists(%1$s)) source(%1$s)", deparse(user))
+      } else {
+        c(
+          "if (file.exists('.Rprofile')) {",
+          "  source('.Rprofile')",
+          "} else if (file.exists('~/.Rprofile')) {",
+          "  source('~/.Rprofile')",
+          "}"
+        )
+      },
+      code
     ),
     profile
   )
-  c(R_PROFILE_USER = profile)
+  c(R_PROFILE_USER = profile, R_ENVIRON_USER = environ)
 }
 
 # Evaluates `code` with the temporary library of `envvars` (from
