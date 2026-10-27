@@ -19,7 +19,7 @@ site](#styling-and-layout). `_quartodown.yml` has nine fields, all optional:
 - `home:` picks the home page's source and lays out its sidebar.
 - `authors:` links authors' names and picks who is shown where.
 - `repo:` says where the source code is. It defaults to the GitHub, GitLab or
-  Codeberg `URL` in `DESCRIPTION`.
+  Codeberg `URL` (or `BugReports`) in `DESCRIPTION`.
 - `theme:` picks the light and dark themes.
 - `redirects:` sends visitors from old addresses to new ones.
 - `quarto:` changes any other Quarto setting.
@@ -235,8 +235,9 @@ The format is the same as pkgdown's `authors:`.
 
 Links to the package's source code, issues and contributors come from the first
 GitHub, GitLab (also self-hosted, if the host name contains `gitlab`) or
-Codeberg URL in `DESCRIPTION`. For a package in a subfolder, give the folder's
-URL, such as `https://github.com/me/repo/tree/main/mypkg`.
+Codeberg URL in `DESCRIPTION`'s `URL`, or else from its `BugReports`. For a
+package in a subfolder, give the folder's URL, such as
+`https://github.com/me/repo/tree/main/mypkg`.
 
 `repo:` changes the branch the source links point to:
 

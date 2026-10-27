@@ -170,6 +170,20 @@ test_that("pkg_repo() reads the repository from DESCRIPTION's URL", {
   repo <- pkg_repo(dir)
   expect_identical(repo$source, "https://codeberg.org/o/r/src/branch/main/pkg/")
   expect_identical(repo$issue, "https://codeberg.org/o/r/issues/")
+
+  # Without one in URL, the repository BugReports is in.
+  desc::desc_set(
+    URL = "https://example.com",
+    BugReports = "https://github.com/o/r/issues",
+    file = dir
+  )
+  repo <- pkg_repo(dir)
+  expect_identical(repo$home, "https://github.com/o/r")
+  expect_identical(repo$source, "https://github.com/o/r/blob/HEAD/")
+  desc::desc_set(BugReports = "https://gitlab.com/o/r/-/issues/", file = dir)
+  expect_identical(pkg_repo(dir)$home, "https://gitlab.com/o/r")
+  desc::desc_set(BugReports = "https://example.com/bugs", file = dir)
+  expect_true(is.na(pkg_repo(dir)$home))
 })
 
 test_that("repo_host() recognizes GitHub, GitLab and Codeberg", {

@@ -113,14 +113,21 @@ repo_host <- function(urls) {
 }
 
 # Where the package's source lives, from the first GitHub, GitLab or Codeberg
-# URL in DESCRIPTION, with _quartodown.yml's `repo:` over it: `home`,
-# the repository's page, and the prefixes of the links to a file (`source`),
-# an issue (`issue`) and a user (`user`). A URL into a folder,
-# `<repo>/tree/<branch>/<folder>` (Codeberg's `<repo>/src/branch/...`), is a
-# package in that folder of that branch. Each is NA if unknown.
+# URL in DESCRIPTION (else its `BugReports`, without the `/issues` part),
+# with _quartodown.yml's `repo:` over it: `home`, the repository's page, and
+# the prefixes of the links to a file (`source`), an issue (`issue`) and a
+# user (`user`). A URL into a folder, `<repo>/tree/<branch>/<folder>`
+# (Codeberg's `<repo>/src/branch/...`), is a package in that folder of that
+# branch. Each is NA if unknown.
 pkg_repo <- function(path, config = list()) {
   urls <- desc::desc_get_urls(path)
   url <- urls[!is.na(repo_host(urls))][1]
+  if (is.na(url)) {
+    bug_reports <- desc::desc_get_field("BugReports", default = NA, file = path)
+    if (!is.na(repo_host(bug_reports))) {
+      url <- sub("(/-)?/issues(/.*)?$", "", trimws(bug_reports))
+    }
+  }
   repo <- list(
     home = NA_character_,
     source = NA_character_,

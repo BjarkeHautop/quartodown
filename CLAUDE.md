@@ -73,12 +73,12 @@ quartodown::build_site() # also previews it when interactive
      `<GitHub URL>/blob/HEAD/` (`source_note()`, shared with the authors page
      and the vignettes, which `copy_vignettes()` gives one after their front
      matter). The repository's URLs come from `pkg_repo()` (DESCRIPTION's
-     GitHub/GitLab/Codeberg `URL`, recognized by `repo_host()`, which
-     `site_url()` skips; a `/tree/<branch>/<folder>` URL for a package in a
-     subfolder; and `_quartodown.yml`'s pkgdown-style `repo:`). Examples are
-     rebuilt from `tools::Rd2ex()` markers into run / `\dontrun` (plain block) /
-     `\dontshow` (hidden chunk) blocks, with `@examplesIf` evaluated at build
-     time.
+     GitHub/GitLab/Codeberg `URL`, else its `BugReports`, recognized by
+     `repo_host()`, which `site_url()` skips; a `/tree/<branch>/<folder>` URL
+     for a package in a subfolder; and `_quartodown.yml`'s pkgdown-style
+     `repo:`). Examples are rebuilt from `tools::Rd2ex()` markers into run /
+     `\dontrun` (plain block) / `\dontshow` (hidden chunk) blocks, with
+     `@examplesIf` evaluated at build time.
    - `_quarto.yml`: fully resolved Quarto config (navbar, footer, theme). User
      overrides from `_quartodown.yml`'s `quarto:` key are applied by
      `merge_quarto_config()` (unnamed lists append, other values replace, `~`
