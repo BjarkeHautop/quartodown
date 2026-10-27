@@ -70,13 +70,14 @@ be copied over.
 
 ## The navbar
 
-`navbar:` lists the items on the navbar's `left` and `right`, in order. The
-default is:
+`navbar:` lists the items on the navbar's `left` and `right`, in order, and
+under `tools` the icons right of the search box. The default is:
 
 ```yaml
 navbar:
   left: [intro, reference, articles, news]
-  right: [repo]
+  right: []
+  tools: [repo]
 ```
 
 Each of these is a keyword that quartodown turns into an item, and leaves out if
@@ -93,6 +94,8 @@ the package has nothing for it:
 Any other item is a vignette, given as its path relative to `vignettes/` without
 extension and linked with its title, or a [Quarto navbar
 item](https://quarto.org/docs/websites/website-navigation.html#top-navigation).
+`tools` takes only icons: `repo` or a [Quarto
+tool](https://quarto.org/docs/websites/website-navigation.html#navbar-tools).
 Inside a Quarto item's `menu:`, vignettes are given the same way, and a folder
 ending in `/` lists every vignette in it.
 
@@ -117,7 +120,11 @@ navbar:
   right:
     - text: Blog
       href: https://example.com/blog
+  tools:
     - repo
+    - icon: mastodon
+      text: Mastodon
+      href: https://fosstodon.org/@me
 ```
 
 1. `vignettes/get-started/installation.qmd`.
@@ -140,7 +147,8 @@ are website-only.
 ### A sidebar instead
 
 With `style: sidebar`, the `left` items move into a sidebar beside every page,
-and the navbar keeps the site's title, the search box and the `right` items:
+and the navbar keeps the site's title, the search box, the `right` items and the
+`tools`:
 
 ```yaml
 navbar:

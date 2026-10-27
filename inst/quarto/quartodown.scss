@@ -43,6 +43,17 @@ $quartodown-navbar-bg: mix(mix($body-bg, $primary, 95%), $body-color, 95%);
   border-radius: var(--bs-border-radius);
 }
 
+// Put the tools after the search box, which Quarto puts last.
+.navbar .quarto-navbar-tools {
+  order: 1000;
+}
+
+@media (max-width: 991.98px) {
+  .navbar .quarto-navbar-tools {
+    order: 5;
+  }
+}
+
 .navbar .quarto-navigation-tool:hover {
   color: $primary !important;
   background: #{rgba($primary, 0.1)};
@@ -156,8 +167,8 @@ $quartodown-mix: 100%;
     column-gap: 0.25rem;
   }
 
-  // The left items wrap within the space the right ones (the repository
-  // icon) leave, so those stay on the first row.
+  // The left items wrap within the space the right ones leave, so those stay
+  // on the first row.
   .navbar-collapse .navbar-nav.me-auto {
     flex: 1 1 0;
     min-width: 0;
@@ -189,9 +200,9 @@ $quartodown-mix: 100%;
     margin-right: 0;
   }
 
-  // With only icons to show (the repository icon, when `navbar: style:
-  // sidebar` moves the other items into the sidebar), keep them in the bar
-  // instead of behind a toggler.
+  // With only icons to show (`right` icons, when `navbar: style: sidebar`
+  // moves the other items into the sidebar), keep them in the bar instead of
+  // behind a toggler.
   .navbar-container:not(:has(.navbar-collapse .nav-item:not(.compact))) {
     .navbar-toggler {
       display: none;

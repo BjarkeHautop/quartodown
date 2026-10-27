@@ -111,29 +111,73 @@ test_that("navbar_items() leaves out Articles and Changelog when there are none"
   items <- navbar_items(dir)
   expect_identical(nav_texts(items$left), c("Get started", "Reference"))
   expect_length(items$right, 0)
+  expect_length(items$tools, 0)
 })
 
 test_that("navbar_items() picks the repository icon from its host", {
   dir <- new_pkg()
   repo_icon <- function(url, config = list()) {
     desc::desc_set(URL = url, file = dir)
-    navbar_items(dir, config)$right[[1]][c("icon", "aria-label")]
+    navbar_items(dir, config)$tools[[1]][c("icon", "aria-label", "text")]
   }
   expect_identical(
     repo_icon("https://gitlab.example.org/o/r"),
-    list(icon = "gitlab", `aria-label` = "GitLab")
+    list(icon = "gitlab", `aria-label` = "GitLab", text = "GitLab")
   )
   expect_identical(
     repo_icon("https://codeberg.org/o/r"),
-    list(icon = "git", `aria-label` = "Codeberg")
+    list(icon = "git", `aria-label` = "Codeberg", text = "Codeberg")
   )
   expect_identical(
     repo_icon(
       "https://example.com",
       list(repo = list(url = list(home = "https://git.sr.ht/~o/r")))
     ),
-    list(icon = "git", `aria-label` = "Source code")
+    list(icon = "git", `aria-label` = "Source code", text = "Source code")
   )
+})
+
+test_that("`navbar:` puts the repository among the tools or right items", {
+  dir <- new_pkg()
+  desc::desc_set(URL = "https://github.com/o/r", file = dir)
+
+  items <- navbar_items(dir)
+  expect_length(items$right, 0)
+  expect_identical(items$tools[[1]]$href, "https://github.com/o/r")
+
+  config <- list(navbar = list(right = list("repo"), tools = list()))
+  items <- navbar_items(dir, config)
+  expect_length(items$tools, 0)
+  # On the navbar, `text` would show beside the icon.
+  expect_identical(
+    items$right[[1]],
+    list(
+      icon = "github",
+      href = "https://github.com/o/r",
+      `aria-label` = "GitHub"
+    )
+  )
+
+  mastodon <- list(icon = "mastodon", href = "https://fosstodon.org/@me")
+  config <- list(navbar = list(tools = list(mastodon, "repo")))
+  items <- navbar_items(dir, config)
+  expect_identical(items$tools[[1]], mastodon)
+  expect_identical(items$tools[[2]]$icon, "github")
+
+  settings <- quarto_config(dir, config)
+  expect_length(settings$website$navbar$tools, 2)
+  expect_null(settings$website$navbar$right)
+})
+
+test_that("`navbar: tools` takes only icons", {
+  dir <- new_pkg()
+  tools <- list("reference", list(text = "Blog", href = "https://example.com"))
+  for (tool in tools) {
+    expect_error(
+      navbar_items(dir, list(navbar = list(tools = list(tool)))),
+      "isn't an icon"
+    )
+  }
 })
 
 test_that("`navbar:` lays out built-in and custom items", {
@@ -427,7 +471,7 @@ test_that("quarto_config() links GitHub and merges `quarto:` overrides", {
   settings <- quarto_config(dir, config)
 
   expect_identical(
-    settings$website$navbar$right[[1]]$href,
+    settings$website$navbar$tools[[1]]$href,
     "https://github.com/someuser/examplepkg"
   )
   expect_identical(settings$website$`site-url`, "https://example.org")
@@ -465,13 +509,11 @@ quarto:
   )
   settings <- quarto_config(dir, config)
 
-  right <- settings$website$navbar$right
-  expect_length(right, 2)
-  expect_identical(right[[1]]$icon, "github")
   expect_identical(
-    right[[2]],
-    list(text = "Blog", href = "https://example.com")
+    settings$website$navbar$right,
+    list(list(text = "Blog", href = "https://example.com"))
   )
+  expect_identical(settings$website$navbar$tools[[1]]$icon, "github")
   expect_false("toc" %in% names(settings$format$html))
   expect_null(settings$format$html$`code-link`)
 })

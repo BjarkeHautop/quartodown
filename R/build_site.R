@@ -25,7 +25,8 @@
 #'   each lists, by name or with selectors such as `starts_with()`. The format
 #'   is the same as pkgdown's.
 #' * `navbar`: the items on the navbar's `left` and `right`: keywords such as
-#'   `reference` and `articles`, vignettes, and Quarto navbar items and menus.
+#'   `reference` and `articles`, vignettes, and Quarto navbar items and menus;
+#'   and the icons in its `tools`, by default `repo`.
 #'   With `style: sidebar`, the `left` items go in a sidebar instead, with a
 #'   link to every reference page.
 #' * `home`: `file`, the `.md` or `.qmd` file the home page shows instead of

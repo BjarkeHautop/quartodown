@@ -171,8 +171,11 @@ quartodown::build_site() # also previews it when interactive
 
 [R/articles.R](R/articles.R) finds vignettes: top-level, then every subfolder
 (skipping `_`/`.`-prefixed names, as Quarto does). [R/navbar.R](R/navbar.R)
-builds the navbar from the `left:` and `right:` lists under `_quartodown.yml`'s
-`navbar:`. Each entry is one of:
+builds the navbar from the `left:`, `right:` and `tools:` lists under
+`_quartodown.yml`'s `navbar:`. `tools:` (Quarto's navbar tools, which
+`quartodown.scss` moves right of the search box; the theme toggle comes last)
+takes only `repo` and items with an `icon:`, and gives `repo` a `text:` as its
+tooltip. Each entry is one of:
 
 - A keyword that quartodown expands into a generated item, dropped if the
   package has nothing for it:
@@ -189,7 +192,7 @@ builds the navbar from the `left:` and `right:` lists under `_quartodown.yml`'s
   in its `menu:` are vignette paths too, and one ending in `/` expands to every
   vignette in that folder.
 
-The default is `left: [intro, reference, articles, news]`, `right: [repo]`.
+The default is `left: [intro, reference, articles, news]`, `tools: [repo]`.
 
 With `navbar: style: sidebar`, `quarto_config()` moves the resolved `left` items
 into a docked `website: sidebar:` (`sidebar_contents()`): menus become sections,

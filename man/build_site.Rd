@@ -69,7 +69,8 @@ that isn't a source repository.
 each lists, by name or with selectors such as \code{starts_with()}. The format
 is the same as pkgdown's.
 \item \code{navbar}: the items on the navbar's \code{left} and \code{right}: keywords such as
-\code{reference} and \code{articles}, vignettes, and Quarto navbar items and menus.
+\code{reference} and \code{articles}, vignettes, and Quarto navbar items and menus;
+and the icons in its \code{tools}, by default \code{repo}.
 With \code{style: sidebar}, the \code{left} items go in a sidebar instead, with a
 link to every reference page.
 \item \code{home}: \code{file}, the \code{.md} or \code{.qmd} file the home page shows instead of

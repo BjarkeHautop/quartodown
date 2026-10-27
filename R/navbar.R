@@ -1,18 +1,20 @@
 # ---- navbar -------------------------------------------------------------------
 #
 # `navbar:` in quartodown.yml lists the items on the navbar's `left` and
-# `right`. An item is the name of a built-in one below, or a Quarto navbar
-# item. A built-in item the package has nothing for (e.g. "news" without
-# NEWS.md) is left out.
+# `right`, and the icons in its `tools`, after the search box and before the
+# theme toggle. An item is the name of a built-in one below, or a Quarto navbar
+# item (a tool: one with an `icon`). A built-in item the package has nothing
+# for (e.g. "news" without NEWS.md) is left out.
 
 builtin_navbar_items <- c("intro", "reference", "articles", "news", "repo")
 
 default_navbar <- list(
   left = list("intro", "reference", "articles", "news"),
-  right = list("repo")
+  right = list(),
+  tools = list("repo")
 )
 
-# A list of `left` and `right` Quarto navbar items.
+# A list of `left` and `right` Quarto navbar items and `tools`.
 navbar_items <- function(path, config = list()) {
   vignettes <- find_vignettes(path)
   layout <- navbar_layout(path, config, vignettes)
@@ -62,15 +64,25 @@ navbar_items <- function(path, config = list()) {
     }
   }
 
-  lapply(layout, function(side) {
-    side <- lapply(side, function(item) {
-      if (is.character(item)) builtins[[item]] else item
+  sides <- lapply(names(layout), function(side) {
+    items <- lapply(layout[[side]], function(item) {
+      if (!is.character(item)) {
+        return(item)
+      }
+      item <- builtins[[item]]
+      # A tool's `text` is its tooltip; on the navbar it would show.
+      if (side == "tools" && !is.null(item)) {
+        item$text <- item$`aria-label`
+      }
+      item
     })
-    Filter(Negate(is.null), side)
+    Filter(Negate(is.null), items)
   })
+  names(sides) <- names(layout)
+  sides
 }
 
-# The `left` and `right` items of `navbar:`, with every item but the
+# The `left`, `right` and `tools` items of `navbar:`, with every item but the
 # built-in ones (still their name) made a Quarto navbar item. These go first:
 # "Get started" and "Articles" skip the vignettes they link.
 navbar_layout <- function(
@@ -83,10 +95,21 @@ navbar_layout <- function(
     if (!side %in% names(default_navbar)) {
       config_abort(
         "navbar",
-        "has {.field {side}}, but only {.field left}, {.field right} and {.field style}."
+        "has {.field {side}}, but only {.field left}, {.field right}, {.field tools} and {.field style}."
       )
     }
     layout[[side]] <- as.list(config$navbar[[side]])
+  }
+  for (item in layout$tools) {
+    if (!identical(item, "repo") && !(is.list(item) && !is.null(item$icon))) {
+      config_abort(
+        "navbar: tools",
+        c(
+          "lists an item that isn't an icon.",
+          "i" = "Give {.val repo}, or Quarto tools with an {.field icon} and an {.field href} or {.field menu}."
+        )
+      )
+    }
   }
   lapply(layout, lapply, function(item) {
     if (is_builtin_item(item)) item else nav_item(item, path, vignettes)
@@ -162,8 +185,8 @@ match_folder <- function(folder, vignettes) {
 
 # ---- sidebar ------------------------------------------------------------------
 #
-# With `navbar: style: sidebar`, the navbar keeps the title, search and its
-# `right` items, and its `left` items go in a docked sidebar on every page,
+# With `navbar: style: sidebar`, the navbar keeps the title, search, its
+# `right` items and tools, and its `left` items go in a docked sidebar on every page,
 # menus as sections. The reference index's entry lists every reference page,
 # grouped as on the index.
 
