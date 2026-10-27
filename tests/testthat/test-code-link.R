@@ -107,3 +107,49 @@ test_that("call_namespace() reads the package before ::", {
   expect_equal(call_namespace(calls[[2]])$prefix, "stats::")
   expect_null(call_namespace(calls[[3]]))
 })
+
+test_that("add_logo_html() puts the logo before the page's first <h1>", {
+  page <- paste0(
+    "<nav><h1>Not this</h1></nav>",
+    "<main id=\"quarto-document-content\"><header></header>",
+    "<h1>News</h1><h1>Older</h1></main>"
+  )
+  html <- add_logo_html(page, "man/figures/logo.png", "..")
+  expect_match(
+    html,
+    "<header></header><img src=\"../man/figures/logo.png\" class=\"quartodown-logo\" alt=\"\"><h1>News",
+    fixed = TRUE
+  )
+  expect_match(html, "<nav><h1>Not this", fixed = TRUE)
+
+  logo <- c(light = "man/figures/logo-light.png", dark = "man/figures/logo.png")
+  html <- add_logo_html(page, logo)
+  expect_match(html, "class=\"quartodown-logo light-content\"", fixed = TRUE)
+  expect_match(html, "class=\"quartodown-logo dark-content\"", fixed = TRUE)
+
+  expect_identical(add_logo_html(page, NULL), page)
+})
+
+test_that("add_logo_html() keeps a grid page's intro beside the logo", {
+  page <- function(intro) {
+    paste0(
+      "<main class=\"content page-columns page-full\" ",
+      "id=\"quarto-document-content\">",
+      "<header id=\"title-block-header\"><h1>Title</h1></header>",
+      intro,
+      "<section><h2>A</h2></section></main>"
+    )
+  }
+  html <- add_logo_html(page("<p>Intro</p>"), "man/figures/logo.svg")
+  expect_match(
+    html,
+    "<div class=\"quartodown-title-block\"><header .*<p>Intro</p></div><section>"
+  )
+
+  # Content placed in a column of its own stays a grid item.
+  html <- add_logo_html(
+    page("<div class=\"column-margin\">Aside</div>"),
+    "man/figures/logo.svg"
+  )
+  expect_no_match(html, "quartodown-title-block")
+})

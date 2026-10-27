@@ -1,5 +1,9 @@
 # quartodown (development version)
 
+- The package's logo now shows right of the title of every page, not just the
+  home page, with `man/figures/logo-light.png` in light mode if it exists.
+  `logo: false` in `_quartodown.yml` turns it off.
+
 - New `workers` argument to `build_site()`, to build the site with several
   processes. `use_quartodown_action()`'s workflow uses 4.
 

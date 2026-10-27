@@ -255,6 +255,19 @@ $quartodown-mix: 100%;
   margin-bottom: 1rem;
 }
 
+// The logo by every other page's title (see add_logo_html()).
+.quartodown-logo {
+  float: right;
+  width: 120px;
+  margin: 0 0 1rem 1.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .quartodown-logo {
+    width: 80px;
+  }
+}
+
 // No table of contents on the home page, which has its own sidebar.
 #quarto-content:has(.quartodown-home) {
   #quarto-margin-sidebar nav#TOC,
@@ -280,8 +293,10 @@ $quartodown-mix: 100%;
 
 /* typography ================================================================ */
 
+// flow-root keeps the border beside a floated logo rather than under it.
 h2,
 .source-note {
+  display: flow-root;
   padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--bs-border-color);
 }

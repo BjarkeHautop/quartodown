@@ -15,8 +15,9 @@ pages, and every Quarto feature works.
    examples against that package.
 2. **During rendering**, Quarto renders `_quarto/` into `docs/`, running the
    vignettes against that package.
-3. **After rendering**, it links code to its documentation, adds hover tooltips
-   and writes the [redirect](../customizing.qmd#redirects) pages.
+3. **After rendering**, it links code to its documentation, adds hover tooltips,
+   puts the [logo](../customizing.qmd#the-logo) by each page's title and writes
+   the [redirect](../customizing.qmd#redirects) pages.
 
 With
 [`development: mode: devel`](../customizing.qmd#development-and-release-sites),

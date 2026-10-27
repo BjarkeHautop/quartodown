@@ -450,6 +450,42 @@ test_that("quarto_config() uses the logo as favicon, preferring the PNG", {
   expect_identical(quarto_config(dir)$website$favicon, "man/figures/logo.png")
 })
 
+test_that("site_logo() picks the logo, preferring SVG, and its light variant", {
+  dir <- new_pkg()
+  expect_null(site_logo(dir, list()))
+
+  figures <- file.path(dir, "man", "figures")
+  dir.create(figures, recursive = TRUE)
+  file.create(file.path(figures, "logo.png"))
+  expect_identical(site_logo(dir, list()), "man/figures/logo.png")
+  expect_null(site_logo(dir, list(logo = FALSE)))
+
+  file.create(file.path(figures, "logo-light.png"))
+  expect_identical(
+    site_logo(dir, list()),
+    c(light = "man/figures/logo-light.png", dark = "man/figures/logo.png")
+  )
+
+  # SVGs first, unlike the favicon.
+  file.create(file.path(figures, c("logo.svg", "logo-light.svg")))
+  expect_identical(
+    site_logo(dir, list()),
+    c(light = "man/figures/logo-light.svg", dark = "man/figures/logo.svg")
+  )
+  expect_identical(quarto_config(dir)$website$favicon, "man/figures/logo.png")
+})
+
+test_that("read_config() requires `logo:` to be true or false", {
+  dir <- new_pkg()
+  dir.create(file.path(dir, "_quartodown"))
+  config_path <- file.path(dir, "_quartodown", "_quartodown.yml")
+  writeLines("logo: false", config_path)
+  expect_identical(read_config(dir), list(logo = FALSE))
+
+  writeLines("logo: man/figures/hex.png", config_path)
+  expect_error(read_config(dir), "`logo:` must be")
+})
+
 test_that("quarto_config() links GitHub and merges `quarto:` overrides", {
   dir <- new_pkg()
   write(

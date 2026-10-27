@@ -469,6 +469,18 @@ See Quarto's [page
 layout](https://quarto.org/docs/output-formats/page-layout.html) guide for
 `grid:` and `page-layout:`.
 
+### The logo
+
+The package's logo, `man/figures/logo.svg` (or `logo.png`), shows right of every
+page's title except the home page's, which shows the README's. If there is also
+a `man/figures/logo-light.svg` (or `.png`), light mode shows that one instead.
+The site's favicon is `logo.png` (or `logo.svg`). To leave the logo off the
+pages:
+
+```yaml
+logo: false
+```
+
 The navbar's items start where the page's text does, which a script on each page
 measures. To start them at the edge of the page instead, override it with:
 

@@ -3,7 +3,8 @@
 # Each docs/**/*.html page is read and written once, and in between: its ANSI
 # codes protected from xml2 (see protect_ansi()), the other site's content
 # removed (other_site_classes()), its code linked (link_code_html()), references to the package's own topics given tooltips
-# (add_tooltips_html()) and the ANSI codes made `<span>`s (ansi_to_html()).
+# (add_tooltips_html()), the logo put by its title (add_logo_html()) and the
+# ANSI codes made `<span>`s (ansi_to_html()).
 
 postprocess_pages <- function(
   path,
@@ -20,30 +21,101 @@ postprocess_pages <- function(
   if (docs == docs_dir(path)) {
     pages <- pages[!fs::path_has_parent(pages, file.path(docs, "dev"))]
   }
+  logo <- site_logo(path, config)
+  copy_logo(path, docs, logo)
   map_workers(
     as.character(pages),
     postprocess_page,
     docs = docs,
     index = index,
     pkg = pkg,
-    drop = drop
+    drop = drop,
+    logo = logo
   )
   strip_search_ansi(docs)
   invisible()
 }
 
-postprocess_page <- function(f, docs, index, pkg, drop) {
-  lines <- read_utf8(f)
-  html <- link_code_html(
-    protect_ansi(paste(lines, collapse = "\n")),
-    drop = drop
-  )
+postprocess_page <- function(f, docs, index, pkg, drop, logo = NULL) {
+  html <- paste(read_utf8(f), collapse = "\n")
+  # The home page has the README's logo; 404.html is served at any URL, so
+  # a relative link would break.
+  if (!f %in% file.path(docs, c("index.html", "404.html"))) {
+    html <- add_logo_html(html, logo, fs::path_rel(docs, start = dirname(f)))
+  }
+  html <- link_code_html(protect_ansi(html), drop = drop)
   if (length(index) > 0) {
     prefix <- reference_href_prefix(f, docs)
     html <- add_tooltips_html(html, index, prefix, pkg = pkg)$html
   }
   html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
   write_utf8(html, f, sep = "")
+}
+
+# ---- logo ---------------------------------------------------------------------
+#
+# The site's logo (site_logo()) floats right of each page's title, its first
+# `<h1>`: the title block's, or on pages without one, such as the changelog,
+# their first heading's.
+
+# Copies the `logo` files into the site, which Quarto copies only when a page
+# links them.
+copy_logo <- function(path, docs, logo) {
+  for (file in logo) {
+    fs::dir_create(fs::path_dir(file.path(docs, file)))
+    fs::file_copy(
+      file.path(path, file),
+      file.path(docs, file),
+      overwrite = TRUE
+    )
+  }
+  invisible()
+}
+
+# The page `html` with the `logo` before its first `<h1>`; `root` is the
+# relative path from the page to the site's root.
+add_logo_html <- function(html, logo, root = ".") {
+  if (length(logo) == 0) {
+    return(html)
+  }
+  class <- "quartodown-logo"
+  if (!is.null(names(logo))) {
+    class <- paste(class, paste0(names(logo), "-content"))
+  }
+  img <- sprintf(
+    '<img src="%s" class="%s" alt="">',
+    html_escape(paste0(root, "/", logo)),
+    class
+  )
+  html <- sub(
+    "(?s)(id=\"quarto-document-content\".*?)(<h1\\b)",
+    paste0("\\1", paste(img, collapse = ""), "\\2"),
+    html,
+    perl = TRUE
+  )
+  wrap_title_block(html)
+}
+
+# On a page with content in the margin, the content's elements are items of a
+# grid, each holding its own floats, so the title block would grow to the
+# logo's height. The title block and what follows it up to the first section
+# become one item instead, unless they're placed in columns of their own.
+wrap_title_block <- function(html) {
+  if (!grepl("<main\\b[^>]*\\bpage-columns\\b", html, perl = TRUE)) {
+    return(html)
+  }
+  gsub_fn(
+    html,
+    "(?s)<header id=\"title-block-header\".*?(?=<section\\b|</main>)",
+    function(block, groups) {
+      if (
+        grepl("class=\"[^\"]*\\b(page-columns|column-)", block, perl = TRUE)
+      ) {
+        return(block)
+      }
+      paste0("<div class=\"quartodown-title-block\">", block, "</div>")
+    }
+  )
 }
 
 # Content for only one of the released and development versions' sites is

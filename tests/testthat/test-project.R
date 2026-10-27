@@ -685,6 +685,35 @@ test_that("postprocess_pages() leaves the development site to its own build", {
   expect_false(identical(readLines(file.path(docs, "index.html")), page))
 })
 
+test_that("postprocess_pages() puts the logo on every page but the home page", {
+  withr::local_envvar(QUARTODOWN_DEV_MODE = NA)
+  dir <- new_pkg()
+  dir.create(file.path(dir, "man", "figures"), recursive = TRUE)
+  file.create(file.path(dir, "man", "figures", "logo.png"))
+  docs <- file.path(dir, "docs")
+  dir.create(file.path(docs, "reference"), recursive = TRUE)
+  page <- "<html><body><main id=\"quarto-document-content\"><h1>Hi</h1></main></body></html>"
+  for (f in c("index.html", "404.html", "reference/foo.html")) {
+    writeLines(page, file.path(docs, f))
+  }
+
+  postprocess_pages(dir, tooltips = FALSE, topics = list())
+  expect_true(file.exists(file.path(docs, "man", "figures", "logo.png")))
+  expect_true(any(grepl(
+    "<img src=\"../man/figures/logo.png\" class=\"quartodown-logo\"",
+    readLines(file.path(docs, "reference", "foo.html")),
+    fixed = TRUE
+  )))
+  expect_false(any(grepl(
+    "quartodown-logo",
+    readLines(file.path(docs, "index.html"))
+  )))
+  expect_false(any(grepl(
+    "quartodown-logo",
+    readLines(file.path(docs, "404.html"))
+  )))
+})
+
 test_that("render_inputs() lists the files Quarto renders", {
   dir <- withr::local_tempdir()
   for (f in c(

@@ -55,6 +55,9 @@
 #' * `vignettes`: `files`, files and folders outside `vignettes/` that the
 #'   vignettes use by a relative path, such as `man/rmd/` for a child document
 #'   `../man/rmd/shared.Rmd`, copied with them.
+#' * `logo`: `false` to leave the logo, `man/figures/logo.svg` or `.png`
+#'   (and in light mode `logo-light`, if it exists), off the title of every
+#'   page but the home page.
 #' * `quarto`: settings merged over the generated Quarto configuration.
 #'
 #' `_quartodown/extra.scss` and `_quartodown/extra.css`, if they exist, style
@@ -230,6 +233,7 @@ read_config <- function(path) {
       "redirects",
       "development",
       "vignettes",
+      "logo",
       "quarto"
     )
   )
@@ -266,6 +270,9 @@ read_config <- function(path) {
       c("roles", fields),
       paste("authors:", where)
     )
+  }
+  if (!is.null(config$logo) && !isTRUE(config$logo) && !isFALSE(config$logo)) {
+    config_abort("logo", "must be {.code true} or {.code false}.")
   }
   config_redirects(config) # Checks it before the slow render.
   config
@@ -433,10 +440,9 @@ quarto_config <- function(
     }
   }
   settings$website <- c(settings$website, social_cards(path))
-  logos <- c("man/figures/logo.png", "man/figures/logo.svg")
-  logos <- logos[file.exists(file.path(path, logos))]
-  if (length(logos) > 0) {
-    settings$website$favicon <- logos[[1]]
+  logo <- logo_file(path)
+  if (!is.null(logo)) {
+    settings$website$favicon <- logo
   }
 
   if (isTRUE(freeze)) {
@@ -484,6 +490,31 @@ quarto_theme <- function(path, config = list()) {
     if (file.exists(file.path(path, extra_scss))) extra_scss
   )
   list(light = c(theme$light, layers), dark = c(theme$dark, layers))
+}
+
+# The package's logo, `man/figures/logo` with the first of the `exts` that
+# exists (or the `-light` variant, `light = TRUE`), or NULL. The favicon
+# prefers PNG, which every browser shows as one.
+logo_file <- function(path, light = FALSE, exts = c("png", "svg")) {
+  logos <- paste0("man/figures/logo", if (light) "-light", ".", exts)
+  logos <- logos[file.exists(file.path(path, logos))]
+  if (length(logos) > 0) logos[[1]]
+}
+
+# The logo shown by the title of every page but the home page, unless
+# `logo: false`: the `logo_file()`, preferring an SVG, which stays sharp at
+# any size, or with a `-light` variant, both, named by the theme they show
+# in. NULL without a logo.
+site_logo <- function(path, config) {
+  if (isFALSE(config$logo)) {
+    return(NULL)
+  }
+  logo <- logo_file(path, exts = c("svg", "png"))
+  light <- logo_file(path, light = TRUE, exts = c("svg", "png"))
+  if (is.null(logo) || is.null(light)) {
+    return(logo)
+  }
+  c(light = light, dark = logo)
 }
 
 # The preview of a link to the site on social media and chat apps: the
