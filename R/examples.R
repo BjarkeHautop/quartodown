@@ -246,10 +246,7 @@ restore_example_cache <- function(path, page, key) {
     return(FALSE)
   }
   file.copy(file.path(dir, "page.qmd"), page, overwrite = TRUE)
-  figures <- paste0(strip_ext(basename(page)), "_files")
-  if (dir.exists(file.path(dir, figures))) {
-    copy_dir(file.path(dir, figures), file.path(dirname(page), figures))
-  }
+  copy_page_figures(page, dir, dirname(page))
   TRUE
 }
 
@@ -259,9 +256,15 @@ write_example_cache <- function(path, page, key) {
   dir.create(dir, recursive = TRUE)
   writeLines(key, file.path(dir, "key"))
   file.copy(page, file.path(dir, "page.qmd"))
-  figures <- paste0(strip_ext(basename(page)), "_files")
-  if (dir.exists(file.path(dirname(page), figures))) {
-    copy_dir(file.path(dirname(page), figures), file.path(dir, figures))
-  }
+  copy_page_figures(page, dirname(page), dir)
   invisible()
+}
+
+# Copies the figures of `page` (its `<page>_files/` folder), if any, from the
+# folder `from` to `to`.
+copy_page_figures <- function(page, from, to) {
+  figures <- paste0(strip_ext(basename(page)), "_files")
+  if (dir.exists(file.path(from, figures))) {
+    copy_dir(file.path(from, figures), file.path(to, figures))
+  }
 }
