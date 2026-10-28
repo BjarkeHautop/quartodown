@@ -35,7 +35,8 @@ rd_topics <- function(path) {
       name = tag_text("\\name"),
       title = trimws(paste(unlist(rd[tags == "\\title"]), collapse = "")),
       alias = alias,
-      names = if (length(names) > 0) names else alias,
+      # HTML, as usage_names() gives it.
+      names = if (length(names) > 0) names else html_text(alias),
       concepts = tag_text("\\concept"),
       keywords = keywords,
       internal = "internal" %in% keywords,
@@ -469,7 +470,7 @@ build_reference_qmd <- function(
           links <- sprintf(
             '<code><a href="%s.qmd">%s</a></code>',
             topic$basename,
-            html_text(topic$names)
+            topic$names
           )
           badge <- if (!is.null(topic$lifecycle)) {
             sprintf(

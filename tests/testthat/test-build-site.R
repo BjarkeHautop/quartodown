@@ -1240,6 +1240,33 @@ test_that("build_reference_qmd() supports starts_with()/-exclude/has_concept()/h
   expect_true(any(grepl("num_add()", lines, fixed = TRUE)))
 })
 
+test_that("build_reference_qmd() doesn't escape usage names twice", {
+  dir <- new_pkg_with_man()
+  write_rd(dir, "infix", alias = "\\%-->\\%", usage = "x \\%-->\\% y")
+  write_rd(dir, "plot.foo", usage = "\\method{plot}{foo}(x, \\dots)")
+
+  build_reference_qmd(dir)
+  raw <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+
+  expect_true(any(grepl(
+    '<a href="infix.qmd">&#96;%--&gt;%&#96;</a>',
+    raw,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl(
+    '<a href="plot.foo.qmd">plot(<i>&lt;foo&gt;</i>)</a>',
+    raw,
+    fixed = TRUE
+  )))
+})
+
+test_that("html_unescape() decodes named and numeric references once", {
+  expect_identical(
+    html_unescape("&#96;%&lt;%&#96; &#123;&amp;lt;"),
+    "`%<%` {&lt;"
+  )
+})
+
 test_that("build_reference_qmd() escapes titles and names, so `{{</dd>` isn't read as a shortcode", {
   dir <- new_pkg_with_man()
   # rlang's "Embrace operator {{": `{{</dd>` would start a Quarto shortcode

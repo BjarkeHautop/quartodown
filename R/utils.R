@@ -7,15 +7,17 @@ html_escape <- function(text) {
   gsub("\"", "&quot;", text, fixed = TRUE)
 }
 
-# Undoes html_escape(), and the escaping of `tools::Rd2HTML()` and
-# short_name().
+# Undoes html_escape(), html_text(), and the escaping of `tools::Rd2HTML()`
+# and short_name(), in one pass so `&amp;lt;` stays `&lt;`.
 html_unescape <- function(text) {
-  text <- gsub("&lt;", "<", text, fixed = TRUE)
-  text <- gsub("&gt;", ">", text, fixed = TRUE)
-  text <- gsub("&quot;", "\"", text, fixed = TRUE)
-  text <- gsub("&#39;", "'", text, fixed = TRUE)
-  text <- gsub("&#96;", "`", text, fixed = TRUE)
-  gsub("&amp;", "&", text, fixed = TRUE) # must come last
+  named <- c(lt = "<", gt = ">", quot = "\"", amp = "&")
+  gsub_fn(text, "&(?:(lt|gt|quot|amp)|#(\\d+));", function(match, groups) {
+    if (is.na(groups[[1]])) {
+      intToUtf8(as.integer(groups[[2]]))
+    } else {
+      named[[groups[[1]]]]
+    }
+  })
 }
 
 read_utf8 <- function(file, ...) {
