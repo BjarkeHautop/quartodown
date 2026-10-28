@@ -53,9 +53,15 @@ postprocess_page <- function(
   if (fs::path_rel(f, docs) != "404.html") {
     html <- add_logo_html(html, logo, fs::path_rel(docs, start = dirname(f)))
   }
-  html <- link_code_html(protect_ansi(html), drop = drop)
+  prefix <- reference_href_prefix(f, docs)
+  html <- link_code_html(
+    protect_ansi(html),
+    drop = drop,
+    pkg = pkg,
+    topics = vapply(index, `[[`, character(1), "topic"),
+    topic_path = prefix
+  )
   if (length(index) > 0) {
-    prefix <- reference_href_prefix(f, docs)
     html <- add_tooltips_html(
       html,
       index,
@@ -164,11 +170,25 @@ drop_classes <- function(doc, classes) {
 # (link_annotated()).
 
 # The page `html` (a string) with its code linked, as xml2 writes it, and
-# the elements with the `drop` classes removed.
-link_code_html <- function(html, drop = character()) {
+# the elements with the `drop` classes removed. `topics` maps the aliases of
+# the package `pkg` to their pages, under `topic_path`.
+link_code_html <- function(
+  html,
+  drop = character(),
+  pkg = NULL,
+  topics = character(),
+  topic_path = "reference/"
+) {
   # downlit collects the packages a page attaches with `library()` in this
-  # option; reset it so they don't carry over to the next page.
-  old <- options(downlit.attached = NULL)
+  # option; reset it so they don't carry over to the next page. The package's
+  # own topics are looked up in `topics`: for a package
+  # loaded with `load_all()`, downlit would parse all of man/ on each lookup.
+  old <- options(
+    downlit.attached = NULL,
+    downlit.package = pkg,
+    downlit.topic_index = topics,
+    downlit.topic_path = topic_path
+  )
   on.exit(options(old))
 
   doc <- xml2::read_html(html, encoding = "UTF-8")

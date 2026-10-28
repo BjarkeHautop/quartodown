@@ -96,6 +96,31 @@ test_that("library() calls in an annotated block attach packages", {
   expect_match(html, "load_all.html\">load_all</a>", fixed = TRUE)
 })
 
+test_that("the package's own topics are linked from `topics`", {
+  html <- annotated_page(paste0(
+    "<span class=\"fu\">library</span>(mypkg)\n",
+    "<span class=\"fu\">foo</span>() ",
+    "mypkg<span class=\"sc\">::</span><span class=\"fu\">foo</span>()"
+  ))
+  html <- link_code_html(
+    html,
+    pkg = "mypkg",
+    topics = c(foo = "foo-topic"),
+    topic_path = "../reference/"
+  )
+
+  expect_match(
+    html,
+    "<span class=\"fu\"><a href=\"../reference/foo-topic.html\">foo</a></span>() ",
+    fixed = TRUE
+  )
+  expect_match(
+    html,
+    "<span class=\"fu\"><a href=\"../reference/foo-topic.html\">foo</a></span>()</span>",
+    fixed = TRUE
+  )
+})
+
 test_that("call_namespace() reads the package before ::", {
   html <- xml2::read_html(paste0(
     "<code>a <span class=\"sc\">+</span><span class=\"fu\">f</span>",
