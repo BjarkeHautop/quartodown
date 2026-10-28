@@ -18,7 +18,10 @@ tooltip_link_re <- paste0(
   # the "()" of roxygen's `\code{\link{foo}()}`, which follows the link.
   "(?|<code>(?:<a href=\"[^\"]*\">)?([^<]*?)(?:</a>)?</code>",
   "|<code><a href=\"[^\"]*\">([^<]*?)</a>(\\(\\))</code>",
-  "|<a href=\"[^\"]*\"><code>([^<]*?)</code></a>)"
+  "|<a href=\"[^\"]*\"><code>([^<]*?)</code></a>)",
+  # Any other link, kept as is: code in it (e.g. a navbar item's) would get a
+  # link nested in it, which browsers split the outer link at.
+  "|<a\\b[^>]*>(?s:.*?)</a>"
 )
 
 # The page `html` with tooltips (see inject_tooltips_html()) and, if it has
@@ -70,6 +73,9 @@ inject_tooltips_html <- function(
   tips <- list()
 
   link <- function(match, groups) {
+    if (all(is.na(groups))) {
+      return(match) # a link with other content
+    }
     is_block <- !is.na(groups[[1]]) # span vs. inline <code>
     name_html <- if (is_block) {
       groups[[2]]

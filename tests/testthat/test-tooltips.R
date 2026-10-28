@@ -125,6 +125,10 @@ test_that("build_topic_index() skips internal topics, which get no page", {
   # Unless the reference index lists it, which gives it a page.
   config <- list(reference = list(list(contents = "helper")))
   expect_identical(build_topic_index(dir, config)$helper$topic, "helper")
+
+  # Or `internal-pages: true` gives every topic one.
+  config <- list(`internal-pages` = TRUE)
+  expect_identical(build_topic_index(dir, config)$helper$topic, "helper")
 })
 
 test_that("an alias with no \\usage{} block of its own gets no signature", {
@@ -348,6 +352,21 @@ test_that("a downlit-linked code block reference is relinked to the local man pa
     fixed = TRUE
   )
   expect_equal(result$tips[["t1"]]$usage, "foo(a, b)")
+})
+
+test_that("inline code inside another link (e.g. a navbar item) isn't linked", {
+  html <- sample_html(paste0(
+    '<a class="dropdown-item" href="x.html"><span>Using <code>foo()</code></span></a>',
+    '<a href="y.html">the <code>foo()</code> function</a> and <code>foo()</code>'
+  ))
+  result <- inject_tooltips_html(html, foo_index, "reference/")
+  expect_equal(result$n, 1L)
+  expect_match(
+    result$html,
+    "<span>Using <code>foo()</code></span></a>",
+    fixed = TRUE
+  )
+  expect_match(result$html, "the <code>foo()</code> function</a>", fixed = TRUE)
 })
 
 test_that("an unlinked fu span is linked and tagged too", {

@@ -95,7 +95,9 @@ quartodown::build_site() # also previews it when interactive
      `reference:` grouping with selectors (`starts_with()`, `has_concept()`,
      `-`, ...) evaluated against Rd topics. `\keyword{internal}` topics are
      listed (and get a page, see `has_page()`) only when named or selected with
-     `internal = TRUE`.
+     `internal = TRUE`, or with `internal-pages: true` get a page regardless;
+     `check_internal_links()` warns about `\link{}`s and navbar hrefs to
+     pageless ones, which would be plain text or broken.
    - `authors.qmd` ([R/authors.R](R/authors.R)). `_quartodown.yml`'s
      pkgdown-style `authors:` links names or swaps them for HTML
      (`author_display()`, also in the sidebar and footer) and picks the
@@ -135,16 +137,15 @@ quartodown::build_site() # also previews it when interactive
    `CNAME`, hidden files and, in `docs/`, `dev/` (which `postprocess_pages()`
    then skips too), makes the package available to the pages' R processes
    (installed into a temp library prepended via `R_LIBS` and, as profiles such
-   as callr's reset `.libPaths()`, a generated `R_PROFILE_USER` profile, or
-   with `devel = TRUE` one that runs `pkgload::load_all()`; both first source
-   the user's own profile, `profile_envvars()`; plus
-   `R_CLI_NUM_COLORS=256` for colored output), renders `_quarto/` into it
-   (`output-dir: ../docs/`; with `processx` rather than
-   `quarto::quarto_render()`, whose `quiet` passes `--quiet`, which hides errors
-   too, so `render_error_log()` can show them; with `workers > 1`, split by
-   `shard_pages()` into that many Quarto processes, each on a copy in
-   `_quarto/_shards/<k>/` (inside the package, for code that finds it from the
-   working directory, e.g. testthat snapshots), whose sites
+   as callr's reset `.libPaths()`, a generated `R_PROFILE_USER` profile, or with
+   `devel = TRUE` one that runs `pkgload::load_all()`; both first source the
+   user's own profile, `profile_envvars()`; plus `R_CLI_NUM_COLORS=256` for
+   colored output), renders `_quarto/` into it (`output-dir: ../docs/`; with
+   `processx` rather than `quarto::quarto_render()`, whose `quiet` passes
+   `--quiet`, which hides errors too, so `render_error_log()` can show them;
+   with `workers > 1`, split by `shard_pages()` into that many Quarto processes,
+   each on a copy in `_quarto/_shards/<k>/` (inside the package, for code that
+   finds it from the working directory, e.g. testthat snapshots), whose sites
    `merge_shard_sites()` ([R/workers.R](R/workers.R)) joins, relinking `.qmd`
    hrefs to other shards' pages) and writes `docs/pkgdown.yml` (`urls` +
    `articles`, all downlit reads). The name is fixed: downlit fetches

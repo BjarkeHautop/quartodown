@@ -369,6 +369,99 @@ test_that("write_man_pages() writes a page per Rd file, except unlisted internal
   ))
   write_man_pages(dir, config)
   expect_setequal(list.files(reference_dir), c("foo.qmd", "reexports.qmd"))
+
+  # `internal-pages: true` gives every topic a page.
+  unlink(reference_dir, recursive = TRUE)
+  write_man_pages(dir, list(`internal-pages` = TRUE))
+  expect_setequal(
+    list.files(reference_dir),
+    c("foo.qmd", "hidden.qmd", "reexports.qmd")
+  )
+})
+
+test_that("a \\link{} to an internal topic without a page is plain text and warns", {
+  dir <- new_pkg_with_man()
+  writeLines(
+    c(
+      "\\name{foo}",
+      "\\alias{foo}",
+      "\\title{Foo}",
+      "\\description{",
+      "See \\link{helper}, \\link[=helper_alias]{its alias},",
+      "\\link[examplepkg:helper]{itself} and \\link[stats]{median}.",
+      "}"
+    ),
+    file.path(dir, "man", "foo.Rd")
+  )
+  write_rd(dir, "helper", alias = "helper_alias", keyword = "internal")
+  # Links from a page that isn't built don't count.
+  writeLines(
+    c(
+      "\\name{other}",
+      "\\alias{other}",
+      "\\title{Other}",
+      "\\description{\\link{helper}}",
+      "\\keyword{internal}"
+    ),
+    file.path(dir, "man", "other.Rd")
+  )
+  writeLines("Package: examplepkg", file.path(dir, "DESCRIPTION"))
+  topics <- rd_topics(dir)
+
+  expect_snapshot(check_internal_links(list(), topics, "examplepkg"))
+
+  write_man_pages(dir, topics = topics)
+  page <- read_utf8(file.path(dir, "_quarto", "reference", "foo.qmd"))
+  expect_false(any(grepl("helper.html", page, fixed = TRUE)))
+
+  # `internal-pages: true` gives it a page, which the links go to.
+  config <- list(`internal-pages` = TRUE)
+  expect_no_warning(check_internal_links(config, topics, "examplepkg"))
+  write_man_pages(dir, config, topics)
+  page <- read_utf8(file.path(dir, "_quarto", "reference", "foo.qmd"))
+  expect_equal(
+    sum(lengths(regmatches(page, gregexpr("helper.html", page)))),
+    3L
+  )
+
+  # As does listing it in the reference index.
+  config <- reference_config(c(
+    "reference:",
+    "  - title: All",
+    "    contents: [foo, helper]"
+  ))
+  expect_no_warning(check_internal_links(config, topics, "examplepkg"))
+})
+
+test_that("navbar links to reference pages that won't exist warn", {
+  dir <- new_pkg_with_man()
+  write_rd(dir, "foo")
+  write_rd(dir, "topic-guide", keyword = "internal")
+  topics <- rd_topics(dir)
+  config <- yaml::yaml.load(paste(
+    c(
+      "navbar:",
+      "  left:",
+      "    - reference",
+      "    - text: Guides",
+      "      menu:",
+      "        - text: Guide",
+      "          href: reference/topic-guide.qmd",
+      "        - text: Foo",
+      "          href: ./reference/foo.html",
+      "        - text: Typo",
+      "          href: reference/fooo.qmd"
+    ),
+    collapse = "\n"
+  ))
+
+  expect_snapshot(check_internal_links(config, topics, "examplepkg"))
+
+  config$`internal-pages` <- TRUE
+  expect_warning(
+    check_internal_links(config, topics, "examplepkg"),
+    "fooo"
+  )
 })
 
 test_that("rd_source_files() reads roxygen's header, else names the Rd file", {

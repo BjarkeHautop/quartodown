@@ -57,6 +57,8 @@
 #'   `../man/rmd/shared.Rmd`, copied with them.
 #' * `logo`: `false` to leave the logo, `man/figures/logo.svg` or `.png`
 #'   (and in light mode `logo-light`, if it exists), off the pages' titles.
+#' * `internal-pages`: `true` to give every `\keyword{internal}` topic a
+#'   reference page, rather than only those the reference index lists.
 #' * `quarto`: settings merged over the generated Quarto configuration.
 #'
 #' `_quartodown/extra.scss` and `_quartodown/extra.css`, if they exist, style
@@ -233,6 +235,7 @@ read_config <- function(path) {
       "development",
       "vignettes",
       "logo",
+      "internal-pages",
       "quarto"
     )
   )
@@ -273,6 +276,10 @@ read_config <- function(path) {
   if (!is.null(config$logo) && !isTRUE(config$logo) && !isFALSE(config$logo)) {
     config_abort("logo", "must be {.code true} or {.code false}.")
   }
+  pages <- config[["internal-pages"]]
+  if (!is.null(pages) && !isTRUE(pages) && !isFALSE(pages)) {
+    config_abort("internal-pages", "must be {.code true} or {.code false}.")
+  }
   config_redirects(config) # Checks it before the slow render.
   config
 }
@@ -287,6 +294,7 @@ check_config <- function(path, config, topics) {
   navbar_style(config)
   navbar_layout(path, config)
   reference_block_topics(reference_blocks(config, topics), topics)
+  check_internal_links(config, topics, pkg_name(path))
   check_vignette_paths(path, config)
   invisible()
 }

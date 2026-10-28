@@ -110,10 +110,24 @@ knitr_chunk_pattern <- "^[\t >]*```+\\s*\\{"
 # `code` as raw HTML `<code>`, with its punctuation as character references,
 # so Pandoc reads none of it as Markdown.
 html_code <- function(code) {
-  chars <- strsplit(code, "", fixed = TRUE)[[1]]
-  punct <- grepl("^[!-/:-@[-`{-~]$", chars)
-  chars[punct] <- sprintf("&#%d;", vapply(chars[punct], utf8ToInt, integer(1)))
-  paste0("<code>", paste(chars, collapse = ""), "</code>")
+  paste0("<code>", html_text(code), "</code>")
+}
+
+# `text` with every ASCII punctuation character as an entity, so neither HTML,
+# Markdown, Quarto shortcodes (`{{<`) nor knitr read anything in it.
+html_text <- function(text) {
+  vapply(
+    strsplit(text, "", fixed = TRUE),
+    function(chars) {
+      punct <- grepl("^[!-/:-@[-`{-~]$", chars)
+      chars[punct] <- sprintf(
+        "&#%d;",
+        vapply(chars[punct], utf8ToInt, integer(1))
+      )
+      paste(chars, collapse = "")
+    },
+    character(1)
+  )
 }
 
 # The `code` lines as a raw HTML code block in `lang`, the lines of a fenced

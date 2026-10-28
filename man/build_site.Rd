@@ -105,6 +105,8 @@ vignettes use by a relative path, such as \verb{man/rmd/} for a child document
 \code{../man/rmd/shared.Rmd}, copied with them.
 \item \code{logo}: \code{false} to leave the logo, \code{man/figures/logo.svg} or \code{.png}
 (and in light mode \code{logo-light}, if it exists), off the pages' titles.
+\item \code{internal-pages}: \code{true} to give every \verb{\\keyword\{internal\}} topic a
+reference page, rather than only those the reference index lists.
 \item \code{quarto}: settings merged over the generated Quarto configuration.
 }
 

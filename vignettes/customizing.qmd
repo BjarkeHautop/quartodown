@@ -65,6 +65,14 @@ exception is `\keyword{internal}` topics, which are left out, without a page,
 unless named, as with roxygen's `reexports`, or selected with `internal = TRUE`,
 as in `starts_with("dev_", internal = TRUE)`.
 
+Links to an internal topic without a page, from another topic's documentation
+(`\link{helper}`, roxygen's `[helper()]`) or from the navbar, get a warning. To
+build a page for every internal topic, set:
+
+```yaml
+internal-pages: true
+```
+
 The format is the same as pkgdown's `reference:` field, so an existing one can
 be copied over.
 

@@ -43,6 +43,43 @@ rd_topics <- function(path) {
   })
 }
 
+# The `\title{}` of the parsed Rd `rd` as HTML, with its code (`\code{}`,
+# `\verb{}`, ...) and emphasis kept; text goes through html_text(), so it
+# can go in a Markdown page as is.
+rd_title_html <- function(rd) {
+  inline <- function(x) {
+    tag <- attr(x, "Rd_tag")
+    if (is.character(x)) {
+      return(html_text(paste(x, collapse = "")))
+    }
+    inner <- paste(vapply(x, inline, character(1)), collapse = "")
+    if (is.null(tag)) {
+      return(inner)
+    }
+    switch(
+      tag,
+      "\\code" = ,
+      "\\verb" = ,
+      "\\samp" = ,
+      "\\env" = ,
+      "\\file" = ,
+      "\\option" = ,
+      "\\command" = paste0("<code>", inner, "</code>"),
+      "\\emph" = paste0("<em>", inner, "</em>"),
+      "\\bold" = ,
+      "\\strong" = paste0("<strong>", inner, "</strong>"),
+      inner
+    )
+  }
+  title <- rd[rd_tags(rd) == "\\title"]
+  if (length(title) == 0) {
+    return("")
+  }
+  html <- inline(title[[1]])
+  # Rd keeps the title's line breaks and indentation.
+  gsub("^\\s+|\\s+$", "", gsub("\\s+", " ", html))
+}
+
 # The tag of each top-level element of the parsed Rd `rd`, e.g. "\\alias".
 rd_tags <- function(rd) {
   vapply(rd, function(x) attr(x, "Rd_tag"), character(1))
@@ -396,12 +433,12 @@ build_reference_qmd <- function(
           links <- sprintf(
             '<code><a href="%s.qmd">%s</a></code>',
             topic$basename,
-            topic$names
+            html_text(topic$names)
           )
           sprintf(
             "<dt>%s</dt>\n<dd>%s</dd>",
             paste(links, collapse = " "),
-            topic$title
+            rd_title_html(topic$rd)
           )
         },
         character(1)
@@ -452,9 +489,91 @@ reference_block_topics <- function(blocks, topics) {
 }
 
 # Whether each of `topics` gets a reference page: every public topic does,
-# and an internal one only if the reference index lists it.
+# and an internal one only if the reference index lists it or
+# `internal-pages: true`.
 has_page <- function(topics, config = list()) {
+  if (isTRUE(config[["internal-pages"]])) {
+    return(rep(TRUE, length(topics)))
+  }
   blocks <- reference_blocks(config, topics)
   listed <- unlist(reference_block_topics(blocks, topics))
   !topic_internal(topics) | seq_along(topics) %in% listed
+}
+
+# Warns about links to an internal topic without a page (see has_page()),
+# which end up plain text or broken: `\link{}`s in the pages that are built,
+# and navbar hrefs to reference pages, which also warn when they name no
+# topic at all.
+check_internal_links <- function(config, topics, pkg) {
+  basenames <- vapply(topics, `[[`, character(1), "basename")
+  paged <- has_page(topics, config)
+  # By alias or Rd file name, as `\link{}` and topic_pages() take them.
+  pageless <- topic_pages(topics[!paged])
+  pageless <- pageless[!names(pageless) %in% names(topic_pages(topics[paged]))]
+
+  rd_links <- unlist(lapply(topics[paged], function(t) {
+    targets <- Filter(
+      function(x) is.null(x$package) || identical(x$package, pkg),
+      rd_link_targets(t$rd)
+    )
+    hits <- unique(intersect(
+      vapply(targets, `[[`, "", "topic"),
+      names(pageless)
+    ))
+    if (length(hits) == 0) {
+      return(NULL)
+    }
+    sprintf(
+      "{.file man/%s.Rd} links %s",
+      cli_escape(t$basename),
+      paste0("{.val ", cli_escape(hits), "}", collapse = ", ")
+    )
+  }))
+
+  hrefs <- unlist(navbar_hrefs(config$navbar))
+  re <- "^(?:\\./)?reference/([^/#?]+)\\.(?:qmd|html)(?:[#?].*)?$"
+  names <- sub(re, "\\1", hrefs[grepl(re, hrefs, perl = TRUE)], perl = TRUE)
+  names <- setdiff(unique(names), "index")
+  internal <- intersect(names, basenames[!paged])
+  unknown <- setdiff(names, basenames)
+  nav_links <- if (length(internal) > 0) {
+    paste(
+      "_quartodown.yml {.code navbar:} links",
+      paste0("{.val ", cli_escape(internal), "}", collapse = ", ")
+    )
+  }
+
+  bullets <- c(nav_links, rd_links)
+  if (length(bullets) > 0) {
+    n_more <- length(bullets) - 10
+    if (n_more > 0) {
+      bullets <- c(
+        bullets[1:10],
+        sprintf("... and %d more file%s", n_more, if (n_more > 1) "s" else "")
+      )
+    }
+    cli::cli_warn(c(
+      "Some links go to internal topics, which have no page:",
+      structure(bullets, names = rep("*", length(bullets))),
+      i = "Set {.code internal-pages: true} in _quartodown.yml to build pages for internal topics, or list them under {.code reference:}."
+    ))
+  }
+  if (length(unknown) > 0) {
+    config_warn(
+      "navbar",
+      "links {.val {unknown}}, which {?is/are} not a topic in {.path man/}."
+    )
+  }
+  invisible()
+}
+
+# Every `href:` anywhere in the navbar settings, e.g. in menus.
+navbar_hrefs <- function(x) {
+  if (!is.list(x)) {
+    return(NULL)
+  }
+  c(
+    if (is_string(x[["href"]])) x[["href"]],
+    unlist(lapply(unname(x), navbar_hrefs))
+  )
 }

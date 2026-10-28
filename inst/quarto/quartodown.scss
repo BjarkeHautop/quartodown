@@ -26,6 +26,8 @@ $quartodown-navbar-bg: mix(mix($body-bg, $primary, 95%), $body-color, 95%);
   --bs-navbar-brand-hover-color: #{$primary} !important;
   --bs-navbar-toggler-border-color: #{rgba($body-color, 0.15)} !important;
   --bs-navbar-toggler-icon-bg: #{$quartodown-navbar-toggler-icon-bg} !important;
+  // Else the dark `white`: invisible code in navbar items and dropdowns.
+  --bs-code-color: #{$code-color} !important;
 }
 
 // Bootstrap also sets this on the icon itself, which beats the inherited value.
@@ -148,6 +150,18 @@ $quartodown-mix: 100%;
 
 .navbar-nav .nav-link.active {
   border-bottom: 3px solid var(--bs-primary);
+}
+
+// Quarto takes the vertical padding off dropdown menus and their section
+// headers, leaving a menu's first header against its top border.
+.navbar ul.dropdown-menu {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.navbar .dropdown-header {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 // Below `navbar-expand-lg`'s breakpoint the menu collapses behind the toggler.

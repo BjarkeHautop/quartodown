@@ -184,9 +184,15 @@ link_rd <- function(rd, pkg, pages) {
   rd
 }
 
-# `\link{topic}`, `\link[=topic]{text}`, `\link[package]{topic}` or
-# `\link[package:topic]{text}`.
 rd_link_url <- function(link, pkg, pages) {
+  target <- rd_link_target(link)
+  topic_url(target$topic, target$package, pkg, pages)
+}
+
+# The `topic` and `package` (NULL if not given) of `\link{topic}`,
+# `\link[=topic]{text}`, `\link[package]{topic}` or
+# `\link[package:topic]{text}`.
+rd_link_target <- function(link) {
   text <- paste(unlist(link), collapse = "")
   option <- attr(link, "Rd_option")
   option <- if (is.null(option)) "" else paste(unlist(option), collapse = "")
@@ -198,7 +204,18 @@ rd_link_url <- function(link, pkg, pages) {
     package <- parts[[1]]
     topic <- if (length(parts) > 1) parts[[2]] else text
   }
-  topic_url(topic, package, pkg, pages)
+  list(topic = topic, package = package)
+}
+
+# The `rd_link_target()` of every `\link{}` in `rd`.
+rd_link_targets <- function(rd) {
+  if (identical(attr(rd, "Rd_tag"), "\\link")) {
+    return(list(rd_link_target(rd)))
+  }
+  if (!is.list(rd)) {
+    return(list())
+  }
+  unlist(lapply(rd, rd_link_targets), recursive = FALSE)
 }
 
 # roxygen links an R6 class's inherited methods with raw HTML, to R's help

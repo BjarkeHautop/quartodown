@@ -1231,13 +1231,36 @@ test_that("build_reference_qmd() supports starts_with()/-exclude/has_concept()/h
   ))
 
   build_reference_qmd(dir, config)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
 
   expect_true(any(grepl("str_foo()", lines, fixed = TRUE)))
   expect_true(any(grepl("str_bar()", lines, fixed = TRUE)))
   # has_keyword() selects internal topics.
   expect_true("## Internal" %in% lines)
   expect_true(any(grepl("num_add()", lines, fixed = TRUE)))
+})
+
+test_that("build_reference_qmd() escapes titles and names, so `{{</dd>` isn't read as a shortcode", {
+  dir <- new_pkg_with_man()
+  # rlang's "Embrace operator {{": `{{</dd>` would start a Quarto shortcode
+  # that swallows the rest of the index.
+  write_rd(dir, "embrace", alias = "curly-curly", title = "Embrace \\{\\{")
+  write_rd(dir, "lt", alias = "\\%<-\\%", title = "a <b> & *c*", usage = NULL)
+  # Code and emphasis in a title are kept, as on the topic's page.
+  write_rd(dir, "splice", title = "Splice \\verb{\\{\\{} and \\emph{more}")
+
+  build_reference_qmd(dir)
+  raw <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
+
+  expect_false(any(grepl("{{", raw, fixed = TRUE)))
+  expect_false(any(grepl("<b>", raw, fixed = TRUE)))
+  expect_true("<dd>Embrace {{</dd>" %in% lines)
+  expect_true("<dd>a <b> & *c*</dd>" %in% lines)
+  expect_true(
+    "<dd>Splice <code>{{</code> and <em>more</em></dd>" %in% lines
+  )
+  expect_true(any(grepl(">%<-%</a>", lines, fixed = TRUE)))
 })
 
 test_that("build_reference_qmd() lists internal topics only when named or selected", {
@@ -1252,7 +1275,7 @@ test_that("build_reference_qmd() lists internal topics only when named or select
     keyword = "internal"
   )
   index_lines <- function() {
-    readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+    read_reference_index(dir)
   }
 
   # Unlisted internal topics don't warn.
@@ -1312,7 +1335,7 @@ test_that("a `reference:` list starting with an exclusion leaves internal topics
   ))
   # bar is unlisted, hidden isn't (being internal).
   expect_warning(build_reference_qmd(dir, config), "\"bar\", which is not")
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true(any(grepl("foo()", lines, fixed = TRUE)))
   expect_false(any(grepl("bar()|hidden", lines)))
 })
@@ -1331,7 +1354,7 @@ test_that("build_reference_qmd() renders title-only and subtitle blocks", {
   ))
 
   build_reference_qmd(dir, config)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true("## Verbs" %in% lines)
   expect_true("### Rows" %in% lines)
   expect_false("## " %in% lines)
@@ -1345,7 +1368,7 @@ test_that("build_reference_qmd() lists every topic in one section without `refer
   write_rd(dir, "bar")
 
   expect_no_warning(build_reference_qmd(dir))
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true("## All functions" %in% lines)
   expect_true(any(grepl("foo()", lines, fixed = TRUE)))
   expect_true(any(grepl("bar()", lines, fixed = TRUE)))
@@ -1382,7 +1405,7 @@ test_that("build_reference_qmd() accepts a non-syntactic alias like a *-package 
     "      - examplepkg-package"
   ))
   build_reference_qmd(dir, config)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true(any(grepl(">examplepkg-package</a>", lines, fixed = TRUE)))
 })
 
@@ -1396,7 +1419,7 @@ test_that("build_reference_qmd() lists every function in a topic's usage", {
   )
 
   build_reference_qmd(dir)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true(any(grepl(
     '<dt><code><a href="is_bound.qmd">is_bound()</a></code> <code><a href="is_bound.qmd">check_bound()</a></code></dt>',
     lines,
