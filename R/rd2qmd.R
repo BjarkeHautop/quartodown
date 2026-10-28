@@ -13,30 +13,35 @@ write_man_pages <- function(path, config = list(), topics = rd_topics(path)) {
   pkg <- pkg_name(path)
   pages <- topic_pages(topics)
   source <- pkg_repo(path, config)$source
-  for (topic in topics) {
-    rd_file <- file.path(path, "man", paste0(topic$basename, ".Rd"))
-    note <- source_note(rd_source_files(rd_file), source)
-    lines <- tryCatch(
-      rd_to_qmd(topic$rd, pkg, pages, note),
-      error = function(e) {
-        cli::cli_abort("Failed to convert {.file {rd_file}}.", parent = e)
-      }
-    )
-    writeLines(
-      enc2utf8(lines),
-      file.path(out_dir, paste0(topic$basename, ".qmd")),
-      useBytes = TRUE
-    )
-  }
-  cli::cli_alert_success("Converted {length(topics)} man page{?s}.")
+  map_workers(
+    topics,
+    write_man_page,
+    path = path,
+    out_dir = out_dir,
+    pkg = pkg,
+    pages = pages,
+    source = source
+  )
   invisible()
+}
+
+write_man_page <- function(topic, path, out_dir, pkg, pages, source) {
+  rd_file <- file.path(path, "man", paste0(topic$basename, ".Rd"))
+  note <- source_note(rd_source_files(rd_file), source)
+  lines <- tryCatch(
+    rd_to_qmd(topic$rd, pkg, pages, note),
+    error = function(e) {
+      cli::cli_abort("Failed to convert {.file {rd_file}}.", parent = e)
+    }
+  )
+  write_utf8(lines, file.path(out_dir, paste0(topic$basename, ".qmd")))
 }
 
 # The files roxygen generated `rd_file` from, relative to the package root,
 # as its header names them: "% Please edit documentation in R/a.R, R/b.R",
 # wrapped onto "%   " lines. A hand-written Rd file is its own source.
 rd_source_files <- function(rd_file) {
-  lines <- readLines(rd_file, n = 20, warn = FALSE, encoding = "UTF-8")
+  lines <- read_utf8(rd_file, n = 20)
   start <- grep("^% Please edit documentation in ", lines)[1]
   if (is.na(start)) {
     return(file.path("man", basename(rd_file)))
@@ -106,7 +111,7 @@ rd_html <- function(rd) {
     # `toc`'s default changed in R 4.6.0.
     tools::Rd2HTML(rd, out = out, toc = FALSE, stages = stages)
   })
-  lines <- readLines(out, warn = FALSE, encoding = "UTF-8")
+  lines <- read_utf8(out)
   start <- grep("^<h2", lines)[1]
   end <- grep("^</main>", lines)[1]
   end <- if (is.na(end)) length(lines) else end - 1L
@@ -179,9 +184,15 @@ link_rd <- function(rd, pkg, pages) {
   rd
 }
 
-# `\link{topic}`, `\link[=topic]{text}`, `\link[package]{topic}` or
-# `\link[package:topic]{text}`.
 rd_link_url <- function(link, pkg, pages) {
+  target <- rd_link_target(link)
+  topic_url(target$topic, target$package, pkg, pages)
+}
+
+# The `topic` and `package` (NULL if not given) of `\link{topic}`,
+# `\link[=topic]{text}`, `\link[package]{topic}` or
+# `\link[package:topic]{text}`.
+rd_link_target <- function(link) {
   text <- paste(unlist(link), collapse = "")
   option <- attr(link, "Rd_option")
   option <- if (is.null(option)) "" else paste(unlist(option), collapse = "")
@@ -193,27 +204,29 @@ rd_link_url <- function(link, pkg, pages) {
     package <- parts[[1]]
     topic <- if (length(parts) > 1) parts[[2]] else text
   }
-  topic_url(topic, package, pkg, pages)
+  list(topic = topic, package = package)
+}
+
+# The `rd_link_target()` of every `\link{}` in `rd`.
+rd_link_targets <- function(rd) {
+  if (identical(attr(rd, "Rd_tag"), "\\link")) {
+    return(list(rd_link_target(rd)))
+  }
+  if (!is.list(rd)) {
+    return(list())
+  }
+  unlist(lapply(rd, rd_link_targets), recursive = FALSE)
 }
 
 # roxygen links an R6 class's inherited methods with raw HTML, to R's help
 # system: `href='../../<package>/html/<topic>.html#<method>'`.
 link_help_hrefs <- function(html, pkg, pages) {
   pattern <- "href=(['\"])\\.\\./\\.\\./([^/'\"]+)/html/([^/'\"#]+)\\.html(#[^'\"]*)?\\1"
-  m <- gregexpr(pattern, html, perl = TRUE)
-  regmatches(html, m) <- lapply(regmatches(html, m), function(hrefs) {
-    vapply(
-      hrefs,
-      function(href) {
-        parts <- regmatches(href, regexec(pattern, href, perl = TRUE))[[1]]
-        url <- topic_url(parts[[4]], parts[[3]], pkg, pages)
-        if (is.na(url)) href else sprintf("href=\"%s%s\"", url, parts[[5]])
-      },
-      character(1),
-      USE.NAMES = FALSE
-    )
+  gsub_fn(html, pattern, function(href, groups) {
+    url <- topic_url(groups[[3]], groups[[2]], pkg, pages)
+    anchor <- if (is.na(groups[[4]])) "" else groups[[4]]
+    if (is.na(url)) href else sprintf("href=\"%s%s\"", url, anchor)
   })
-  html
 }
 
 # The file `rd` was parsed from, e.g. "man/foo.Rd".
@@ -253,9 +266,11 @@ trim_blank_lines <- function(lines) {
 #
 # * Inline `<code>` becomes a Markdown code span, as Pandoc would otherwise
 #   smart-quote its text, and a trailing backslash would escape `</code>`.
+#   Code knitr would run stays HTML (see knitr_inline_pattern).
 # * `\eqn{}`/`\deqn{}` become `$...$`/`$$...$$`; any other `$` is escaped.
 # * `<p>` tags are dropped, as paragraphs are separated by blank lines anyway.
-# * Language-tagged `<pre>` blocks become fenced code blocks.
+# * Language-tagged `<pre>` blocks become fenced code blocks, unless they hold
+#   a chunk's fence, which knitr would run.
 
 rd_html_token_pattern <- paste0(
   # One group number for the language and code of either kind of block.
@@ -281,53 +296,36 @@ rd_html_to_markdown <- function(lines) {
     fixed = TRUE
   )
 
-  m <- gregexpr(rd_html_token_pattern, text, perl = TRUE)[[1]]
-  if (m[1] == -1) {
-    return(split_lines(rd_html_text(text)))
-  }
-  starts <- as.integer(m)
-  ends <- starts + attr(m, "match.length") - 1L
-  cap_start <- attr(m, "capture.start")
-  cap_len <- attr(m, "capture.length")
-  capture <- function(i, col) {
-    if (cap_start[i, col] < 1) {
-      return(NA_character_)
-    }
-    substr(text, cap_start[i, col], cap_start[i, col] + cap_len[i, col] - 1L)
-  }
+  split_lines(gsub_fn(
+    text,
+    rd_html_token_pattern,
+    rd_html_token_to_markdown,
+    between = rd_html_text
+  ))
+}
 
-  pieces <- character()
-  pos <- 1L
-  for (i in seq_along(starts)) {
-    token <- substr(text, starts[i], ends[i])
-    lang <- capture(i, 1)
-    pieces <- c(
-      pieces,
-      rd_html_text(substr(text, pos, starts[i] - 1L)),
-      if (!is.na(lang) && nzchar(lang)) {
-        code <- split_lines(html_unescape(capture(i, 2)))
-        fenced <- c(paste0("```", tolower(lang)), trim_blank_lines(code), "```")
-        paste(c("", fenced, ""), collapse = "\n")
-      } else if (startsWith(token, "<pre")) {
-        token
-      } else if (!is.na(capture(i, 3))) {
-        paste0("\n\n$$", html_unescape(capture(i, 3)), "$$\n\n")
-      } else if (!is.na(capture(i, 6))) {
-        sprintf(
-          "[%s](%s)",
-          code_span(html_unescape(capture(i, 7))),
-          capture(i, 6)
-        )
-      } else if (grepl("class=\"reqn\"", token, fixed = TRUE)) {
-        paste0("$", html_unescape(capture(i, 5)), "$")
-      } else {
-        code_span(html_unescape(capture(i, 5)))
-      }
-    )
-    pos <- ends[i] + 1L
+# A match of `rd_html_token_pattern`, with its capture `groups`.
+rd_html_token_to_markdown <- function(token, groups) {
+  lang <- groups[[1]]
+  if (!is.na(lang) && nzchar(lang)) {
+    code <- trim_blank_lines(split_lines(html_unescape(groups[[2]])))
+    block <- if (any(grepl(knitr_chunk_pattern, code))) {
+      html_code_block(code, tolower(lang))
+    } else {
+      c(paste0("```", tolower(lang)), code, "```")
+    }
+    paste(c("", block, ""), collapse = "\n")
+  } else if (startsWith(token, "<pre")) {
+    gsub("`", "&#96;", token, fixed = TRUE)
+  } else if (!is.na(groups[[3]])) {
+    paste0("\n\n$$", html_unescape(groups[[3]]), "$$\n\n")
+  } else if (!is.na(groups[[6]])) {
+    sprintf("[%s](%s)", code_span(html_unescape(groups[[7]])), groups[[6]])
+  } else if (grepl("class=\"reqn\"", token, fixed = TRUE)) {
+    paste0("$", html_unescape(groups[[5]]), "$")
+  } else {
+    code_span(html_unescape(groups[[5]]))
   }
-  pieces <- c(pieces, rd_html_text(substr(text, pos, nchar(text))))
-  split_lines(paste(pieces, collapse = ""))
 }
 
 # HTML outside code and math.
@@ -344,7 +342,8 @@ code_span <- function(code) {
   longest <- if (runs[1] == -1) 0L else max(attr(runs, "match.length"))
   fence <- strrep("`", longest + 1L)
   pad <- if (grepl("^`|`$", code)) " " else ""
-  paste0(fence, pad, code, pad, fence)
+  span <- paste0(fence, pad, code, pad, fence)
+  if (grepl(knitr_inline_pattern, span)) html_code(code) else span
 }
 
 # ---- Examples ---------------------------------------------------------------------
@@ -402,7 +401,7 @@ example_segments <- function(rd) {
   if (!file.exists(out)) {
     return(list())
   }
-  lines <- readLines(out, warn = FALSE, encoding = "UTF-8")
+  lines <- read_utf8(out)
   start <- grep("^### \\*\\* Examples$", lines)[1]
   lines <- if (is.na(start)) character() else lines[-seq_len(start)]
 

@@ -2,7 +2,7 @@ new_pkg <- function(articles = character(), .local_envir = parent.frame()) {
   dir <- withr::local_tempdir(.local_envir = .local_envir)
   # Keep tests offline: don't look the package up on CRAN.
   local_mocked_bindings(
-    cran_url_if_available = function(pkg_name) NA_character_,
+    on_cran = function(pkg) NA,
     .env = .local_envir
   )
   writeLines(
@@ -81,4 +81,10 @@ new_pkg_with_man <- function(.local_envir = parent.frame()) {
 
 reference_config <- function(text) {
   yaml::yaml.load(paste(text, collapse = "\n"))
+}
+
+# The generated reference index, with html_text()'s entities decoded.
+read_reference_index <- function(dir) {
+  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  gsub_fn(lines, "&#([0-9]+);", function(m, code) intToUtf8(as.integer(code)))
 }

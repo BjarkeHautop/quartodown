@@ -40,8 +40,103 @@
     var version = document.createElement("small");
     version.className = "navbar-version";
     version.textContent = text.slice(spaceIndex + 1);
+    // A development or unreleased version's site (see dev_mode()) says so.
+    var mode = document.querySelector('meta[name="quartodown-dev-mode"]');
+    var tips = {
+      devel: "In-development version",
+      unreleased: "Unreleased version"
+    };
+    if (mode && tips[mode.content]) {
+      version.classList.add("navbar-version-dev");
+      version.title = tips[mode.content];
+    }
     title.appendChild(document.createTextNode(" "));
     title.appendChild(version);
+  }
+  // Next to the title, a link to the same page on the other of the released
+  // version's site and the development version's in its dev/ (see
+  // dev_mode()), or to that site's home page if it lacks the page. The
+  // release build doesn't know whether there's a dev/ site, so it's looked
+  // for here. The answer is stored, so the link shows at once on the next
+  // page instead of after the request, and checked again in the background.
+  function addVersionSwitch() {
+    var mode = document.querySelector('meta[name="quartodown-dev-mode"]');
+    var offset = document.querySelector('meta[name="quarto:offset"]');
+    var brand = document.querySelector(".navbar-brand-container");
+    if (!mode || !offset || !brand || !window.fetch) return;
+    var root = new URL(offset.content, window.location.href);
+    var other, text, tip;
+    if (mode.content === "devel") {
+      other = new URL("../", root);
+      text = "release";
+      tip = "This page in the released version's documentation";
+    } else if (mode.content === "release") {
+      other = new URL("dev/", root);
+      text = "dev";
+      tip = "This page in the development version's documentation";
+    } else {
+      return;
+    }
+    var page = window.location.pathname.slice(root.pathname.length);
+    var target = new URL(page || "index.html", other);
+    // Some servers send a missing page's request on to their 404 page.
+    function exists(url) {
+      return fetch(url, { method: "HEAD" }).then(function (response) {
+        return response.ok && !response.redirected;
+      }, function () {
+        return false;
+      });
+    }
+    var key = "quartodown-site:" + other.href;
+    function stored() {
+      try {
+        return window.localStorage.getItem(key) === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+    function store(found) {
+      try {
+        if (found) {
+          window.localStorage.setItem(key, "1");
+        } else {
+          window.localStorage.removeItem(key);
+        }
+      } catch (e) {
+        // No localStorage: look for the site on each page.
+      }
+    }
+    var link;
+    function show() {
+      if (link) return;
+      link = document.createElement("a");
+      link.className = "navbar-version-switch";
+      link.href = target.href + window.location.hash;
+      link.title = tip;
+      link.textContent = text;
+      // Whether the other site has this page is only asked when it's needed.
+      link.addEventListener("click", function (e) {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        var href = link.href;
+        exists(target.href).then(function (same) {
+          window.location.href = same ? href : other.href;
+        });
+      });
+      brand.appendChild(link);
+    }
+    if (stored()) show();
+    exists(other.href + "index.html").then(function (found) {
+      store(found);
+      if (found && !link) {
+        show();
+        alignNavbarToContent();
+      } else if (!found && link) {
+        link.remove();
+        link = null;
+        alignNavbarToContent();
+      }
+    });
   }
   // Leave `#>` output lines out of what the copy button copies. clipboard.js copies synchronously in its click handler, so a copy
   // event during a copy-button click is its.
@@ -113,6 +208,7 @@
   // The payload comes after this script, at the end of the body.
   document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();
+  addVersionSwitch();
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);

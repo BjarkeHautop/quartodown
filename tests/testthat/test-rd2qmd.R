@@ -71,6 +71,31 @@ test_that("rd_html_to_markdown() turns inline code into code spans", {
   expect_identical(rd_html_to_markdown(marked), marked)
 })
 
+test_that("rd_html_to_markdown() keeps code knitr would run from it", {
+  expect_identical(
+    rd_html_to_markdown(
+      "Write <code>`r x$y`</code>, <code>r x</code> or <code>r</code>."
+    ),
+    "Write <code>&#96;r x&#36;y&#96;</code>, <code>r x</code> or `r`."
+  )
+  expect_identical(
+    rd_html_to_markdown(
+      "<div class=\"sourceCode markdown\"><pre>```{r}\n1\n```\n</pre></div>"
+    ),
+    c(
+      "",
+      "<pre class=\"sourceCode markdown\"><code>&#96;&#96;&#96;{r}",
+      "1",
+      "&#96;&#96;&#96;</code></pre>",
+      ""
+    )
+  )
+  expect_identical(
+    rd_html_to_markdown("<pre>```{r}\n</pre>"),
+    c("<pre>&#96;&#96;&#96;{r}", "</pre>")
+  )
+})
+
 test_that("rd_html_to_markdown() turns R6 method usage into a fenced block", {
   expect_identical(
     rd_html_to_markdown(c(
@@ -186,6 +211,8 @@ test_that("rd_to_qmd() names the Rd file whose \\Sexpr{}s fail", {
 
 test_that("rd_to_qmd() runs a section's \\Sexpr{} once, not again for the examples", {
   log <- withr::local_tempfile()
+  # Windows' backslashes would be escapes in the Rd and the R string.
+  log <- gsub("\\", "/", log, fixed = TRUE)
   qmd <- rd_qmd(c(
     "\\name{foo}",
     "\\alias{foo}",
@@ -329,7 +356,7 @@ test_that("write_man_pages() writes a page per Rd file, except unlisted internal
   write_rd(dir, "reexports", keyword = "internal")
   reference_dir <- file.path(dir, "_quarto", "reference")
 
-  expect_message(write_man_pages(dir), "1 man page")
+  write_man_pages(dir)
   expect_identical(list.files(reference_dir), "foo.qmd")
 
   unlink(reference_dir, recursive = TRUE)
@@ -340,8 +367,101 @@ test_that("write_man_pages() writes a page per Rd file, except unlisted internal
     "      - foo",
     "      - reexports"
   ))
-  expect_message(write_man_pages(dir, config), "2 man pages")
+  write_man_pages(dir, config)
   expect_setequal(list.files(reference_dir), c("foo.qmd", "reexports.qmd"))
+
+  # `internal-pages: true` gives every topic a page.
+  unlink(reference_dir, recursive = TRUE)
+  write_man_pages(dir, list(`internal-pages` = TRUE))
+  expect_setequal(
+    list.files(reference_dir),
+    c("foo.qmd", "hidden.qmd", "reexports.qmd")
+  )
+})
+
+test_that("a \\link{} to an internal topic without a page is plain text and warns", {
+  dir <- new_pkg_with_man()
+  writeLines(
+    c(
+      "\\name{foo}",
+      "\\alias{foo}",
+      "\\title{Foo}",
+      "\\description{",
+      "See \\link{helper}, \\link[=helper_alias]{its alias},",
+      "\\link[examplepkg:helper]{itself} and \\link[stats]{median}.",
+      "}"
+    ),
+    file.path(dir, "man", "foo.Rd")
+  )
+  write_rd(dir, "helper", alias = "helper_alias", keyword = "internal")
+  # Links from a page that isn't built don't count.
+  writeLines(
+    c(
+      "\\name{other}",
+      "\\alias{other}",
+      "\\title{Other}",
+      "\\description{\\link{helper}}",
+      "\\keyword{internal}"
+    ),
+    file.path(dir, "man", "other.Rd")
+  )
+  writeLines("Package: examplepkg", file.path(dir, "DESCRIPTION"))
+  topics <- rd_topics(dir)
+
+  expect_snapshot(check_internal_links(list(), topics, "examplepkg"))
+
+  write_man_pages(dir, topics = topics)
+  page <- read_utf8(file.path(dir, "_quarto", "reference", "foo.qmd"))
+  expect_false(any(grepl("helper.html", page, fixed = TRUE)))
+
+  # `internal-pages: true` gives it a page, which the links go to.
+  config <- list(`internal-pages` = TRUE)
+  expect_no_warning(check_internal_links(config, topics, "examplepkg"))
+  write_man_pages(dir, config, topics)
+  page <- read_utf8(file.path(dir, "_quarto", "reference", "foo.qmd"))
+  expect_equal(
+    sum(lengths(regmatches(page, gregexpr("helper.html", page)))),
+    3L
+  )
+
+  # As does listing it in the reference index.
+  config <- reference_config(c(
+    "reference:",
+    "  - title: All",
+    "    contents: [foo, helper]"
+  ))
+  expect_no_warning(check_internal_links(config, topics, "examplepkg"))
+})
+
+test_that("navbar links to reference pages that won't exist warn", {
+  dir <- new_pkg_with_man()
+  write_rd(dir, "foo")
+  write_rd(dir, "topic-guide", keyword = "internal")
+  topics <- rd_topics(dir)
+  config <- yaml::yaml.load(paste(
+    c(
+      "navbar:",
+      "  left:",
+      "    - reference",
+      "    - text: Guides",
+      "      menu:",
+      "        - text: Guide",
+      "          href: reference/topic-guide.qmd",
+      "        - text: Foo",
+      "          href: ./reference/foo.html",
+      "        - text: Typo",
+      "          href: reference/fooo.qmd"
+    ),
+    collapse = "\n"
+  ))
+
+  expect_snapshot(check_internal_links(config, topics, "examplepkg"))
+
+  config$`internal-pages` <- TRUE
+  expect_warning(
+    check_internal_links(config, topics, "examplepkg"),
+    "fooo"
+  )
 })
 
 test_that("rd_source_files() reads roxygen's header, else names the Rd file", {
@@ -378,7 +498,7 @@ test_that("write_man_pages() puts the source files under the title", {
   )
   qmd <- file.path(dir, "_quarto", "reference", "foo.qmd")
 
-  expect_message(write_man_pages(dir), "1 man page")
+  write_man_pages(dir)
   expect_true(
     "<p><small class=\"dont-index\">Source: <code>R/foo.R</code></small></p>" %in%
       readLines(qmd)
@@ -389,7 +509,7 @@ test_that("write_man_pages() puts the source files under the title", {
     file = dir,
     normalize = FALSE
   )
-  expect_message(write_man_pages(dir), "1 man page")
+  write_man_pages(dir)
   expect_true(
     "<p><small class=\"dont-index\">Source: <a href=\"https://github.com/someuser/examplepkg/blob/HEAD/R/foo.R\"><code>R/foo.R</code></a></small></p>" %in%
       readLines(qmd)
@@ -398,11 +518,11 @@ test_that("write_man_pages() puts the source files under the title", {
 
 test_that("write_man_pages() and build_topic_index() handle no or an empty man/", {
   dir <- new_pkg()
-  expect_message(write_man_pages(dir), "0 man pages")
+  write_man_pages(dir)
   expect_length(build_topic_index(dir), 0)
 
   dir.create(file.path(dir, "man"))
-  expect_message(write_man_pages(dir), "0 man pages")
+  write_man_pages(dir)
   expect_length(build_topic_index(dir), 0)
   expect_length(list.files(file.path(dir, "_quarto", "reference")), 0)
 })

@@ -1,10 +1,9 @@
 Package: quartodown
 Title: Package Websites Built Entirely with 'Quarto'
-Version: 0.0.0.9000
-Date: 2026-08-27
+Version: 0.1.0.9000
 Authors@R: c(
     person("Bjarke", "Hautop Kristensen", email = "bjarke.hautop@gmail.com",
-           role = c("aut", "cre")),
+           role = c("aut", "cre", "cph")),
     person("Hadley", "Wickham", role = c("ctb"),
            comment = "Code adapted from pkgdown"),
     person("Jay", "Hesselberth", role = c("ctb"),
@@ -35,6 +34,7 @@ Imports:
     downlit,
     fansi,
     fs,
+    processx,
     quarto,
     tools,
     utils,
@@ -42,6 +42,7 @@ Imports:
     yaml
 Suggests:
     httr2,
+    mirai (>= 2.4.1),
     pkgload,
     servr,
     testthat (>= 3.0.0),
@@ -50,4 +51,4 @@ VignetteBuilder:
     quarto
 Config/Needs/website: tibble
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1

@@ -35,17 +35,90 @@ rd_topics <- function(path) {
       name = tag_text("\\name"),
       title = trimws(paste(unlist(rd[tags == "\\title"]), collapse = "")),
       alias = alias,
-      names = if (length(names) > 0) names else alias,
+      # HTML, as usage_names() gives it.
+      names = if (length(names) > 0) names else html_text(alias),
       concepts = tag_text("\\concept"),
       keywords = keywords,
-      internal = "internal" %in% keywords
+      internal = "internal" %in% keywords,
+      lifecycle = rd_lifecycle(rd[tags == "\\description"])
     )
   })
+}
+
+# The lifecycle stage of a topic, e.g. "deprecated", from the badge that
+# usethis/lifecycle put first in `\description{}`: a
+# `\figure{lifecycle-<stage>.svg}`. NULL without one.
+rd_lifecycle <- function(description) {
+  first_figure <- function(x) {
+    if (identical(attr(x, "Rd_tag"), "\\figure")) {
+      return(trimws(paste(unlist(x[[1]]), collapse = "")))
+    }
+    if (is.list(x)) {
+      for (child in x) {
+        file <- first_figure(child)
+        if (!is.null(file)) {
+          return(file)
+        }
+      }
+    }
+    NULL
+  }
+  file <- first_figure(description)
+  if (is.null(file) || !grepl("^lifecycle-", basename(file))) {
+    return(NULL)
+  }
+  sub("^lifecycle-", "", fs::path_ext_remove(basename(file)))
+}
+
+# The `\title{}` of the parsed Rd `rd` as HTML, with its code (`\code{}`,
+# `\verb{}`, ...) and emphasis kept; text goes through html_text(), so it
+# can go in a Markdown page as is.
+rd_title_html <- function(rd) {
+  inline <- function(x) {
+    tag <- attr(x, "Rd_tag")
+    if (is.character(x)) {
+      return(html_text(paste(x, collapse = "")))
+    }
+    inner <- paste(vapply(x, inline, character(1)), collapse = "")
+    if (is.null(tag)) {
+      return(inner)
+    }
+    switch(
+      tag,
+      "\\code" = ,
+      "\\verb" = ,
+      "\\samp" = ,
+      "\\env" = ,
+      "\\file" = ,
+      "\\option" = ,
+      "\\command" = paste0("<code>", inner, "</code>"),
+      "\\emph" = paste0("<em>", inner, "</em>"),
+      "\\bold" = ,
+      "\\strong" = paste0("<strong>", inner, "</strong>"),
+      inner
+    )
+  }
+  title <- rd[rd_tags(rd) == "\\title"]
+  if (length(title) == 0) {
+    return("")
+  }
+  html <- inline(title[[1]])
+  # Rd keeps the title's line breaks and indentation.
+  gsub("^\\s+|\\s+$", "", gsub("\\s+", " ", html))
 }
 
 # The tag of each top-level element of the parsed Rd `rd`, e.g. "\\alias".
 rd_tags <- function(rd) {
   vapply(rd, function(x) attr(x, "Rd_tag"), character(1))
+}
+
+topic_internal <- function(topics) {
+  vapply(topics, `[[`, logical(1), "internal")
+}
+
+# The name each of `topics` is listed under in `reference:`.
+topic_first_alias <- function(topics) {
+  vapply(topics, function(t) t$alias[[1]], character(1))
 }
 
 # ---- index names from \usage ------------------------------------------------
@@ -73,18 +146,28 @@ usage_code <- function(x) {
     "\\dots" = ,
     "\\ldots" = "...",
     "\\method" = ,
+    # Names may be backticked already, as in \method{print}{`NULL`}.
     "\\S3method" = sprintf(
       "S3method(`%s`, `%s`)",
-      usage_code(x[[1]]),
-      usage_code(x[[2]])
+      unbacktick(usage_code(x[[1]])),
+      unbacktick(usage_code(x[[2]]))
     ),
     "\\S4method" = sprintf(
       "S4method(`%s`, list(%s))",
-      usage_code(x[[1]]),
-      paste0("`", strsplit(usage_code(x[[2]]), ",")[[1]], "`", collapse = ",")
+      unbacktick(usage_code(x[[1]])),
+      paste0(
+        "`",
+        unbacktick(strsplit(usage_code(x[[2]]), ",")[[1]]),
+        "`",
+        collapse = ","
+      )
     ),
     collapse(x)
   )
+}
+
+unbacktick <- function(x) {
+  sub("^`(.*)`$", "\\1", x)
 }
 
 is_infix <- function(name) {
@@ -216,7 +299,7 @@ match_env <- function(topics) {
     assign(topics[[i]]$basename, i, envir = env)
   }
 
-  internal_topics <- vapply(topics, `[[`, logical(1), "internal")
+  internal_topics <- topic_internal(topics)
   selectable <- function(match, internal) {
     which(match & (internal | !internal_topics))
   }
@@ -254,6 +337,14 @@ match_env <- function(topics) {
     "has_concept",
     function(x, internal = FALSE) {
       match <- vapply(topics, function(t) any(t$concepts == x), logical(1))
+      selectable(match, internal)
+    },
+    envir = env
+  )
+  assign(
+    "has_lifecycle",
+    function(x, internal = FALSE) {
+      match <- vapply(topics, function(t) any(t$lifecycle %in% x), logical(1))
       selectable(match, internal)
     },
     envir = env
@@ -328,7 +419,7 @@ select_topics <- function(match_strings, topics) {
   }
 
   sign1 <- all_sign(indexes[[1]], match_strings[[1]])
-  public <- which(!vapply(topics, `[[`, logical(1), "internal"))
+  public <- which(!topic_internal(topics))
   sel <- switch(sign1, "+" = integer(), "-" = public)
 
   for (i in seq_along(indexes)) {
@@ -350,18 +441,14 @@ build_reference_qmd <- function(
   out_dir <- file.path(project_dir(path), "reference")
   dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
   out_path <- file.path(out_dir, "index.qmd")
-  internal <- vapply(topics, `[[`, logical(1), "internal")
+  internal <- topic_internal(topics)
   blocks <- reference_blocks(config, topics)
   block_indexes <- reference_block_topics(blocks, topics)
 
   # Internal topics needn't be listed.
   unlisted <- setdiff(which(!internal), unique(unlist(block_indexes)))
   if (length(unlisted) > 0) {
-    unlisted_names <- vapply(
-      topics[unlisted],
-      function(t) t$alias[[1]],
-      character(1)
-    )
+    unlisted_names <- topic_first_alias(topics[unlisted])
     cli::cli_warn(
       "man/*.Rd defines {.val {unlisted_names}}, which {?is/are} not listed under `reference:` in _quartodown.yml and won't appear on the reference page."
     )
@@ -370,8 +457,10 @@ build_reference_qmd <- function(
   sections <- Map(
     function(block, idx) {
       # Drop a section whose contents matched nothing, e.g. a selector that
-      # matched only internal topics.
-      if (length(idx) == 0 && length(block$contents) > 0) {
+      # matched only internal topics, and a hidden one.
+      if (
+        length(idx) == 0 && length(block$contents) > 0 || hidden_block(block)
+      ) {
         return(NULL)
       }
       entries <- vapply(
@@ -383,10 +472,18 @@ build_reference_qmd <- function(
             topic$basename,
             topic$names
           )
+          badge <- if (!is.null(topic$lifecycle)) {
+            sprintf(
+              ' <span class="badge lifecycle lifecycle-%s">%s</span>',
+              gsub("[^A-Za-z0-9_-]", "", topic$lifecycle),
+              html_text(topic$lifecycle)
+            )
+          }
           sprintf(
-            "<dt>%s</dt>\n<dd>%s</dd>",
+            "<dt>%s%s</dt>\n<dd>%s</dd>",
             paste(links, collapse = " "),
-            topic$title
+            if (is.null(badge)) "" else badge,
+            rd_title_html(topic$rd)
           )
         },
         character(1)
@@ -413,7 +510,13 @@ build_reference_qmd <- function(
 
   lines <- c('---', 'title: "Function reference"', '---', "", unlist(sections))
   lines <- lines[-length(lines)] # drop trailing blank line
-  writeLines(lines, out_path)
+  write_utf8(lines, out_path)
+}
+
+# A section titled "internal", as in pkgdown: its topics count as listed, but
+# it isn't shown.
+hidden_block <- function(block) {
+  identical(block$title, "internal")
 }
 
 # The sections of the reference index: `reference:`, or without it, one
@@ -422,10 +525,10 @@ reference_blocks <- function(config, topics) {
   if (!is.null(config$reference)) {
     return(config$reference)
   }
-  public <- !vapply(topics, `[[`, logical(1), "internal")
+  public <- !topic_internal(topics)
   list(list(
     title = "All functions",
-    contents = vapply(topics[public], function(t) t$alias[[1]], character(1))
+    contents = topic_first_alias(topics[public])
   ))
 }
 
@@ -437,9 +540,100 @@ reference_block_topics <- function(blocks, topics) {
 }
 
 # Whether each of `topics` gets a reference page: every public topic does,
-# and an internal one only if the reference index lists it.
+# and an internal one only if the reference index lists it or
+# `internal-pages: true`.
 has_page <- function(topics, config = list()) {
+  if (isTRUE(config[["internal-pages"]])) {
+    return(rep(TRUE, length(topics)))
+  }
   blocks <- reference_blocks(config, topics)
   listed <- unlist(reference_block_topics(blocks, topics))
-  !vapply(topics, `[[`, logical(1), "internal") | seq_along(topics) %in% listed
+  !topic_internal(topics) | seq_along(topics) %in% listed
+}
+
+# Links to an internal topic without a page (see has_page()), which end up
+# plain text or broken: `rd`, the topics each built page's `\link{}`s go to
+# by its Rd file name; `navbar`, those navbar hrefs to reference pages go to;
+# and `unknown`, navbar hrefs to reference pages of no topic at all.
+internal_links <- function(config, topics, pkg) {
+  basenames <- vapply(topics, `[[`, character(1), "basename")
+  paged <- has_page(topics, config)
+  # By alias or Rd file name, as `\link{}` and topic_pages() take them.
+  pageless <- topic_pages(topics[!paged])
+  pageless <- pageless[!names(pageless) %in% names(topic_pages(topics[paged]))]
+
+  rd <- lapply(topics[paged], function(t) {
+    targets <- Filter(
+      function(x) is.null(x$package) || identical(x$package, pkg),
+      rd_link_targets(t$rd)
+    )
+    unique(intersect(vapply(targets, `[[`, "", "topic"), names(pageless)))
+  })
+  names(rd) <- basenames[paged]
+
+  hrefs <- unlist(navbar_hrefs(config$navbar))
+  re <- "^(?:\\./)?reference/([^/#?]+)\\.(?:qmd|html)(?:[#?].*)?$"
+  names <- sub(re, "\\1", hrefs[grepl(re, hrefs, perl = TRUE)], perl = TRUE)
+  names <- setdiff(unique(names), "index")
+  list(
+    rd = Filter(length, rd),
+    navbar = intersect(names, basenames[!paged]),
+    unknown = setdiff(names, basenames)
+  )
+}
+
+# Warns about internal_links().
+check_internal_links <- function(config, topics, pkg) {
+  links <- internal_links(config, topics, pkg)
+  vals <- function(x) paste0("{.val ", cli_escape(x), "}", collapse = ", ")
+  bullets <- c(
+    if (length(links$navbar) > 0) {
+      paste("_quartodown.yml {.code navbar:} links", vals(links$navbar))
+    },
+    vapply(
+      names(links$rd),
+      function(file) {
+        sprintf(
+          "{.file man/%s.Rd} links %s",
+          cli_escape(file),
+          vals(links$rd[[file]])
+        )
+      },
+      character(1),
+      USE.NAMES = FALSE
+    )
+  )
+  if (length(bullets) > 0) {
+    n_more <- length(bullets) - 10
+    if (n_more > 0) {
+      bullets <- c(
+        bullets[1:10],
+        sprintf("... and %d more file%s", n_more, if (n_more > 1) "s" else "")
+      )
+    }
+    cli::cli_warn(c(
+      "Some links go to internal topics, which have no page:",
+      structure(bullets, names = rep("*", length(bullets))),
+      i = "Set {.code internal-pages: true} in _quartodown.yml to build pages for internal topics, or list them under {.code reference:}."
+    ))
+  }
+  unknown <- links$unknown
+  if (length(unknown) > 0) {
+    config_warn(
+      "navbar",
+      "links {.val {unknown}}, which {?is/are} not a topic in {.path man/}."
+    )
+  }
+  invisible()
+}
+
+# Every `href:` anywhere in the navbar settings, e.g. in menus.
+navbar_hrefs <- function(x) {
+  if (!is.list(x)) {
+    return(NULL)
+  }
+  c(
+    if (is_string(x[["href"]])) x[["href"]],
+    unlist(lapply(unname(x), navbar_hrefs))
+  )
 }

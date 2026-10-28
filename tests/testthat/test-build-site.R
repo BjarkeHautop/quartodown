@@ -111,29 +111,73 @@ test_that("navbar_items() leaves out Articles and Changelog when there are none"
   items <- navbar_items(dir)
   expect_identical(nav_texts(items$left), c("Get started", "Reference"))
   expect_length(items$right, 0)
+  expect_length(items$tools, 0)
 })
 
 test_that("navbar_items() picks the repository icon from its host", {
   dir <- new_pkg()
   repo_icon <- function(url, config = list()) {
     desc::desc_set(URL = url, file = dir)
-    navbar_items(dir, config)$right[[1]][c("icon", "aria-label")]
+    navbar_items(dir, config)$tools[[1]][c("icon", "aria-label", "text")]
   }
   expect_identical(
     repo_icon("https://gitlab.example.org/o/r"),
-    list(icon = "gitlab", `aria-label` = "GitLab")
+    list(icon = "gitlab", `aria-label` = "GitLab", text = "GitLab")
   )
   expect_identical(
     repo_icon("https://codeberg.org/o/r"),
-    list(icon = "git", `aria-label` = "Codeberg")
+    list(icon = "git", `aria-label` = "Codeberg", text = "Codeberg")
   )
   expect_identical(
     repo_icon(
       "https://example.com",
       list(repo = list(url = list(home = "https://git.sr.ht/~o/r")))
     ),
-    list(icon = "git", `aria-label` = "Source code")
+    list(icon = "git", `aria-label` = "Source code", text = "Source code")
   )
+})
+
+test_that("`navbar:` puts the repository among the tools or right items", {
+  dir <- new_pkg()
+  desc::desc_set(URL = "https://github.com/o/r", file = dir)
+
+  items <- navbar_items(dir)
+  expect_length(items$right, 0)
+  expect_identical(items$tools[[1]]$href, "https://github.com/o/r")
+
+  config <- list(navbar = list(right = list("repo"), tools = list()))
+  items <- navbar_items(dir, config)
+  expect_length(items$tools, 0)
+  # On the navbar, `text` would show beside the icon.
+  expect_identical(
+    items$right[[1]],
+    list(
+      icon = "github",
+      href = "https://github.com/o/r",
+      `aria-label` = "GitHub"
+    )
+  )
+
+  mastodon <- list(icon = "mastodon", href = "https://fosstodon.org/@me")
+  config <- list(navbar = list(tools = list(mastodon, "repo")))
+  items <- navbar_items(dir, config)
+  expect_identical(items$tools[[1]], mastodon)
+  expect_identical(items$tools[[2]]$icon, "github")
+
+  settings <- quarto_config(dir, config)
+  expect_length(settings$website$navbar$tools, 2)
+  expect_null(settings$website$navbar$right)
+})
+
+test_that("`navbar: tools` takes only icons", {
+  dir <- new_pkg()
+  tools <- list("reference", list(text = "Blog", href = "https://example.com"))
+  for (tool in tools) {
+    expect_error(
+      navbar_items(dir, list(navbar = list(tools = list(tool)))),
+      "isn't an icon"
+    )
+  }
 })
 
 test_that("`navbar:` lays out built-in and custom items", {
@@ -406,6 +450,42 @@ test_that("quarto_config() uses the logo as favicon, preferring the PNG", {
   expect_identical(quarto_config(dir)$website$favicon, "man/figures/logo.png")
 })
 
+test_that("site_logo() picks the logo, preferring SVG, and its light variant", {
+  dir <- new_pkg()
+  expect_null(site_logo(dir, list()))
+
+  figures <- file.path(dir, "man", "figures")
+  dir.create(figures, recursive = TRUE)
+  file.create(file.path(figures, "logo.png"))
+  expect_identical(site_logo(dir, list()), "man/figures/logo.png")
+  expect_null(site_logo(dir, list(logo = FALSE)))
+
+  file.create(file.path(figures, "logo-light.png"))
+  expect_identical(
+    site_logo(dir, list()),
+    c(light = "man/figures/logo-light.png", dark = "man/figures/logo.png")
+  )
+
+  # SVGs first, unlike the favicon.
+  file.create(file.path(figures, c("logo.svg", "logo-light.svg")))
+  expect_identical(
+    site_logo(dir, list()),
+    c(light = "man/figures/logo-light.svg", dark = "man/figures/logo.svg")
+  )
+  expect_identical(quarto_config(dir)$website$favicon, "man/figures/logo.png")
+})
+
+test_that("read_config() requires `logo:` to be true or false", {
+  dir <- new_pkg()
+  dir.create(file.path(dir, "_quartodown"))
+  config_path <- file.path(dir, "_quartodown", "_quartodown.yml")
+  writeLines("logo: false", config_path)
+  expect_identical(read_config(dir), list(logo = FALSE))
+
+  writeLines("logo: man/figures/hex.png", config_path)
+  expect_error(read_config(dir), "`logo:` must be")
+})
+
 test_that("quarto_config() links GitHub and merges `quarto:` overrides", {
   dir <- new_pkg()
   write(
@@ -427,7 +507,7 @@ test_that("quarto_config() links GitHub and merges `quarto:` overrides", {
   settings <- quarto_config(dir, config)
 
   expect_identical(
-    settings$website$navbar$right[[1]]$href,
+    settings$website$navbar$tools[[1]]$href,
     "https://github.com/someuser/examplepkg"
   )
   expect_identical(settings$website$`site-url`, "https://example.org")
@@ -465,13 +545,11 @@ quarto:
   )
   settings <- quarto_config(dir, config)
 
-  right <- settings$website$navbar$right
-  expect_length(right, 2)
-  expect_identical(right[[1]]$icon, "github")
   expect_identical(
-    right[[2]],
-    list(text = "Blog", href = "https://example.com")
+    settings$website$navbar$right,
+    list(list(text = "Blog", href = "https://example.com"))
   )
+  expect_identical(settings$website$navbar$tools[[1]]$icon, "github")
   expect_false("toc" %in% names(settings$format$html))
   expect_null(settings$format$html$`code-link`)
 })
@@ -595,11 +673,43 @@ test_that("a .qmd home page keeps its front matter and code comments", {
     "```"
   )
 
-  home <- build_website_readme(lines, dir)
+  home <- build_website_readme(lines, dir, qmd = TRUE)
 
   expect_identical(home[1:4], lines[1:4])
   expect_true("# not a title" %in% home)
   expect_identical(sum(home == "```{r}"), 1L)
+})
+
+test_that("a .md home page's code doesn't run", {
+  dir <- new_pkg()
+  lines <- c(
+    "```{r}",
+    "1 + 1",
+    "```",
+    "",
+    "````markdown",
+    "```{r}",
+    "x < 1",
+    "```",
+    "````"
+  )
+
+  home <- build_website_readme(lines, dir, list(home = list(sidebar = FALSE)))
+
+  expect_identical(
+    home,
+    c(
+      "```r",
+      "1 + 1",
+      "```",
+      "",
+      "",
+      "<pre class=\"sourceCode markdown\"><code>&#96;&#96;&#96;{r}",
+      "x &lt; 1",
+      "&#96;&#96;&#96;</code></pre>",
+      ""
+    )
+  )
 })
 
 test_that("`home: sidebar: false` shows the home page as written", {
@@ -1121,13 +1231,135 @@ test_that("build_reference_qmd() supports starts_with()/-exclude/has_concept()/h
   ))
 
   build_reference_qmd(dir, config)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
 
   expect_true(any(grepl("str_foo()", lines, fixed = TRUE)))
   expect_true(any(grepl("str_bar()", lines, fixed = TRUE)))
   # has_keyword() selects internal topics.
   expect_true("## Internal" %in% lines)
   expect_true(any(grepl("num_add()", lines, fixed = TRUE)))
+})
+
+test_that("build_reference_qmd() doesn't escape usage names twice", {
+  dir <- new_pkg_with_man()
+  write_rd(dir, "infix", alias = "\\%-->\\%", usage = "x \\%-->\\% y")
+  write_rd(dir, "plot.foo", usage = "\\method{plot}{foo}(x, \\dots)")
+
+  build_reference_qmd(dir)
+  raw <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+
+  expect_true(any(grepl(
+    '<a href="infix.qmd">&#96;%--&gt;%&#96;</a>',
+    raw,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl(
+    '<a href="plot.foo.qmd">plot(<i>&lt;foo&gt;</i>)</a>',
+    raw,
+    fixed = TRUE
+  )))
+})
+
+test_that("html_unescape() decodes named and numeric references once", {
+  expect_identical(
+    html_unescape("&#96;%&lt;%&#96; &#123;&amp;lt;"),
+    "`%<%` {&lt;"
+  )
+})
+
+test_that("build_reference_qmd() escapes titles and names, so `{{</dd>` isn't read as a shortcode", {
+  dir <- new_pkg_with_man()
+  # rlang's "Embrace operator {{": `{{</dd>` would start a Quarto shortcode
+  # that swallows the rest of the index.
+  write_rd(dir, "embrace", alias = "curly-curly", title = "Embrace \\{\\{")
+  write_rd(dir, "lt", alias = "\\%<-\\%", title = "a <b> & *c*", usage = NULL)
+  # Code and emphasis in a title are kept, as on the topic's page.
+  write_rd(dir, "splice", title = "Splice \\verb{\\{\\{} and \\emph{more}")
+
+  build_reference_qmd(dir)
+  raw <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
+
+  expect_false(any(grepl("{{", raw, fixed = TRUE)))
+  expect_false(any(grepl("<b>", raw, fixed = TRUE)))
+  expect_true("<dd>Embrace {{</dd>" %in% lines)
+  expect_true("<dd>a <b> & *c*</dd>" %in% lines)
+  expect_true(
+    "<dd>Splice <code>{{</code> and <em>more</em></dd>" %in% lines
+  )
+  expect_true(any(grepl(">%<-%</a>", lines, fixed = TRUE)))
+})
+
+test_that("build_reference_qmd() shows lifecycle badges, and has_lifecycle() selects by them", {
+  dir <- new_pkg_with_man()
+  writeLines(
+    c(
+      "\\name{old}",
+      "\\alias{old}",
+      "\\title{Old}",
+      "\\usage{old()}",
+      "\\description{",
+      paste0(
+        "\\ifelse{html}{\\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}",
+        "{\\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}",
+        "{\\strong{[Deprecated]}}"
+      ),
+      "",
+      "Use new() instead.",
+      "}"
+    ),
+    file.path(dir, "man", "old.Rd")
+  )
+  write_rd(dir, "new")
+
+  topics <- rd_topics(dir)
+  lifecycles <- lapply(unname(topics), `[[`, "lifecycle")
+  expect_setequal(unlist(lifecycles), "deprecated")
+
+  config <- reference_config(c(
+    "reference:",
+    "  - title: Current",
+    "    contents:",
+    '      - -has_lifecycle("deprecated")',
+    "  - title: Deprecated",
+    "    contents:",
+    '      - has_lifecycle("deprecated")'
+  ))
+  build_reference_qmd(dir, config, topics)
+  lines <- read_reference_index(dir)
+
+  dt <- grep("old()", lines, fixed = TRUE, value = TRUE)
+  expect_match(
+    dt,
+    '</code> <span class="badge lifecycle lifecycle-deprecated">deprecated</span></dt>',
+    fixed = TRUE
+  )
+  expect_false(any(grepl(
+    "badge",
+    grep("new()", lines, value = TRUE, fixed = TRUE)
+  )))
+  # Each section lists only its own topic.
+  deprecated <- which(lines == "## Deprecated")
+  expect_true(grep("old()", lines, fixed = TRUE) > deprecated)
+  expect_true(grep("new()", lines, fixed = TRUE) < deprecated)
+})
+
+test_that("a reference section titled internal is hidden, but its topics count as listed", {
+  dir <- new_pkg_with_man()
+  write_rd(dir, "foo")
+  write_rd(dir, "old")
+  config <- reference_config(c(
+    "reference:",
+    "  - title: Functions",
+    "    contents: [foo]",
+    "  - title: internal",
+    "    contents: [old]"
+  ))
+
+  expect_no_warning(build_reference_qmd(dir, config))
+  lines <- read_reference_index(dir)
+  expect_false(any(grepl("internal|old", lines)))
+  expect_length(sidebar_reference(config, rd_topics(dir)), 1)
 })
 
 test_that("build_reference_qmd() lists internal topics only when named or selected", {
@@ -1142,7 +1374,7 @@ test_that("build_reference_qmd() lists internal topics only when named or select
     keyword = "internal"
   )
   index_lines <- function() {
-    readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+    read_reference_index(dir)
   }
 
   # Unlisted internal topics don't warn.
@@ -1202,7 +1434,7 @@ test_that("a `reference:` list starting with an exclusion leaves internal topics
   ))
   # bar is unlisted, hidden isn't (being internal).
   expect_warning(build_reference_qmd(dir, config), "\"bar\", which is not")
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true(any(grepl("foo()", lines, fixed = TRUE)))
   expect_false(any(grepl("bar()|hidden", lines)))
 })
@@ -1221,7 +1453,7 @@ test_that("build_reference_qmd() renders title-only and subtitle blocks", {
   ))
 
   build_reference_qmd(dir, config)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true("## Verbs" %in% lines)
   expect_true("### Rows" %in% lines)
   expect_false("## " %in% lines)
@@ -1235,7 +1467,7 @@ test_that("build_reference_qmd() lists every topic in one section without `refer
   write_rd(dir, "bar")
 
   expect_no_warning(build_reference_qmd(dir))
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true("## All functions" %in% lines)
   expect_true(any(grepl("foo()", lines, fixed = TRUE)))
   expect_true(any(grepl("bar()", lines, fixed = TRUE)))
@@ -1272,7 +1504,7 @@ test_that("build_reference_qmd() accepts a non-syntactic alias like a *-package 
     "      - examplepkg-package"
   ))
   build_reference_qmd(dir, config)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true(any(grepl(">examplepkg-package</a>", lines, fixed = TRUE)))
 })
 
@@ -1286,7 +1518,7 @@ test_that("build_reference_qmd() lists every function in a topic's usage", {
   )
 
   build_reference_qmd(dir)
-  lines <- readLines(file.path(dir, "_quarto", "reference", "index.qmd"))
+  lines <- read_reference_index(dir)
   expect_true(any(grepl(
     '<dt><code><a href="is_bound.qmd">is_bound()</a></code> <code><a href="is_bound.qmd">check_bound()</a></code></dt>',
     lines,
@@ -1315,6 +1547,10 @@ test_that("usage_names() formats data, infix, replacement and method usages", {
   expect_identical(
     usage_names(rd_usage("\\method{print}{foo}(x, \\dots)")),
     "print(<i>&lt;foo&gt;</i>)"
+  )
+  expect_identical(
+    usage_names(rd_usage("\\method{print}{`NULL`}(x, \\dots)")),
+    "print(<i>&lt;NULL&gt;</i>)"
   )
   # A method of a generic documented in the same topic is dropped.
   expect_identical(
@@ -1355,4 +1591,36 @@ test_that("check_config() catches mistakes the build would only hit later", {
     check(list(reference = list(list(contents = "bar")))),
     "known"
   )
+})
+
+test_that("copy_theme_files() marks a development site for the navbar and search engines", {
+  withr::local_envvar(QUARTODOWN_DEV_MODE = NA)
+  dir <- new_pkg()
+  header <- file.path(dir, "_quarto", "quartodown-header.html")
+
+  # Without `development:`, there's no other site to link.
+  copy_theme_files(dir)
+  expect_false(any(grepl("quartodown-dev-mode", readLines(header))))
+
+  copy_theme_files(dir, list(development = list(mode = "release")))
+  lines <- readLines(header)
+  expect_true(
+    '<meta name="quartodown-dev-mode" content="release">' %in% lines
+  )
+  expect_false(any(grepl("noindex", lines)))
+
+  copy_theme_files(dir, list(development = list(mode = "devel")))
+  lines <- readLines(header)
+  expect_true('<meta name="quartodown-dev-mode" content="devel">' %in% lines)
+  expect_true('<meta name="robots" content="noindex">' %in% lines)
+})
+
+test_that("read_config() warns about unknown fields under `development:`", {
+  dir <- new_pkg()
+  dir.create(file.path(dir, "_quartodown"))
+  writeLines(
+    c("development:", "  mode: devel", "  destination: dev"),
+    file.path(dir, "_quartodown", "_quartodown.yml")
+  )
+  expect_warning(read_config(dir), "destination")
 })

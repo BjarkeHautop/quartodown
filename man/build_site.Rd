@@ -10,29 +10,35 @@ build_site(
   freeze = FALSE,
   quiet = TRUE,
   devel = FALSE,
+  workers = 1,
   preview = interactive()
 )
 }
 \arguments{
 \item{path}{Path to the package root.}
 
-\item{tooltips}{Logical. Link references to the package's own functions
-(in code blocks and inline code) to their reference page, with a hover
-tooltip showing the function's usage and the first sentence of its
-description?}
+\item{tooltips}{Logical. Give references to the package's own functions
+(in code blocks and inline code) a hover tooltip showing the function's
+usage and the first sentence of its description?}
 
 \item{freeze}{Logical. Reuse the results of code that ran in an earlier
 build, for pages whose source hasn't changed since? Uses Quarto's
 \href{https://quarto.org/docs/projects/code-execution.html#freeze}{freeze},
-which keeps them in \verb{_quarto/_freeze/}.}
+which keeps them in \verb{_quarto/_freeze/}. Changes to the package's code
+or its dependencies aren't detected; delete \verb{_quarto/_freeze/} to rerun
+everything.}
 
-\item{quiet}{Logical. Hide Quarto's rendering output?}
+\item{quiet}{Logical. Hide Quarto's rendering output? If a page fails to
+render, its error is shown either way.}
 
 \item{devel}{Logical. By default, the examples and vignettes run against
 the package installed from \code{path} into a temporary library. With
 \code{devel = TRUE}, they run against it loaded with \code{\link[pkgload:load_all]{pkgload::load_all()}}
 instead, which is faster, but code that starts other R processes (e.g.
 with callr or parallel workers) won't find the package there.}
+
+\item{workers}{Number of processes to build the site with. More than 1
+needs the \href{https://mirai.r-lib.org/}{mirai} package.}
 
 \item{preview}{Logical. Open the built site in a web browser with
 \code{\link[=preview_site]{preview_site()}}? By default, only in interactive sessions.}
@@ -62,13 +68,14 @@ packages can check.
 \verb{_quartodown/_quartodown.yml} is optional; \code{\link[=use_quartodown]{use_quartodown()}} creates
 one. It can contain:
 \itemize{
-\item \code{url}: the site's address, if it isn't the first \code{URL} in \code{DESCRIPTION}
+\item \code{url}: the site's address. It defaults to the first \code{URL} in \code{DESCRIPTION}
 that isn't a source repository.
 \item \code{reference}: the sections of the function reference index and the topics
 each lists, by name or with selectors such as \code{starts_with()}. The format
 is the same as pkgdown's.
 \item \code{navbar}: the items on the navbar's \code{left} and \code{right}: keywords such as
-\code{reference} and \code{articles}, vignettes, and Quarto navbar items and menus.
+\code{reference} and \code{articles}, vignettes, and Quarto navbar items and menus;
+and the icons in its \code{tools}, by default \code{repo}.
 With \code{style: sidebar}, the \code{left} items go in a sidebar instead, with a
 link to every reference page.
 \item \code{home}: \code{file}, the \code{.md} or \code{.qmd} file the home page shows instead of
@@ -79,13 +86,28 @@ page as written, without it; and \code{links}, added to the sidebar's links.
 replace it; and under \code{sidebar} and \code{footer}, the \code{roles} shown, with
 \code{before}/\code{after} text in the sidebar and \code{text} in the footer.
 \item \code{repo}: the repository's \code{url}s (\code{home}, and the prefixes of links to a
-file, \code{source}; an issue, \code{issue}; and a user, \code{user}) and \code{branch}, if
-not from DESCRIPTION's GitHub, GitLab or Codeberg \code{URL}.
+file, \code{source}; an issue, \code{issue}; and a user, \code{user}) and \code{branch}. They
+default to those of DESCRIPTION's GitHub, GitLab or Codeberg \code{URL}.
 \item \code{theme}: the \code{light} and \code{dark} themes: names of Quarto's built-in
 themes, such as \code{flatly} and \code{darkly}, or \code{.scss} files in
 \verb{_quartodown/}. By default, \code{default} and \code{darkly}.
 \item \code{redirects}: pairs of paths, from an old page to the one replacing it,
 such as \verb{["reference/old.html", "reference/new.html"]}.
+\item \code{development}: \code{mode}, \code{release} (the default) to build the site into
+\verb{docs/}, or \code{devel} to build a site for the development version into
+\verb{docs/dev/}, next to the released version's; \code{unreleased} marks the
+version as unreleased, and \code{auto} picks from the version number and
+whether the package is on CRAN. The environment variable
+\code{QUARTODOWN_DEV_MODE} overrides it. The format is the same as pkgdown's.
+Content in \code{.quartodown-devel} or \code{.quartodown-release} shows on only
+that site.
+\item \code{vignettes}: \code{files}, files and folders outside \verb{vignettes/} that the
+vignettes use by a relative path, such as \verb{man/rmd/} for a child document
+\code{../man/rmd/shared.Rmd}, copied with them.
+\item \code{logo}: \code{false} to leave the logo, \code{man/figures/logo.svg} or \code{.png}
+(and in light mode \code{logo-light}, if it exists), off the pages' titles.
+\item \code{internal-pages}: \code{true} to give every \verb{\\keyword\{internal\}} topic a
+reference page, rather than only those the reference index lists.
 \item \code{quarto}: settings merged over the generated Quarto configuration.
 }
 

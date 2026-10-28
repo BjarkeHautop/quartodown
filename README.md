@@ -28,7 +28,13 @@ On top of that, quartodown adds:
 
 ## Installation
 
-Install from GitHub:
+Install the stable version from CRAN:
+
+``` r
+install.packages("quartodown")
+```
+
+or the development version from GitHub:
 
 ``` r
 pak::pak("BjarkeHautop/quartodown")

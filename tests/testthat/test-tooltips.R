@@ -125,6 +125,10 @@ test_that("build_topic_index() skips internal topics, which get no page", {
   # Unless the reference index lists it, which gives it a page.
   config <- list(reference = list(list(contents = "helper")))
   expect_identical(build_topic_index(dir, config)$helper$topic, "helper")
+
+  # Or `internal-pages: true` gives every topic one.
+  config <- list(`internal-pages` = TRUE)
+  expect_identical(build_topic_index(dir, config)$helper$topic, "helper")
 })
 
 test_that("an alias with no \\usage{} block of its own gets no signature", {
@@ -350,6 +354,21 @@ test_that("a downlit-linked code block reference is relinked to the local man pa
   expect_equal(result$tips[["t1"]]$usage, "foo(a, b)")
 })
 
+test_that("inline code inside another link (e.g. a navbar item) isn't linked", {
+  html <- sample_html(paste0(
+    '<a class="dropdown-item" href="x.html"><span>Using <code>foo()</code></span></a>',
+    '<a href="y.html">the <code>foo()</code> function</a> and <code>foo()</code>'
+  ))
+  result <- inject_tooltips_html(html, foo_index, "reference/")
+  expect_equal(result$n, 1L)
+  expect_match(
+    result$html,
+    "<span>Using <code>foo()</code></span></a>",
+    fixed = TRUE
+  )
+  expect_match(result$html, "the <code>foo()</code> function</a>", fixed = TRUE)
+})
+
 test_that("an unlinked fu span is linked and tagged too", {
   html <- sample_html(
     "<span class=\"fu\">foo</span><span class=\"op\">(</span>"
@@ -361,6 +380,31 @@ test_that("an unlinked fu span is linked and tagged too", {
     'data-quartodown-tip="t1" href="reference/foo.html">foo</a></span>',
     fixed = TRUE
   )
+})
+
+test_that("a kw span (a function Pandoc highlights as a keyword) is tagged too", {
+  index <- list(
+    R6Class = list(
+      usage = "R6Class()",
+      brief = "Makes a class.",
+      topic = "R6Class"
+    )
+  )
+  html <- sample_html(paste0(
+    "<span class=\"kw\"><a href=\"https://r6.r-lib.org/reference/R6Class.html\">",
+    "R6Class</a></span><span class=\"op\">(</span>",
+    "<span class=\"kw\">function</span>"
+  ))
+
+  result <- inject_tooltips_html(html, index, "reference/")
+
+  expect_equal(result$n, 1L)
+  expect_match(
+    result$html,
+    '<span class="kw"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/R6Class.html">R6Class</a></span>',
+    fixed = TRUE
+  )
+  expect_match(result$html, "<span class=\"kw\">function</span>", fixed = TRUE)
 })
 
 test_that("an own %op% operator in a code block is linked and tagged", {
@@ -445,6 +489,15 @@ test_that("inline code references are linked and tagged, with or without a downl
   expect_match(
     result$html,
     'href="reference/animal.html">print.animal()</a></code>',
+    fixed = TRUE
+  )
+
+  # roxygen's \code{\link{foo}()}, whose "()" follows the link
+  html <- sample_html('<p>See <code><a href="foo.html">foo</a>()</code>.</p>')
+  result <- inject_tooltips_html(html, foo_index, "reference/")
+  expect_match(
+    result$html,
+    'href="reference/foo.html">foo()</a></code>.',
     fixed = TRUE
   )
 })
@@ -585,6 +638,18 @@ test_that("add_tooltips_html() adds the tips' contents before </body>", {
   expect_identical(add_tooltips_html(other, foo_index)$html, other)
 })
 
+test_that("add_tooltips_html(tips = FALSE) links references without tips", {
+  html <- sample_html("<p><code>foo()</code></p>")
+  result <- add_tooltips_html(html, foo_index, tips = FALSE)
+  expect_equal(result$n, 1L)
+  expect_match(
+    result$html,
+    '<code><a href="reference/foo.html">foo()</a></code>',
+    fixed = TRUE
+  )
+  expect_no_match(result$html, "quartodown-tip", fixed = TRUE)
+})
+
 test_that("postprocess_pages() links and adds tooltips to pages on disk", {
   dir <- withr::local_tempdir()
   writeLines("Package: p", file.path(dir, "DESCRIPTION"))
@@ -607,7 +672,7 @@ test_that("postprocess_pages() links and adds tooltips to pages on disk", {
   page <- file.path(dir, "docs", "vignettes", "a.html")
   writeLines(sample_html("<p>Use <code>foo()</code>.</p>"), page)
 
-  expect_message(postprocess_pages(dir), "1 reference link across 1 file")
+  postprocess_pages(dir)
   html <- paste(readLines(page), collapse = "\n")
   expect_match(html, 'href="../reference/foo.html">foo()</a>', fixed = TRUE)
   expect_match(

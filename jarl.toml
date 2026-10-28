@@ -1,0 +1,5 @@
+[lint]
+
+[lint.undesirable_operator]
+# `<<-` is intended
+operators = ["->>", ":::"]

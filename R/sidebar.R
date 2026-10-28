@@ -74,34 +74,32 @@ sidebar_section <- function(heading, bullets) {
   )
 }
 
-# The package's CRAN page, if it is on CRAN. Looked up once per session, so
+# Whether the package is on CRAN: TRUE, FALSE, or NA when CRAN can't be
+# reached (or httr2 isn't installed). Looked up once per session, so
 # rebuilds don't wait on CRAN.
-cran_url_if_available <- function(pkg) {
+on_cran <- function(pkg) {
   if (!requireNamespace("httr2", quietly = TRUE)) {
-    return(NA_character_)
+    return(NA)
   }
-  if (!is.null(the$cran_urls[[pkg]])) {
-    return(the$cran_urls[[pkg]])
+  if (!is.null(the$on_cran[[pkg]])) {
+    return(the$on_cran[[pkg]])
   }
-  cran_url <- paste0("https://cloud.r-project.org/package=", pkg)
   resp <- tryCatch(
     httr2::req_perform(httr2::req_error(
-      httr2::req_timeout(httr2::request(cran_url), 5),
+      httr2::req_timeout(httr2::request(cran_url(pkg)), 5),
       function(resp) FALSE
     )),
     error = function(e) NULL
   )
-  url <- if (!is.null(resp) && !httr2::resp_is_error(resp)) {
-    cran_url
-  } else {
-    NA_character_
-  }
   # Not when offline: the next build looks again.
-  if (!is.null(resp)) {
-    the$cran_urls[[pkg]] <- url
+  if (is.null(resp)) {
+    return(NA)
   }
-  url
+  the$on_cran[[pkg]] <- !httr2::resp_is_error(resp)
+  the$on_cran[[pkg]]
 }
+
+cran_url <- function(pkg) paste0("https://cloud.r-project.org/package=", pkg)
 
 # The host a repository URL is on: "github", "gitlab" (gitlab.com or a
 # self-hosted GitLab, whose host name says so) or "codeberg". NA otherwise.
@@ -115,14 +113,21 @@ repo_host <- function(urls) {
 }
 
 # Where the package's source lives, from the first GitHub, GitLab or Codeberg
-# URL in DESCRIPTION, with _quartodown.yml's `repo:` over it: `home`,
-# the repository's page, and the prefixes of the links to a file (`source`),
-# an issue (`issue`) and a user (`user`). A URL into a folder,
-# `<repo>/tree/<branch>/<folder>` (Codeberg's `<repo>/src/branch/...`), is a
-# package in that folder of that branch. Each is NA if unknown.
+# URL in DESCRIPTION (else its `BugReports`, without the `/issues` part),
+# with _quartodown.yml's `repo:` over it: `home`, the repository's page, and
+# the prefixes of the links to a file (`source`), an issue (`issue`) and a
+# user (`user`). A URL into a folder, `<repo>/tree/<branch>/<folder>`
+# (Codeberg's `<repo>/src/branch/...`), is a package in that folder of that
+# branch. Each is NA if unknown.
 pkg_repo <- function(path, config = list()) {
   urls <- desc::desc_get_urls(path)
   url <- urls[!is.na(repo_host(urls))][1]
+  if (is.na(url)) {
+    bug_reports <- desc::desc_get_field("BugReports", default = NA, file = path)
+    if (!is.na(repo_host(bug_reports))) {
+      url <- sub("(/-)?/issues(/.*)?$", "", trimws(bug_reports))
+    }
+  }
   repo <- list(
     home = NA_character_,
     source = NA_character_,
@@ -193,9 +198,8 @@ data_sidebar_links <- function(path, links = list(), config = list()) {
     character(1)
   )
   links <- character()
-  cran_url <- cran_url_if_available(pkg_name(path))
-  if (!is.na(cran_url)) {
-    links <- c(links, sprintf("[View on CRAN](%s)", cran_url))
+  if (isTRUE(on_cran(pkg_name(path)))) {
+    links <- c(links, sprintf("[View on CRAN](%s)", cran_url(pkg_name(path))))
   }
   if (!is.na(home)) {
     links <- c(links, sprintf("[Browse source code](%s)", home))
