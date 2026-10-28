@@ -638,6 +638,18 @@ test_that("add_tooltips_html() adds the tips' contents before </body>", {
   expect_identical(add_tooltips_html(other, foo_index)$html, other)
 })
 
+test_that("add_tooltips_html(tips = FALSE) links references without tips", {
+  html <- sample_html("<p><code>foo()</code></p>")
+  result <- add_tooltips_html(html, foo_index, tips = FALSE)
+  expect_equal(result$n, 1L)
+  expect_match(
+    result$html,
+    '<code><a href="reference/foo.html">foo()</a></code>',
+    fixed = TRUE
+  )
+  expect_no_match(result$html, "quartodown-tip", fixed = TRUE)
+})
+
 test_that("postprocess_pages() links and adds tooltips to pages on disk", {
   dir <- withr::local_tempdir()
   writeLines("Package: p", file.path(dir, "DESCRIPTION"))

@@ -13,7 +13,9 @@ postprocess_pages <- function(
   tooltips = TRUE
 ) {
   docs <- site_dir(path, config)
-  index <- if (isTRUE(tooltips)) build_topic_index(path, config, topics)
+  tooltips <- isTRUE(tooltips)
+  # Without tooltips, their summaries' length doesn't matter.
+  index <- build_topic_index(path, config, topics, quiet = !tooltips)
   pkg <- if (length(index) > 0) pkg_name(path)
   drop <- other_site_classes(dev_mode(path, config))
   pages <- fs::dir_ls(docs, regexp = "\\.html$", recurse = TRUE)
@@ -30,13 +32,22 @@ postprocess_pages <- function(
     index = index,
     pkg = pkg,
     drop = drop,
-    logo = logo
+    logo = logo,
+    tooltips = tooltips
   )
   strip_search_ansi(docs)
   invisible()
 }
 
-postprocess_page <- function(f, docs, index, pkg, drop, logo = NULL) {
+postprocess_page <- function(
+  f,
+  docs,
+  index,
+  pkg,
+  drop,
+  logo = NULL,
+  tooltips = TRUE
+) {
   html <- paste(read_utf8(f), collapse = "\n")
   # 404.html is served at any URL, so a relative link would break.
   if (fs::path_rel(f, docs) != "404.html") {
@@ -45,7 +56,13 @@ postprocess_page <- function(f, docs, index, pkg, drop, logo = NULL) {
   html <- link_code_html(protect_ansi(html), drop = drop)
   if (length(index) > 0) {
     prefix <- reference_href_prefix(f, docs)
-    html <- add_tooltips_html(html, index, prefix, pkg = pkg)$html
+    html <- add_tooltips_html(
+      html,
+      index,
+      prefix,
+      pkg = pkg,
+      tips = tooltips
+    )$html
   }
   html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
   write_utf8(html, f, sep = "")

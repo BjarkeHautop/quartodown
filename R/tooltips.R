@@ -26,17 +26,24 @@ tooltip_link_re <- paste0(
 
 # The page `html` with tooltips (see inject_tooltips_html()) and, if it has
 # any, their contents in a hidden element at the end of the body, which
-# quartodown-after-body.html's script shows. Returns `html` and `n`, the
-# number of links.
+# quartodown-after-body.html's script shows. With `tips = FALSE` the
+# references are only linked. Returns `html` and `n`, the number of links.
 add_tooltips_html <- function(
   html,
   index,
   href_prefix = "reference/",
-  pkg = NULL
+  pkg = NULL,
+  tips = TRUE
 ) {
-  result <- inject_tooltips_html(html, index, href_prefix, pkg = pkg)
+  result <- inject_tooltips_html(
+    html,
+    index,
+    href_prefix,
+    pkg = pkg,
+    tips = tips
+  )
   html <- result$html
-  if (result$n > 0) {
+  if (tips && result$n > 0) {
     payload <- tooltip_payload_html(result$tips)
     # The last </body>, as a script may contain the string too.
     end <- "</body>(\\s*</html>\\s*)$"
@@ -60,14 +67,17 @@ reference_href_prefix <- function(file, docs) {
 }
 
 # Links every `tooltip_link_re` match found in `index` and tags it with a tip
-# id. `tips` has one entry per linked name, for tooltip_payload_html(). `pkg`
-# is the package's name, so `pkg::foo()` resolves like `foo()`.
+# id (with `tips = FALSE`, only links it). `tips` in the result has one entry
+# per linked name, for tooltip_payload_html(). `pkg` is the package's name,
+# so `pkg::foo()` resolves like `foo()`.
 inject_tooltips_html <- function(
   html,
   index,
   href_prefix = "reference/",
-  pkg = NULL
+  pkg = NULL,
+  tips = TRUE
 ) {
+  tag <- isTRUE(tips) # `tips` is reused for the tips found
   n_linked <- 0L
   tip_ids <- character(0)
   tips <- list()
@@ -103,9 +113,14 @@ inject_tooltips_html <- function(
       tips[[id]] <<- entry
     }
     n_linked <<- n_linked + 1L
+    attrs <- if (tag) {
+      sprintf('class="quartodown-tip-ref" data-quartodown-tip="%s" ', id)
+    } else {
+      ""
+    }
     a <- sprintf(
-      '<a class="quartodown-tip-ref" data-quartodown-tip="%s" href="%s%s.html">%s</a>',
-      id,
+      '<a %shref="%s%s.html">%s</a>',
+      attrs,
       href_prefix,
       entry$topic,
       name_html

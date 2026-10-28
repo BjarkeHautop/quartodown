@@ -17,10 +17,9 @@ build_site(
 \arguments{
 \item{path}{Path to the package root.}
 
-\item{tooltips}{Logical. Link references to the package's own functions
-(in code blocks and inline code) to their reference page, with a hover
-tooltip showing the function's usage and the first sentence of its
-description?}
+\item{tooltips}{Logical. Give references to the package's own functions
+(in code blocks and inline code) a hover tooltip showing the function's
+usage and the first sentence of its description?}
 
 \item{freeze}{Logical. Reuse the results of code that ran in an earlier
 build, for pages whose source hasn't changed since? Uses Quarto's
