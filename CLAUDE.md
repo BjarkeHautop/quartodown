@@ -97,7 +97,9 @@ quartodown::build_site() # also previews it when interactive
      listed (and get a page, see `has_page()`) only when named or selected with
      `internal = TRUE`, or with `internal-pages: true` get a page regardless;
      `check_internal_links()` warns about `\link{}`s and navbar hrefs to
-     pageless ones, which would be plain text or broken.
+     pageless ones, which would be plain text or broken. A topic's lifecycle
+     stage (`rd_lifecycle()`, from a `lifecycle-<stage>` figure in
+     `\description{}`) is a badge after its names and `has_lifecycle()`'s key.
    - `authors.qmd` ([R/authors.R](R/authors.R)). `_quartodown.yml`'s
      pkgdown-style `authors:` links names or swaps them for HTML
      (`author_display()`, also in the sidebar and footer) and picks the

@@ -1263,6 +1263,60 @@ test_that("build_reference_qmd() escapes titles and names, so `{{</dd>` isn't re
   expect_true(any(grepl(">%<-%</a>", lines, fixed = TRUE)))
 })
 
+test_that("build_reference_qmd() shows lifecycle badges, and has_lifecycle() selects by them", {
+  dir <- new_pkg_with_man()
+  writeLines(
+    c(
+      "\\name{old}",
+      "\\alias{old}",
+      "\\title{Old}",
+      "\\usage{old()}",
+      "\\description{",
+      paste0(
+        "\\ifelse{html}{\\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}",
+        "{\\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}",
+        "{\\strong{[Deprecated]}}"
+      ),
+      "",
+      "Use new() instead.",
+      "}"
+    ),
+    file.path(dir, "man", "old.Rd")
+  )
+  write_rd(dir, "new")
+
+  topics <- rd_topics(dir)
+  lifecycles <- lapply(unname(topics), `[[`, "lifecycle")
+  expect_setequal(unlist(lifecycles), "deprecated")
+
+  config <- reference_config(c(
+    "reference:",
+    "  - title: Current",
+    "    contents:",
+    '      - -has_lifecycle("deprecated")',
+    "  - title: Deprecated",
+    "    contents:",
+    '      - has_lifecycle("deprecated")'
+  ))
+  build_reference_qmd(dir, config, topics)
+  lines <- read_reference_index(dir)
+
+  dt <- grep("old()", lines, fixed = TRUE, value = TRUE)
+  expect_match(
+    dt,
+    '</code> <span class="badge lifecycle lifecycle-deprecated">deprecated</span></dt>',
+    fixed = TRUE
+  )
+  expect_false(any(grepl(
+    "badge",
+    grep("new()", lines, value = TRUE, fixed = TRUE)
+  )))
+  # Each section lists only its own topic.
+  deprecated <- which(lines == "## Deprecated")
+  expect_true(grep("old()", lines, fixed = TRUE) > deprecated)
+  expect_true(grep("new()", lines, fixed = TRUE) < deprecated)
+})
+
 test_that("build_reference_qmd() lists internal topics only when named or selected", {
   dir <- new_pkg_with_man()
   write_rd(dir, "foo")

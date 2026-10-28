@@ -38,9 +38,35 @@ rd_topics <- function(path) {
       names = if (length(names) > 0) names else alias,
       concepts = tag_text("\\concept"),
       keywords = keywords,
-      internal = "internal" %in% keywords
+      internal = "internal" %in% keywords,
+      lifecycle = rd_lifecycle(rd[tags == "\\description"])
     )
   })
+}
+
+# The lifecycle stage of a topic, e.g. "deprecated", from the badge that
+# usethis/lifecycle put first in `\description{}`: a
+# `\figure{lifecycle-<stage>.svg}`. NULL without one.
+rd_lifecycle <- function(description) {
+  first_figure <- function(x) {
+    if (identical(attr(x, "Rd_tag"), "\\figure")) {
+      return(trimws(paste(unlist(x[[1]]), collapse = "")))
+    }
+    if (is.list(x)) {
+      for (child in x) {
+        file <- first_figure(child)
+        if (!is.null(file)) {
+          return(file)
+        }
+      }
+    }
+    NULL
+  }
+  file <- first_figure(description)
+  if (is.null(file) || !grepl("^lifecycle-", basename(file))) {
+    return(NULL)
+  }
+  sub("^lifecycle-", "", fs::path_ext_remove(basename(file)))
 }
 
 # The `\title{}` of the parsed Rd `rd` as HTML, with its code (`\code{}`,
@@ -315,6 +341,14 @@ match_env <- function(topics) {
     envir = env
   )
   assign(
+    "has_lifecycle",
+    function(x, internal = FALSE) {
+      match <- vapply(topics, function(t) any(t$lifecycle %in% x), logical(1))
+      selectable(match, internal)
+    },
+    envir = env
+  )
+  assign(
     "has_keyword",
     function(x) {
       which(vapply(topics, function(t) any(t$keywords %in% x), logical(1)))
@@ -435,9 +469,17 @@ build_reference_qmd <- function(
             topic$basename,
             html_text(topic$names)
           )
+          badge <- if (!is.null(topic$lifecycle)) {
+            sprintf(
+              ' <span class="badge lifecycle lifecycle-%s">%s</span>',
+              gsub("[^A-Za-z0-9_-]", "", topic$lifecycle),
+              html_text(topic$lifecycle)
+            )
+          }
           sprintf(
-            "<dt>%s</dt>\n<dd>%s</dd>",
+            "<dt>%s%s</dt>\n<dd>%s</dd>",
             paste(links, collapse = " "),
+            if (is.null(badge)) "" else badge,
             rd_title_html(topic$rd)
           )
         },

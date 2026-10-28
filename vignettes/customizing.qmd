@@ -57,6 +57,7 @@ The selectors are:
   | `starts_with("x")`, `ends_with("x")`, `contains("x")` | with an alias that starts with, ends with or contains `x`                           |
   | `matches("regex")`                                    | with an alias matching a regular expression                                         |
   | `has_concept("x")`, `has_keyword("x")`                | with that `\concept{}` or `\keyword{}`                                              |
+  | `has_lifecycle("x")`                                  | with that lifecycle badge, such as `"deprecated"`                                   |
   | `c(...)`                                              | selected by any of the selectors given                                              |
   | `-` before a topic or selector                        | removed from those the entries above select, or as the first entry, from all topics |
 

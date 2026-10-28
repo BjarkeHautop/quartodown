@@ -429,6 +429,30 @@ dl.ref-index dd {
   margin-bottom: 0.5rem;
 }
 
+// A topic's lifecycle stage, after its names, in the colors of the
+// lifecycle package's badges (pkgdown's too).
+.lifecycle {
+  color: var(--bs-secondary-color);
+  background-color: var(--bs-secondary-bg);
+  border-radius: 5px;
+}
+
+.lifecycle-stable {
+  background-color: rgb(16, 128, 1);
+  color: #fff;
+}
+
+.lifecycle-superseded {
+  background-color: rgb(7, 64, 128);
+  color: #fff;
+}
+
+.lifecycle-experimental,
+.lifecycle-deprecated {
+  background-color: rgb(253, 128, 8);
+  color: #000;
+}
+
 /* margin sidebar (home page Links/License/Citation/Developers) ============== */
 
 // Normal body text color and size, not Quarto's muted, smaller margin text.
