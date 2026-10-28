@@ -1317,6 +1317,24 @@ test_that("build_reference_qmd() shows lifecycle badges, and has_lifecycle() sel
   expect_true(grep("new()", lines, fixed = TRUE) < deprecated)
 })
 
+test_that("a reference section titled internal is hidden, but its topics count as listed", {
+  dir <- new_pkg_with_man()
+  write_rd(dir, "foo")
+  write_rd(dir, "old")
+  config <- reference_config(c(
+    "reference:",
+    "  - title: Functions",
+    "    contents: [foo]",
+    "  - title: internal",
+    "    contents: [old]"
+  ))
+
+  expect_no_warning(build_reference_qmd(dir, config))
+  lines <- read_reference_index(dir)
+  expect_false(any(grepl("internal|old", lines)))
+  expect_length(sidebar_reference(config, rd_topics(dir)), 1)
+})
+
 test_that("build_reference_qmd() lists internal topics only when named or selected", {
   dir <- new_pkg_with_man()
   write_rd(dir, "foo")

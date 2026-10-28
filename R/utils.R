@@ -75,6 +75,8 @@ gsub_fn <- function(text, pattern, fn, between = identity) {
   vapply(text, one, character(1), USE.NAMES = FALSE)
 }
 
+`%||%` <- function(x, y) if (is.null(x)) y else x
+
 split_lines <- function(text) {
   # The sentinel keeps trailing empty lines, which strsplit() would drop.
   utils::head(strsplit(paste0(text, "\n."), "\n", fixed = TRUE)[[1]], -1)

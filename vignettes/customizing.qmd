@@ -74,6 +74,9 @@ build a page for every internal topic, set:
 internal-pages: true
 ```
 
+To leave a topic off the index without the warning, list it in a section titled
+`internal`, which isn't shown.
+
 The format is the same as pkgdown's `reference:` field, so an existing one can
 be copied over.
 
@@ -527,88 +530,36 @@ quarto:
 
 ## Coming from pkgdown
 
-Moving a site over is very easy, and mostly means moving `_pkgdown.yml`'s
-settings into `_quartodown/_quartodown.yml`. These have the same format, so can
-be copied as is: `url:`, `reference:`, `home: sidebar:`, `home: links:`,
-`authors:`, `repo:`, `redirects:` and `development: mode:`. The rest maps as
-follows:
+In a package with a `_pkgdown.yml`, `use_quartodown()` translates it into
+`_quartodown/_quartodown.yml`, and lists the settings it couldn't translate.
+Fields of the same format are copied: `url:`, `reference:`, `home: sidebar:`,
+`home: links:`, `authors:`, `repo:`, `redirects:` and `development: mode:`. The
+rest maps as follows:
 
-  | pkgdown                         | quartodown                                                       |
-  | ---                             | ---                                                              |
-  | `navbar:`                       | lists items differently; see [The navbar](#the-navbar)           |
-  | `articles:`                     | no equivalent: group vignettes with navbar menus instead         |
-  | `home: title:`, `title:`        | `quarto: website: navbar: title:`                                |
-  | `home: description:`            | `quarto: website: description:`                                  |
-  | `lang:`                         | `quarto: lang:`                                                  |
-  | `template: bootswatch:`         | [`theme: light:`](#styling-and-layout)                           |
-  | `template: bslib:`              | `_quartodown/extra.scss`; fonts as below                         |
-  | `template: opengraph:`          | `quarto: website: open-graph:` and `twitter-card:`, as below     |
-  | `template: includes:`           | `quarto: format: html: include-in-header:` etc.                  |
-  | `template: math-rendering:`     | `quarto: format: html: html-math-method:`                        |
-  | `template: params: ganalytics:` | `quarto: website: google-analytics:`                             |
-  | `template: light-switch:`       | always on: the site has a light and a dark theme                 |
-  | `navbar: bg:`, `type:`          | `theme:` or `_quartodown/extra.scss`                             |
-  | `toc: depth:`                   | `quarto: format: html: toc-depth:`                               |
-  | `figures:`                      | `quarto: format: html: fig-width:`, `fig-height:`, `fig-dpi:`    |
-  | `footer:`                       | `authors: footer:`, or `quarto: website: page-footer:`           |
+  | pkgdown                              | quartodown                                                                      |
+  | ---                                  | ---                                                                             |
+  | `navbar:`                            | [`navbar:`](#the-navbar), with links to quartodown's pages                      |
+  | `articles:`                          | an "Articles" navbar menu, a section each                                       |
+  | `title:`                             | `quarto: website: navbar: title:`                                               |
+  | `home: description:`                 | `quarto: website: description:`                                                 |
+  | `lang:`                              | `quarto: lang:`                                                                 |
+  | `template: bootswatch:`              | [`theme: light:`](#styling-and-layout)                                          |
+  | `template: bslib:`                   | Sass variables in `_quartodown/extra.scss`                                      |
+  | `pkgdown/extra.scss`, `extra.css`    | `_quartodown/extra.scss`, `extra.css`                                           |
+  | `template: opengraph:`               | `quarto: website: open-graph:` and `twitter-card:`                              |
+  | `template: includes:`                | files in `_quartodown/`, set as `quarto: format: html: include-in-header:` etc. |
+  | `template: math-rendering:`          | `quarto: format: html: html-math-method:`                                       |
+  | `template: params: ganalytics:`      | `quarto: website: google-analytics:`                                            |
+  | `template: light-switch:`            | always on: the site has a light and a dark theme                                |
+  | `toc: depth:`                        | `quarto: format: html: toc-depth:`                                              |
+  | `figures:`                           | `quarto: format: html: fig-width:`, `fig-height:`, `fig-dpi:`                   |
+  | `footer:`                            | not translated: `authors: footer:`, or `quarto: website: page-footer:`          |
+
+Vignettes are published under `vignettes/` rather than `articles/`, and the
+changelog is `NEWS.html` rather than `news/index.html`, so the translation adds
+`redirects:` from pkgdown's addresses.
 
 A separate home page (an `index.md` used instead of the README) isn't picked up
 automatically: set it with [`home: file:`](#the-home-page). Code that checks
 `IN_PKGDOWN` (or `pkgdown::in_pkgdown()`) should check
 `identical(Sys.getenv("IN_QUARTODOWN"), "true")` instead.
-
-For example, this part of a `_pkgdown.yml`:
-
-```yaml
-template:
-  bootswatch: flatly
-  bslib:
-    base_font: {google: "Inter"}
-    code_font: {google: "Fira Code"}
-  opengraph:
-    twitter:
-      creator: "@me"
-      card: summary_large_image
-home:
-  title: "mypkg: Do Things"
-  description: A package that does things.
-```
-
-becomes, in `_quartodown/_quartodown.yml`:
-
-```yaml
-theme:
-  light: flatly
-quarto:
-  website:
-    description: A package that does things.
-    twitter-card:
-      creator: "@me"
-      card-style: summary_large_image
-```
-
-and, in `_quartodown/extra.scss`:
-
-```scss
-/*-- scss:defaults --*/
-@import url("https://fonts.googleapis.com/css2?family=Inter&family=Fira+Code&display=swap");
-$font-family-sans-serif: "Inter", sans-serif;
-$font-family-monospace: "Fira Code", monospace;
-```
-
-A custom navbar item, such as a link to CRAN, is a Quarto navbar item:
-
-```yaml
-navbar:
-  right:
-    - repo
-    - text: CRAN
-      href: https://cran.r-project.org/package=mypkg
-```
-
-The rest works as with pkgdown, except that vignettes are published under
-`vignettes/` rather than `articles/`: `articles/foo.html` becomes
-`vignettes/foo.html`, and `articles/bar.html`, from
-`vignettes/articles/bar.Rmd`, becomes `vignettes/articles/bar.html`. Likewise,
-the changelog is `NEWS.html` rather than `news/index.html`. Update links to
-them, or keep the old addresses working with [`redirects:`](#redirects).

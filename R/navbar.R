@@ -151,8 +151,13 @@ nav_vignette <- function(path, vignette, text = NULL) {
 
 # The vignettes the navbar items link to.
 nav_vignettes <- function(items) {
+  # Quarto takes a vignette's source file as either `file` or `href`.
   files <- as.character(unlist(lapply(items, function(item) {
-    c(item$file, unlist(lapply(item$menu, function(m) m$file)))
+    c(
+      item$file,
+      item$href,
+      unlist(lapply(item$menu, function(m) c(m$file, m$href)))
+    )
   })))
   sub("^vignettes/", "", files[startsWith(files, "vignettes/")])
 }
@@ -239,6 +244,9 @@ sidebar_reference <- function(config, topics) {
   blocks <- reference_blocks(config, topics)
   groups <- Map(
     function(block, idx) {
+      if (hidden_block(block)) {
+        return(NULL)
+      }
       entries <- lapply(unname(topics[idx]), function(topic) {
         list(
           text = topic_label(topic),

@@ -1,5 +1,19 @@
 # quartodown (development version)
 
+- `use_quartodown()` translates an existing `_pkgdown.yml`: the navbar and
+  `articles:` become `navbar:` items and menus, template settings become
+  `theme:`, `quarto:` settings and files in `_quartodown/`, and redirects keep
+  pkgdown's addresses of the vignettes and changelog working. It lists what it
+  couldn't translate.
+
+- New `internal-pages: true` setting, to build a page for every internal topic,
+  not only those the reference index lists. Links to an internal topic without a
+  page, from another topic's documentation or the navbar, now warn.
+
+- The reference index shows lifecycle badges, and `reference:` takes pkgdown's
+  `has_lifecycle()` selector. A section titled `internal` is hidden, as in
+  pkgdown.
+
 - New `development: mode:` setting in `_quartodown.yml`, as in pkgdown: with
   `devel` (or `auto` and a `.9000` version), the site for the development
   version is built into `docs/dev/`, next to the released version's. A link next

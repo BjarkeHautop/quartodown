@@ -6,7 +6,14 @@
 #' section. Also adds the `.gitignore`/`.Rbuildignore` entries the build
 #' needs (see Details) if they're not already there.
 #'
-#' An existing `_quartodown.yml` is never overwritten.
+#' In a package with a pkgdown configuration (`_pkgdown.yml`, also in
+#' `pkgdown/`), it's translated instead, with any files it needs, such as
+#' `_quartodown/extra.scss`, and the settings that couldn't be translated are
+#' listed. See "Coming from pkgdown" in
+#' `vignette("customizing", package = "quartodown")`.
+#'
+#' An existing `_quartodown.yml`, or file in `_quartodown/`, is never
+#' overwritten.
 #'
 #' @details
 #' `use_quartodown()` adds the following lines to `.gitignore` and
@@ -48,8 +55,11 @@ use_quartodown <- function(path = ".") {
   check_pkg_root(path)
 
   config_dest <- file.path(path, config_file)
+  pkgdown_file <- find_pkgdown_config(path)
   if (file.exists(config_dest)) {
     cli::cli_alert_info("Skipping {.path {config_dest}}: already exists.")
+  } else if (!is.null(pkgdown_file)) {
+    write_pkgdown_translation(path, pkgdown_file, config_dest)
   } else {
     dir.create(dirname(config_dest), showWarnings = FALSE)
     writeLines(starter_config_yml(path), config_dest)
@@ -70,11 +80,40 @@ use_quartodown <- function(path = ".") {
   )
 
   cli_next_steps(c(
-    "Edit {.file {config_file}} to group your functions the way you want.",
+    if (is.null(pkgdown_file)) {
+      "Edit {.file {config_file}} to group your functions the way you want."
+    } else {
+      "Check {.file {config_file}}, translated from {.file {pkgdown_file}}."
+    },
     "Build and preview the site with {.run quartodown::build_site()}."
   ))
 
   invisible(config_dest)
+}
+
+# Writes the translation of the package's pkgdown configuration (see
+# translate_pkgdown()) to `config_dest`, with the files it needs, and lists
+# what it couldn't translate.
+write_pkgdown_translation <- function(path, pkgdown_file, config_dest) {
+  translation <- translate_pkgdown(path, pkgdown_file)
+  dir.create(dirname(config_dest), showWarnings = FALSE)
+  for (name in names(translation$files)) {
+    dest <- file.path(dirname(config_dest), name)
+    if (file.exists(dest)) {
+      cli::cli_alert_info("Skipping {.path {dest}}: already exists.")
+    } else {
+      write_utf8(translation$files[[name]], dest)
+      cli::cli_alert_success("Wrote {.path {dest}}.")
+    }
+  }
+  write_utf8(pkgdown_config_yml(translation$config, pkgdown_file), config_dest)
+  cli::cli_alert_success(
+    "Wrote {.path {config_dest}}, translated from {.file {pkgdown_file}}."
+  )
+  if (length(translation$skipped) > 0) {
+    cli::cli_alert_info("Not translated, with no equivalent in quartodown:")
+    cli::cli_bullets(cli_lines(translation$skipped, "*"))
+  }
 }
 
 check_pkg_root <- function(path, call = parent.frame()) {

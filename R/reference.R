@@ -456,8 +456,10 @@ build_reference_qmd <- function(
   sections <- Map(
     function(block, idx) {
       # Drop a section whose contents matched nothing, e.g. a selector that
-      # matched only internal topics.
-      if (length(idx) == 0 && length(block$contents) > 0) {
+      # matched only internal topics, and a hidden one.
+      if (
+        length(idx) == 0 && length(block$contents) > 0 || hidden_block(block)
+      ) {
         return(NULL)
       }
       entries <- vapply(
@@ -510,6 +512,12 @@ build_reference_qmd <- function(
   write_utf8(lines, out_path)
 }
 
+# A section titled "internal", as in pkgdown: its topics count as listed, but
+# it isn't shown.
+hidden_block <- function(block) {
+  identical(block$title, "internal")
+}
+
 # The sections of the reference index: `reference:`, or without it, one
 # section listing every public topic.
 reference_blocks <- function(config, topics) {
@@ -542,50 +550,58 @@ has_page <- function(topics, config = list()) {
   !topic_internal(topics) | seq_along(topics) %in% listed
 }
 
-# Warns about links to an internal topic without a page (see has_page()),
-# which end up plain text or broken: `\link{}`s in the pages that are built,
-# and navbar hrefs to reference pages, which also warn when they name no
-# topic at all.
-check_internal_links <- function(config, topics, pkg) {
+# Links to an internal topic without a page (see has_page()), which end up
+# plain text or broken: `rd`, the topics each built page's `\link{}`s go to
+# by its Rd file name; `navbar`, those navbar hrefs to reference pages go to;
+# and `unknown`, navbar hrefs to reference pages of no topic at all.
+internal_links <- function(config, topics, pkg) {
   basenames <- vapply(topics, `[[`, character(1), "basename")
   paged <- has_page(topics, config)
   # By alias or Rd file name, as `\link{}` and topic_pages() take them.
   pageless <- topic_pages(topics[!paged])
   pageless <- pageless[!names(pageless) %in% names(topic_pages(topics[paged]))]
 
-  rd_links <- unlist(lapply(topics[paged], function(t) {
+  rd <- lapply(topics[paged], function(t) {
     targets <- Filter(
       function(x) is.null(x$package) || identical(x$package, pkg),
       rd_link_targets(t$rd)
     )
-    hits <- unique(intersect(
-      vapply(targets, `[[`, "", "topic"),
-      names(pageless)
-    ))
-    if (length(hits) == 0) {
-      return(NULL)
-    }
-    sprintf(
-      "{.file man/%s.Rd} links %s",
-      cli_escape(t$basename),
-      paste0("{.val ", cli_escape(hits), "}", collapse = ", ")
-    )
-  }))
+    unique(intersect(vapply(targets, `[[`, "", "topic"), names(pageless)))
+  })
+  names(rd) <- basenames[paged]
 
   hrefs <- unlist(navbar_hrefs(config$navbar))
   re <- "^(?:\\./)?reference/([^/#?]+)\\.(?:qmd|html)(?:[#?].*)?$"
   names <- sub(re, "\\1", hrefs[grepl(re, hrefs, perl = TRUE)], perl = TRUE)
   names <- setdiff(unique(names), "index")
-  internal <- intersect(names, basenames[!paged])
-  unknown <- setdiff(names, basenames)
-  nav_links <- if (length(internal) > 0) {
-    paste(
-      "_quartodown.yml {.code navbar:} links",
-      paste0("{.val ", cli_escape(internal), "}", collapse = ", ")
-    )
-  }
+  list(
+    rd = Filter(length, rd),
+    navbar = intersect(names, basenames[!paged]),
+    unknown = setdiff(names, basenames)
+  )
+}
 
-  bullets <- c(nav_links, rd_links)
+# Warns about internal_links().
+check_internal_links <- function(config, topics, pkg) {
+  links <- internal_links(config, topics, pkg)
+  vals <- function(x) paste0("{.val ", cli_escape(x), "}", collapse = ", ")
+  bullets <- c(
+    if (length(links$navbar) > 0) {
+      paste("_quartodown.yml {.code navbar:} links", vals(links$navbar))
+    },
+    vapply(
+      names(links$rd),
+      function(file) {
+        sprintf(
+          "{.file man/%s.Rd} links %s",
+          cli_escape(file),
+          vals(links$rd[[file]])
+        )
+      },
+      character(1),
+      USE.NAMES = FALSE
+    )
+  )
   if (length(bullets) > 0) {
     n_more <- length(bullets) - 10
     if (n_more > 0) {
@@ -600,6 +616,7 @@ check_internal_links <- function(config, topics, pkg) {
       i = "Set {.code internal-pages: true} in _quartodown.yml to build pages for internal topics, or list them under {.code reference:}."
     ))
   }
+  unknown <- links$unknown
   if (length(unknown) > 0) {
     config_warn(
       "navbar",

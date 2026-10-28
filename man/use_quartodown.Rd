@@ -21,7 +21,14 @@ section. Also adds the \code{.gitignore}/\code{.Rbuildignore} entries the build
 needs (see Details) if they're not already there.
 }
 \details{
-An existing \verb{_quartodown.yml} is never overwritten.
+In a package with a pkgdown configuration (\verb{_pkgdown.yml}, also in
+\verb{pkgdown/}), it's translated instead, with any files it needs, such as
+\verb{_quartodown/extra.scss}, and the settings that couldn't be translated are
+listed. See "Coming from pkgdown" in
+\code{vignette("customizing", package = "quartodown")}.
+
+An existing \verb{_quartodown.yml}, or file in \verb{_quartodown/}, is never
+overwritten.
 
 \code{use_quartodown()} adds the following lines to \code{.gitignore} and
 \code{.Rbuildignore} (only the ones not already present in each file):

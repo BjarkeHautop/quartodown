@@ -10,8 +10,11 @@ It generates a Quarto website project in `_quarto/` from the package sources,
 renders it into `docs/` with `quarto render` (run through `processx`), then
 post-processes the HTML. Configuration is the optional
 `_quartodown/_quartodown.yml`. The exported API is `use_quartodown()` (one-time
-setup, writes `_quartodown/_quartodown.yml` and gitignore entries),
-`use_quartodown_action()` (writes the GitHub Pages workflow from
+setup, writes `_quartodown/_quartodown.yml` and gitignore entries; in a package
+with a `_pkgdown.yml`, `translate_pkgdown()` ([R/pkgdown.R](R/pkgdown.R))
+translates it, writing files such as `extra.scss` into `_quartodown/` and
+listing what it couldn't translate), `use_quartodown_action()` (writes the
+GitHub Pages workflow from
 [inst/templates/quartodown.yaml](inst/templates/quartodown.yaml)),
 `build_site()` and `preview_site()`.
 
@@ -99,7 +102,9 @@ quartodown::build_site() # also previews it when interactive
      `check_internal_links()` warns about `\link{}`s and navbar hrefs to
      pageless ones, which would be plain text or broken. A topic's lifecycle
      stage (`rd_lifecycle()`, from a `lifecycle-<stage>` figure in
-     `\description{}`) is a badge after its names and `has_lifecycle()`'s key.
+     `\description{}`) is a badge after its names and `has_lifecycle()`'s key. A
+     section titled `internal` (`hidden_block()`) lists topics but isn't shown,
+     as in pkgdown.
    - `authors.qmd` ([R/authors.R](R/authors.R)). `_quartodown.yml`'s
      pkgdown-style `authors:` links names or swaps them for HTML
      (`author_display()`, also in the sidebar and footer) and picks the
