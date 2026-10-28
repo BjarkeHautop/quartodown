@@ -25,7 +25,9 @@ description?}
 \item{freeze}{Logical. Reuse the results of code that ran in an earlier
 build, for pages whose source hasn't changed since? Uses Quarto's
 \href{https://quarto.org/docs/projects/code-execution.html#freeze}{freeze},
-which keeps them in \verb{_quarto/_freeze/}.}
+which keeps them in \verb{_quarto/_freeze/}. Changes to the package's code
+or its dependencies aren't detected; delete \verb{_quarto/_freeze/} to rerun
+everything.}
 
 \item{quiet}{Logical. Hide Quarto's rendering output? If a page fails to
 render, its error is shown either way.}

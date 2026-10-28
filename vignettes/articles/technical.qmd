@@ -36,6 +36,17 @@ build-stage `\Sexpr{}` macros in the man pages don't run.
 `build_site()`'s `workers` argument sets the number of processes to build with.
 More than one needs the [mirai](https://mirai.r-lib.org/) package.
 
+`build_site(freeze = TRUE)` reuses the results of code from an earlier build,
+kept in `_quarto/_freeze/`, for pages whose source hasn't changed (Quarto's
+[freeze](https://quarto.org/docs/projects/code-execution.html#freeze)).
+Committing `_quarto/_freeze/` lets builds on CI reuse them too.
+
+::: {.callout-warning}
+Freeze only checks each page's own source, not your package's code or the
+packages it uses. After changing a function or updating a dependency, the pages
+running that code keep their old output until you delete `_quarto/_freeze/`.
+:::
+
 Throughout the build, the environment variable `IN_QUARTODOWN` is `"true"`, so
 the package's code can tell it is running for the site, and `IN_QUARTODOWN_PKG`
 is the package's name.

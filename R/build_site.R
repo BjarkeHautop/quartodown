@@ -76,7 +76,9 @@
 #' @param freeze Logical. Reuse the results of code that ran in an earlier
 #'   build, for pages whose source hasn't changed since? Uses Quarto's
 #'   [freeze](https://quarto.org/docs/projects/code-execution.html#freeze),
-#'   which keeps them in `_quarto/_freeze/`.
+#'   which keeps them in `_quarto/_freeze/`. Changes to the package's code
+#'   or its dependencies aren't detected; delete `_quarto/_freeze/` to rerun
+#'   everything.
 #' @param quiet Logical. Hide Quarto's rendering output? If a page fails to
 #'   render, its error is shown either way.
 #' @param devel Logical. By default, the examples and vignettes run against

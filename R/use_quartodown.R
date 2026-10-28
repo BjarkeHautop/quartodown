@@ -33,7 +33,8 @@
 #' `_quarto/` is the Quarto project [build_site()] generates and renders
 #' into `docs/`. Its `_freeze/` directory holds the results of code run with
 #' `build_site(freeze = TRUE)`, which can be committed so later builds, e.g.
-#' on CI, reuse them. `_quartodown/` holds the site's configuration and any
+#' on CI, reuse them (they aren't rerun when only the package's code or its
+#' dependencies change, so delete it to refresh them). `_quartodown/` holds the site's configuration and any
 #' files it uses, such as `extra.scss`.
 #'
 #' @param path Path to the target package root. Defaults to the current
