@@ -267,7 +267,7 @@ sidebar_reference <- function(config, topics) {
 }
 
 # A topic's first name from its usage, as plain text: inline code would get
-# a tooltip link inside the sidebar's link (see add_tooltips_html()), so
+# a tooltip link inside the sidebar's link (see link_code_html()), so
 # quartodown.scss sets it in the code font instead.
 topic_label <- function(topic) {
   html_unescape(gsub("<[^>]+>", "", topic$names[[1]]))

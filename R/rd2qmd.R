@@ -136,7 +136,8 @@ with_sexpr_stages <- function(rd, render) {
 # ---- links ------------------------------------------------------------------------
 #
 # Rd2HTML() drops `\link{}` targets, so each is first made an `\href{}` to
-# the package's own reference page, or to wherever downlit finds the topic.
+# the package's own reference page, or to the topic in another package (see
+# href_topic()).
 
 # The page of each of `topics` (those with one, see has_page()), named by
 # alias and by Rd file name, which `\link[pkg:file]{}` can give: "foo" for
@@ -160,7 +161,7 @@ topic_url <- function(topic, package, pkg, pages) {
   if (identical(package, pkg)) {
     return(NA_character_)
   }
-  tryCatch(downlit::href_topic(topic, package), error = function(e) NA)
+  tryCatch(href_topic(link_context(), topic, package), error = function(e) NA)
 }
 
 # `rd` with every `\link{}` it can resolve made an `\href{}`.

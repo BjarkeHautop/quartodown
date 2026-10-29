@@ -163,8 +163,8 @@ build_site(devel = TRUE)
 preview_site()
 ```
 
-In code, functions from other packages are linked to their own documentation by
-[downlit](https://downlit.r-lib.org/), like `summary()` in the tabset above.
+In code, functions from other packages are linked to their own documentation,
+like `summary()` in the tabset above.
 
 ## Footnotes and margin content
 

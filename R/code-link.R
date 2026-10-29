@@ -2,9 +2,9 @@
 #
 # Each docs/**/*.html page is read and written once, and in between: its ANSI
 # codes protected from xml2 (see protect_ansi()), the other site's content
-# removed (other_site_classes()), its code linked (link_code_html()), references to the package's own topics given tooltips
-# (add_tooltips_html()), the logo put by its title (add_logo_html()) and the
-# ANSI codes made `<span>`s (ansi_to_html()).
+# removed (other_site_classes()), its code linked, with tooltips for the
+# package's own topics (link_code_html()), the logo put by its title
+# (add_logo_html()) and the ANSI codes made `<span>`s (ansi_to_html()).
 
 postprocess_pages <- function(
   path,
@@ -24,12 +24,15 @@ postprocess_pages <- function(
   }
   logo <- site_logo(path, config)
   copy_logo(path, docs, logo)
+  prune_link_cache()
   map_workers(
     as.character(pages),
     postprocess_page,
     docs = docs,
     index = index,
     pkg = pkg,
+    names = linkable_names(index, pkg),
+    articles = site_articles(path),
     drop = drop,
     logo = logo,
     tooltips = tooltips
@@ -44,6 +47,8 @@ postprocess_page <- function(
   index,
   pkg,
   drop,
+  names = character(),
+  articles = character(),
   logo = NULL,
   tooltips = TRUE
 ) {
@@ -52,23 +57,17 @@ postprocess_page <- function(
   if (fs::path_rel(f, docs) != "404.html") {
     html <- add_logo_html(html, logo, fs::path_rel(docs, start = dirname(f)))
   }
-  prefix <- reference_href_prefix(f, docs)
-  html <- link_code_html(
-    protect_ansi(html),
-    drop = drop,
+  ctx <- link_context(
     pkg = pkg,
     topics = vapply(index, `[[`, character(1), "topic"),
-    topic_path = prefix
+    names = names,
+    articles = articles,
+    topic_path = reference_href_prefix(f, docs),
+    root = paste0(fs::path_rel(docs, start = dirname(f)), "/"),
+    index = index,
+    tips = tooltips
   )
-  if (length(index) > 0) {
-    html <- add_tooltips_html(
-      html,
-      index,
-      prefix,
-      pkg = pkg,
-      tips = tooltips
-    )$html
-  }
+  html <- link_code_html(protect_ansi(html), drop = drop, ctx = ctx)
   html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
   write_utf8(html, f, sep = "")
 }
@@ -162,136 +161,468 @@ drop_classes <- function(doc, classes) {
   invisible()
 }
 
+
 # ---- code linking -------------------------------------------------------------
 #
-# Replaces Quarto's `code-link`, which only covers knitr pages and drops the
-# markers of annotated code blocks. Those are linked token by token instead
-# (link_annotated()).
+# Links a page's R code to the topics, vignettes and packages it refers to
+# (see links.R): calls in code blocks, and inline code that is a reference,
+# such as `foo()` or `?foo`. Code blocks keep Quarto's markup: R's parser
+# finds the references in a block's text, and each is wrapped in a link where
+# Quarto put it. A link to one of the package's own topics gets a tooltip
+# (see tooltips.R).
 
-# The page `html` (a string) with its code linked, as xml2 writes it, and
-# the elements with the `drop` classes removed. `topics` maps the aliases of
-# the package `pkg` to their pages, under `topic_path`.
-link_code_html <- function(
-  html,
-  drop = character(),
-  pkg = NULL,
-  topics = character(),
-  topic_path = "reference/"
-) {
-  # downlit collects the packages a page attaches with `library()` in this
-  # option; reset it so they don't carry over to the next page. The package's
-  # own topics are looked up in `topics`: for a package
-  # loaded with `load_all()`, downlit would parse all of man/ on each lookup.
-  old <- options(
-    downlit.attached = NULL,
-    downlit.package = pkg,
-    downlit.topic_index = topics,
-    downlit.topic_path = topic_path
-  )
-  on.exit(options(old))
-
+# The page `html` (a string) with its code linked, as xml2 writes it, the
+# elements with the `drop` classes removed and the tooltips' contents at the
+# end of the body.
+link_code_html <- function(html, drop = character(), ctx = link_context()) {
   doc <- xml2::read_html(html, encoding = "UTF-8")
   drop_classes(doc, drop)
-  # downlit rewrites every `pre.sourceCode.r`; hide annotated blocks from it.
-  annotated <- xml2::xml_find_all(
+  for (code in xml2::xml_find_all(
     doc,
-    ".//pre[contains(@class, 'code-annotated')]"
-  )
-  classes <- xml2::xml_attr(annotated, "class")
-  xml2::xml_set_attr(annotated, "class", "quartodown-annotated")
-  downlit::downlit_html_node(doc)
-  for (i in seq_along(annotated)) {
-    xml2::xml_set_attr(annotated[[i]], "class", classes[[i]])
-    link_annotated(annotated[[i]])
+    ".//pre[contains(@class, 'sourceCode r')]/code"
+  )) {
+    link_block(ctx, code)
+  }
+  link_inline(ctx, doc)
+  if (length(ctx$tip_entries) > 0) {
+    body <- xml2::xml_find_first(doc, ".//body")
+    payload <- xml2::read_html(tooltip_payload_html(ctx$tip_entries))
+    xml2::xml_add_child(body, xml2::xml_find_first(payload, ".//body/div"))
   }
   con <- rawConnection(raw(0), "wb")
-  on.exit(close(con), add = TRUE)
+  on.exit(close(con))
   xml2::write_html(doc, con)
   html <- rawToChar(rawConnectionValue(con))
   Encoding(html) <- "UTF-8"
   html
 }
 
-# Links an annotated block's `fu` spans (with any `pkg::`) and `%op%` `sc`
-# spans without re-highlighting it.
-link_annotated <- function(pre) {
-  # Packages attached in the block itself count too.
-  code <- xml2::xml_text(pre)
-  attached <- regmatches(
-    code,
-    gregexpr(
-      "\\b(?:library|require)\\(\\s*[\"']?\\K[A-Za-z][A-Za-z0-9.]*",
-      code,
-      perl = TRUE
+# The names the package's own topics are linked by when used as values
+# rather than called: its datasets' and its exported objects' that aren't
+# functions, such as ggproto objects. A function's name used as a value is
+# more often a variable or an argument named like it.
+linkable_names <- function(index, pkg) {
+  data <- names(Filter(function(entry) isTRUE(entry$data), index))
+  objects <- if (!is.null(pkg) && is_installed(pkg)) {
+    exported <- intersect(names(index), getNamespaceExports(pkg))
+    ns <- asNamespace(pkg)
+    exported[
+      !vapply(
+        exported,
+        function(name) is.function(get0(name, envir = ns)),
+        logical(1)
+      )
+    ]
+  }
+  union(data, objects)
+}
+
+# ---- code blocks ----
+
+# Links the references in the `<code>` of a code block, which may be split
+# over several of its text nodes and spans; text in links (the line anchors
+# and annotations' markers) isn't code.
+link_block <- function(ctx, code) {
+  nodes <- xml2::xml_find_all(code, ".//text()[not(ancestor::a)]")
+  if (length(nodes) == 0) {
+    return(invisible())
+  }
+  strings <- xml2::xml_text(nodes)
+  refs <- code_refs(ctx, paste(strings, collapse = ""))
+  if (nrow(refs) == 0) {
+    return(invisible())
+  }
+  ends <- cumsum(nchar(strings))
+  starts <- ends - nchar(strings) + 1
+  for (i in seq_along(nodes)) {
+    # A reference split over nodes stays unlinked.
+    in_node <- refs$start >= starts[[i]] & refs$end <= ends[[i]]
+    if (any(in_node)) {
+      node_refs <- refs[in_node, , drop = FALSE]
+      node_refs$start <- node_refs$start - starts[[i]] + 1
+      node_refs$end <- node_refs$end - starts[[i]] + 1
+      link_text_node(ctx, nodes[[i]], strings[[i]], node_refs)
+    }
+  }
+  invisible()
+}
+
+# The references in the R code `text`: where each `start`s and `end`s in it,
+# what it's linked to (`url`) and, for one of the package's own topics, its
+# alias (`own`). The packages the code attaches are attached first.
+code_refs <- function(ctx, text) {
+  none <- data.frame(
+    start = integer(),
+    end = integer(),
+    url = character(),
+    own = character()
+  )
+  # The parser counts a tab as up to 8 columns.
+  exprs <- safe_parse(gsub("\t", " ", text, fixed = TRUE))
+  if (is.null(exprs)) {
+    return(none)
+  }
+  attach_packages(ctx, attached_packages(exprs))
+  data <- utils::getParseData(exprs)
+  data <- data[data$terminal, , drop = FALSE]
+  data <- data[order(data$line1, data$col1), , drop = FALSE]
+  token <- data$token
+  name <- data$text
+  prev <- function(i, k = 1) if (i > k) token[[i - k]] else ""
+
+  refs <- list()
+  add <- function(i, ref) {
+    if (!is.na(ref$url)) {
+      refs[[length(refs) + 1]] <<- data.frame(
+        i = i,
+        url = ref$url,
+        own = ref$own %||% NA_character_
+      )
+    }
+  }
+  for (i in seq_along(token)) {
+    namespaced <- prev(i) %in%
+      c("NS_GET", "NS_GET_INT") &&
+      prev(i, 2) == "SYMBOL_PACKAGE"
+    if (token[[i]] == "SYMBOL_FUNCTION_CALL") {
+      if (namespaced) {
+        add(i, topic_ref(ctx, name[[i]], name[[i - 2]]))
+      } else if (prev(i) %in% c("'$'", "'@'")) {
+        # A method; but an R6 class's `Class$new()` links the class.
+        if (name[[i]] == "new" && prev(i) == "'$'" && prev(i, 2) == "SYMBOL") {
+          add(i - 2, topic_ref(ctx, name[[i - 2]], is_fun = TRUE))
+        }
+      } else {
+        add(i, topic_ref(ctx, name[[i]], is_fun = TRUE))
+        lib <- name[[i]] %in% c("library", "require")
+        # `library(pkg)`, or `library(pkg, ...)`.
+        if (
+          lib &&
+            i + 3 <= length(token) &&
+            token[[i + 3]] %in% c("')'", "','") &&
+            token[[i + 2]] %in% c("SYMBOL", "STR_CONST")
+        ) {
+          package <- gsub("[\"'`]", "", name[[i + 2]])
+          add(i + 2, list(url = href_package(package)))
+        }
+      }
+    } else if (token[[i]] == "SPECIAL") {
+      add(i, topic_ref(ctx, name[[i]], is_fun = TRUE))
+    } else if (token[[i]] == "SYMBOL" && !prev(i) %in% c("'$'", "'@'")) {
+      if (namespaced) {
+        add(i, topic_ref(ctx, name[[i]], name[[i - 2]]))
+      } else if (name[[i]] %in% ctx$names) {
+        add(i, topic_ref(ctx, name[[i]]))
+      }
+    }
+  }
+  if (length(refs) == 0) {
+    return(none)
+  }
+  refs <- do.call(rbind, refs)
+  refs <- refs[!duplicated(refs$i), , drop = FALSE]
+  # From the parser's lines and columns to positions in `text`.
+  lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
+  line_start <- cumsum(c(1, nchar(lines) + 1))
+  rows <- data[refs$i, , drop = FALSE]
+  data.frame(
+    start = line_start[rows$line1] + rows$col1 - 1,
+    end = line_start[rows$line2] + rows$col2 - 1,
+    url = refs$url,
+    own = refs$own
+  )
+}
+
+# The packages `exprs` attach with `library()` or `require()`.
+attached_packages <- function(exprs) {
+  out <- character()
+  walk <- function(x) {
+    if (!is.call(x)) {
+      return()
+    }
+    fun <- x[[1]]
+    if (is.symbol(fun) && as.character(fun) %in% c("library", "require")) {
+      call <- tryCatch(
+        match.call(get(as.character(fun), baseenv()), x),
+        error = function(e) NULL
+      )
+      if (
+        !is.null(call) && !isTRUE(call$character.only) && !is.null(call$package)
+      ) {
+        out <<- c(out, as.character(call$package))
+      }
+      return()
+    }
+    for (arg in as.list(x)[-1]) {
+      if (!missing(arg)) walk(arg)
+    }
+  }
+  for (x in exprs) {
+    walk(x)
+  }
+  unique(out)
+}
+
+safe_parse <- function(text) {
+  tryCatch(
+    parse(text = text, keep.source = TRUE, encoding = "UTF-8"),
+    error = function(e) NULL
+  )
+}
+
+# Replaces the text node `node` (its text, `text`) with the same text, its
+# `refs` (positions in `text`) made links.
+link_text_node <- function(ctx, node, text, refs) {
+  refs <- refs[order(refs$start), , drop = FALSE]
+  pieces <- character()
+  at <- 1
+  for (r in seq_len(nrow(refs))) {
+    pieces <- c(
+      pieces,
+      html_escape(substr(text, at, refs$start[[r]] - 1)),
+      link_html(
+        ctx,
+        html_escape(substr(text, refs$start[[r]], refs$end[[r]])),
+        refs$url[[r]],
+        refs$own[[r]]
+      )
     )
-  )[[1]]
-  options(downlit.attached = union(getOption("downlit.attached"), attached))
-
-  calls <- xml2::xml_find_all(pre, ".//span[@class = 'fu'][not(a)]")
-  for (call in calls) {
-    name <- xml2::xml_text(call)
-    ns <- call_namespace(call)
-    if (!is.null(ns)) {
-      highlight_namespace(ns)
-    }
-    url <- downlit::autolink_url(paste0(ns$prefix, name, "()"))
-    if (is.na(url)) {
-      next
-    }
-    link_span(call, url)
+    at <- refs$end[[r]] + 1
   }
-
-  ops <- xml2::xml_find_all(pre, ".//span[@class = 'sc'][not(a)]")
-  for (op in ops) {
-    name <- xml2::xml_text(op)
-    if (!grepl("^%[^%]+%$", name)) {
-      next
-    }
-    # downlit resolves an operator only written as a call.
-    url <- downlit::autolink_url(paste0("`", name, "`()"))
-    if (!is.na(url)) {
-      link_span(op, url)
-    }
-  }
+  pieces <- c(pieces, html_escape(substr(text, at, nchar(text))))
+  replace_with_html(node, paste(pieces, collapse = ""))
 }
 
-link_span <- function(span, url) {
-  name <- xml2::xml_text(span)
-  xml2::xml_remove(xml2::xml_contents(span))
-  xml2::xml_add_child(span, "a", name, href = url)
+# Replaces `node` with the nodes of the HTML fragment `html`. They go before
+# a placeholder element, as libxml2 merges text added next to a text node
+# into it, so `node` itself can't be what they're added next to.
+replace_with_html <- function(node, html) {
+  # Without xml2's default "NOBLANKS", which drops a space between links.
+  fragment <- xml2::read_xml(paste0("<x>", html, "</x>"), options = character())
+  placeholder <- xml2::xml_add_sibling(node, "x", .where = "before")
+  xml2::xml_remove(node)
+  for (child in xml2::xml_contents(fragment)) {
+    xml2::xml_add_sibling(placeholder, child, .where = "before")
+  }
+  xml2::xml_remove(placeholder)
 }
 
-# For a call highlighted as `pkg<span class="sc">::</span><span
-# class="fu">fun</span>`: its `prefix` ("pkg::"), the text node ending in
-# `pkg` and the `op` span. NULL for a call without one.
-call_namespace <- function(call) {
-  op <- xml2::xml_find_first(call, "preceding-sibling::node()[1]")
+# ---- inline code ----
+
+# Links inline code that is a reference. Not in headings or `<summary>`, nor
+# in another link, except a link around nothing but the code, or one around
+# the name before a "()" (roxygen's `\code{\link{foo}()}`): those are
+# relinked if it's to the package's own topic, for its tooltip.
+link_inline <- function(ctx, doc) {
+  bad <- c("h1", "h2", "h3", "h4", "h5", "h6", "summary", "pre")
+  xpath <- sprintf(
+    ".//code[not(%s)]",
+    paste0("ancestor::", bad, collapse = " or ")
+  )
+  for (code in xml2::xml_find_all(doc, xpath)) {
+    text <- xml2::xml_text(code)
+    children <- xml2::xml_children(code)
+    parent <- xml2::xml_parent(code)
+    wrapped <- xml2::xml_name(parent) == "a"
+    if (wrapped) {
+      # Code in a link: only one around nothing else.
+      if (
+        length(xml2::xml_children(parent)) != 1 ||
+          trimws(xml2::xml_text(parent)) != trimws(text) ||
+          length(children) > 0
+      ) {
+        next
+      }
+    } else if (length(xml2::xml_find_all(code, "ancestor::a")) > 0) {
+      next
+    }
+    if (
+      length(children) > 1 ||
+        (length(children) == 1 && xml2::xml_name(children[[1]]) != "a")
+    ) {
+      next
+    }
+    ref <- inline_ref(ctx, text)
+    if (is.null(ref) || is.na(ref$url)) {
+      next
+    }
+    linked <- wrapped || length(children) == 1
+    if (linked && is.na(ref$own %||% NA)) {
+      next
+    }
+    a <- link_html(ctx, html_escape(text), ref$url, ref$own %||% NA)
+    if (wrapped) {
+      replace_with_html(parent, paste0("<code>", a, "</code>"))
+    } else {
+      xml2::xml_remove(xml2::xml_contents(code))
+      replace_with_html(
+        xml2::xml_add_child(code, "x"),
+        a
+      )
+    }
+  }
+  invisible()
+}
+
+# The reference inline code `text` is, as from topic_ref(), or NULL: a call
+# like `foo()`, `pkg::foo(x)` or `?foo`, a vignette, a package's `{name}` or
+# `library(name)`, or a name of the package's own (see linkable_names()).
+inline_ref <- function(ctx, text) {
+  if (grepl("^\\{[a-zA-Z][a-zA-Z0-9.]+\\}$", text)) {
+    return(list(url = href_package(gsub("[{}]", "", text))))
+  }
+  exprs <- safe_parse(gsub("\t", " ", text, fixed = TRUE))
+  if (length(exprs) != 1) {
+    # The package's own `!!` or `%op%`, which don't parse on their own.
+    if (text %in% names(ctx$topics)) {
+      return(topic_ref(ctx, text))
+    }
+    return(NULL)
+  }
+  expr <- exprs[[1]]
+  if (is.symbol(expr)) {
+    name <- as.character(expr)
+    return(if (name %in% ctx$names) topic_ref(ctx, name))
+  }
+  if (!is.call(expr)) {
+    return(NULL)
+  }
+  fun <- expr[[1]]
+  package <- NULL
   if (
-    !identical(xml2::xml_attr(op, "class"), "sc") ||
-      !xml2::xml_text(op) %in% c("::", ":::")
+    is.call(fun) &&
+      length(fun) == 3 &&
+      as.character(fun[[1]]) %in% c("::", ":::")
+  ) {
+    package <- as.character(fun[[2]])
+    fun <- fun[[3]]
+  }
+  if (!is.symbol(fun)) {
+    return(NULL)
+  }
+  name <- as.character(fun)
+  args <- as.list(expr)[-1]
+  literal <- function(x) is.symbol(x) || is_string(x)
+  # Only a call written as one, `name(...)`: not `x = 1` or `~ x`. Or
+  # `break` and `next`, which are calls without parentheses.
+  call_text <- sub(
+    "^[A-Za-z.][A-Za-z0-9._]*:::?",
+    "",
+    gsub("`", "", trimws(text))
+  )
+  written_as_call <- startsWith(call_text, paste0(name, "(")) ||
+    (call_text %in% c("break", "next") && call_text == name)
+
+  if (name %in% c("::", ":::") && length(args) == 2) {
+    return(topic_ref(ctx, as.character(args[[2]]), as.character(args[[1]])))
+  }
+  if (is.null(package) && name == "?") {
+    if (
+      length(args) == 1 &&
+        is.call(args[[1]]) &&
+        as.character(args[[1]][[1]]) %in% c("::", ":::")
+    ) {
+      return(topic_ref(
+        ctx,
+        as.character(args[[1]][[3]]),
+        as.character(args[[1]][[2]])
+      ))
+    }
+    if (length(args) == 1 && literal(args[[1]])) {
+      return(topic_ref(ctx, as.character(args[[1]])))
+    }
+    if (length(args) == 2) {
+      # `package?foo`
+      return(topic_ref(ctx, paste0(args[[2]], "-", args[[1]])))
+    }
+    return(NULL)
+  }
+  if (
+    is.null(package) &&
+      name %in% c("library", "require", "requireNamespace") &&
+      length(args) == 1 &&
+      is.null(names(expr)) &&
+      literal(args[[1]])
+  ) {
+    url <- href_package(as.character(args[[1]]))
+    return(
+      if (!is.na(url)) list(url = url) else topic_ref(ctx, name, is_fun = TRUE)
+    )
+  }
+  if (is.null(package) && name == "vignette" && length(args) >= 1) {
+    call <- tryCatch(match.call(utils::vignette, expr), error = function(e) {
+      NULL
+    })
+    if (
+      is.null(call) ||
+        !is_string(call$topic) ||
+        !(is.null(call$package) || is_string(call$package))
+    ) {
+      return(NULL)
+    }
+    return(list(url = href_article(ctx, call$topic, call$package)))
+  }
+  if (is.null(package) && name == "help" && length(args) >= 1) {
+    call <- tryCatch(match.call(utils::help, expr), error = function(e) NULL)
+    if (is.null(call)) {
+      return(NULL)
+    }
+    if (literal(call$topic)) {
+      pkg <- if (literal(call$package)) as.character(call$package)
+      return(topic_ref(ctx, as.character(call$topic), pkg))
+    }
+    if (is.null(call$topic) && literal(call$package)) {
+      return(list(url = package_reference_url(as.character(call$package))))
+    }
+    return(NULL)
+  }
+  if (
+    !written_as_call || name %in% c("function", "if", "for", "while", "repeat")
   ) {
     return(NULL)
   }
-  text <- xml2::xml_find_first(op, "preceding-sibling::node()[1]")
-  if (inherits(text, "xml_missing") || xml2::xml_type(text) != "text") {
-    return(NULL)
-  }
-  pkg <- regmatches(
-    xml2::xml_text(text),
-    regexpr("[A-Za-z][A-Za-z0-9.]*$", xml2::xml_text(text))
-  )
-  if (length(pkg) == 0) {
-    return(NULL)
-  }
-  list(prefix = paste0(pkg, xml2::xml_text(op)), text = text, op = op)
+  topic_ref(ctx, name, package, is_fun = TRUE)
 }
 
-# Highlights `pkg::` as downlit does in the other blocks: `pkg` and `::` each
-# in a `fu` span.
-highlight_namespace <- function(ns) {
-  pkg <- sub("::+$", "", ns$prefix)
-  text <- xml2::xml_text(ns$text)
-  xml2::xml_add_sibling(ns$text, "span", pkg, class = "fu", .where = "after")
-  xml2::xml_text(ns$text) <- substr(text, 1, nchar(text) - nchar(pkg))
-  xml2::xml_set_attr(ns$op, "class", "fu")
+# ---- links ----
+
+# `name` in `package` (see href_topic()) as `url` and, if it's one of the
+# package's own topics, `own`: its alias.
+topic_ref <- function(ctx, name, package = NULL, is_fun = FALSE) {
+  own <- (is.null(package) || identical(package, ctx$pkg)) &&
+    name %in% names(ctx$topics) &&
+    ctx$topics[[name]] != "reexports"
+  list(
+    url = href_topic(ctx, name, package, is_fun = is_fun),
+    own = if (own) name
+  )
+}
+
+# A link to `url` around `html`; to one of the package's own topics (its
+# alias `own`), with a tooltip.
+link_html <- function(ctx, html, url, own = NA) {
+  tip <- if (!is.na(own)) tip_id(ctx, own)
+  attrs <- if (!is.null(tip)) {
+    sprintf(' class="quartodown-tip-ref" data-quartodown-tip="%s"', tip)
+  } else {
+    ""
+  }
+  sprintf('<a%s href="%s">%s</a>', attrs, html_escape(url), html)
+}
+
+# The id of the tooltip for the package's own topic `alias` on the page
+# `ctx` links, its contents kept for tooltip_payload_html(). NULL without
+# tooltips.
+tip_id <- function(ctx, alias) {
+  entry <- ctx$index[[alias]]
+  if (!isTRUE(ctx$tips) || is.null(entry)) {
+    return(NULL)
+  }
+  if (!alias %in% names(ctx$tip_ids)) {
+    id <- paste0("t", length(ctx$tip_ids) + 1L)
+    ctx$tip_ids[[alias]] <- id
+    entry$name <- alias
+    ctx$tip_entries[[id]] <- entry
+  }
+  ctx$tip_ids[[alias]]
 }

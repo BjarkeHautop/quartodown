@@ -1,60 +1,8 @@
 # ---- hover tooltips -----------------------------------------------------------
 #
-# Links references to the package's own topics in docs/ to their reference
-# page, with a tooltip showing the signature and the topic's title. Any
-# existing downlit href is replaced, as downlit can't resolve the package's
-# own, unpublished topics. Matched are `fu`/`va`/`kw` spans and `%op%`
-# `op`/`sc` spans in code blocks, and inline `<code>`, linked or not, in the
-# HTML as xml2 writes it (see postprocess_pages()). The tooltip's style and
+# Links to the package's own topics (see link_code_html()) get a tooltip
+# showing the signature and the topic's title. The tooltip's style and
 # script are in quartodown.scss and quartodown-after-body.html.
-
-tooltip_link_re <- paste0(
-  # One group number each for the class and the name in either kind of span.
-  # Pandoc's R syntax highlights some functions (e.g. R6Class) as keywords.
-  "(?|<span class=\"(fu|va|kw)\">(?:<a href=\"[^\"]*\">)?([^<]*?)(?:</a>)?</span>",
-  "|<span class=\"(op|sc)\">(?:<a href=\"[^\"]*\">)?(%[^%<]+%)(?:</a>)?</span>)",
-  "|",
-  # One group number for the name in each shape of inline code, and one for
-  # the "()" of roxygen's `\code{\link{foo}()}`, which follows the link.
-  "(?|<code>(?:<a href=\"[^\"]*\">)?([^<]*?)(?:</a>)?</code>",
-  "|<code><a href=\"[^\"]*\">([^<]*?)</a>(\\(\\))</code>",
-  "|<a href=\"[^\"]*\"><code>([^<]*?)</code></a>)",
-  # Any other link, kept as is: code in it (e.g. a navbar item's) would get a
-  # link nested in it, which browsers split the outer link at.
-  "|<a\\b[^>]*>(?s:.*?)</a>"
-)
-
-# The page `html` with tooltips (see inject_tooltips_html()) and, if it has
-# any, their contents in a hidden element at the end of the body, which
-# quartodown-after-body.html's script shows. With `tips = FALSE` the
-# references are only linked. Returns `html` and `n`, the number of links.
-add_tooltips_html <- function(
-  html,
-  index,
-  href_prefix = "reference/",
-  pkg = NULL,
-  tips = TRUE
-) {
-  result <- inject_tooltips_html(
-    html,
-    index,
-    href_prefix,
-    pkg = pkg,
-    tips = tips
-  )
-  html <- result$html
-  if (tips && result$n > 0) {
-    payload <- tooltip_payload_html(result$tips)
-    # The last </body>, as a script may contain the string too.
-    end <- "</body>(\\s*</html>\\s*)$"
-    html <- if (grepl(end, html, perl = TRUE)) {
-      sub(end, paste0(payload, "</body>\\1"), html, perl = TRUE)
-    } else {
-      paste0(html, payload)
-    }
-  }
-  list(html = html, n = result$n)
-}
 
 # Relative path from a rendered page to docs/reference/, e.g. "reference/"
 # from docs/index.html or "../reference/" one directory down.
@@ -64,76 +12,6 @@ reference_href_prefix <- function(file, docs) {
     start = fs::path_dir(file)
   )
   paste0(as.character(rel), "/")
-}
-
-# Links every `tooltip_link_re` match found in `index` and tags it with a tip
-# id (with `tips = FALSE`, only links it). `tips` in the result has one entry
-# per linked name, for tooltip_payload_html(). `pkg` is the package's name,
-# so `pkg::foo()` resolves like `foo()`.
-inject_tooltips_html <- function(
-  html,
-  index,
-  href_prefix = "reference/",
-  pkg = NULL,
-  tips = TRUE
-) {
-  tag <- isTRUE(tips) # `tips` is reused for the tips found
-  n_linked <- 0L
-  tip_ids <- character(0)
-  tips <- list()
-
-  link <- function(match, groups) {
-    if (all(is.na(groups))) {
-      return(match) # a link with other content
-    }
-    is_block <- !is.na(groups[[1]]) # span vs. inline <code>
-    name_html <- if (is_block) {
-      groups[[2]]
-    } else {
-      paste0(groups[[3]], if (!is.na(groups[[4]])) groups[[4]])
-    }
-    name <- html_unescape(name_html)
-    # "foo(1, 2)", "?foo", "pkg::foo" and "`foo`" all look up "foo".
-    lookup <- sub("\\(.*$", "", name, perl = TRUE)
-    lookup <- sub("^\\?", "", lookup)
-    if (!is.null(pkg)) {
-      lookup <- sub(paste0("^", pkg, ":::?"), "", lookup)
-    }
-    lookup <- unbacktick(lookup)
-
-    entry <- index[[lookup]]
-    if (is.null(entry)) {
-      return(match)
-    }
-    id <- tip_ids[lookup]
-    if (is.na(id)) {
-      id <- paste0("t", length(tips) + 1L)
-      tip_ids[lookup] <<- id
-      entry$name <- lookup
-      tips[[id]] <<- entry
-    }
-    n_linked <<- n_linked + 1L
-    attrs <- if (tag) {
-      sprintf('class="quartodown-tip-ref" data-quartodown-tip="%s" ', id)
-    } else {
-      ""
-    }
-    a <- sprintf(
-      '<a %shref="%s%s.html">%s</a>',
-      attrs,
-      href_prefix,
-      entry$topic,
-      name_html
-    )
-    if (is_block) {
-      sprintf('<span class="%s">%s</span>', groups[[1]], a)
-    } else {
-      paste0("<code>", a, "</code>")
-    }
-  }
-
-  html <- gsub_fn(html, tooltip_link_re, link)
-  list(html = html, n = n_linked, tips = tips)
 }
 
 # ---- topic index --------------------------------------------------------------
@@ -167,6 +45,7 @@ build_topic_index <- function(
       paste(usage_blocks, collapse = "\n\n")
     }
 
+    is_data <- "data" %in% trimws(unlist(rd[tags == "\\docType"]))
     title <- rd_section_text(rd, tags, "\\title")
     if (!is.null(title)) {
       title <- squish(title)
@@ -182,7 +61,8 @@ build_topic_index <- function(
       index[[alias]] <- list(
         usage = usage,
         brief = title,
-        topic = topic
+        topic = topic,
+        data = is_data
       )
     }
   }

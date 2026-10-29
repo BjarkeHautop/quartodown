@@ -94,9 +94,12 @@ the package's [repository](../customizing.qmd#the-repository), if it has one.
 
 ## Code links and tooltips
 
-[downlit](https://downlit.r-lib.org/) links function calls in R code blocks, and
-inline code like `mean()`, to their documentation. `docs/pkgdown.yml` lets
-downlit on other sites link to your reference pages in turn.
+Function calls in R code, and inline code like `mean()` or `?mean`, link to
+their documentation: the package's own pages, another installed package's site,
+or else [rdrr.io](https://rdrr.io). Where other packages' sites are is cached in
+`tools::R_user_dir("quartodown", "cache")`, and looked up again when more than a
+week old; delete the folder to look them all up again. `docs/pkgdown.yml` lets
+other sites, quartodown's and pkgdown's, link to your reference pages in turn.
 
 That file needs the site's address: `url:` in `_quartodown/_quartodown.yml`, or
 else the first `URL` in `DESCRIPTION` that isn't a GitHub, GitLab or Codeberg

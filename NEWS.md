@@ -1,5 +1,9 @@
 # quartodown (development version)
 
+- Code is now linked by quartodown itself instead of downlit, so code blocks
+  keep Quarto's highlighting, linking is more consistent, and builds work
+  offline.
+
 - `use_quartodown()` translates an existing `_pkgdown.yml`: the navbar and
   `articles:` become `navbar:` items and menus, template settings become
   `theme:`, `quarto:` settings and files in `_quartodown/`, and redirects keep

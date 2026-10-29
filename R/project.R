@@ -846,8 +846,8 @@ site_url <- function(path, config = list()) {
   if (length(urls) == 0) NA_character_ else sub("/+$", "", urls[[1]])
 }
 
-# downlit finds a package's reference pages and vignettes through the
-# pkgdown.yml at its site's root.
+# Other packages' sites (made by quartodown or pkgdown) find this package's
+# reference pages and vignettes through the pkgdown.yml at its site's root.
 write_pkgdown_yml <- function(path, url = site_url(path), config = list()) {
   if (is.null(url) || is.na(url)) {
     return(invisible())

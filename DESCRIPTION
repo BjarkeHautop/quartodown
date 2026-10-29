@@ -5,7 +5,7 @@ Authors@R: c(
     person("Bjarke", "Hautop Kristensen", email = "bjarke.hautop@gmail.com",
            role = c("aut", "cre", "cph")),
     person("Hadley", "Wickham", role = c("ctb"),
-           comment = "Code adapted from pkgdown"),
+           comment = "Code adapted from pkgdown and downlit"),
     person("Jay", "Hesselberth", role = c("ctb"),
            comment = "Code adapted from pkgdown"),
     person("Maëlle", "Salmon", role = c("ctb"),
@@ -15,7 +15,7 @@ Authors@R: c(
     person("Salim", "Brüggemann", role = c("ctb"),
            comment = "Code adapted from pkgdown"),
     person("Posit Software, PBC", role = "cph",
-           comment = "Copyright holder of pkgdown")
+           comment = "Copyright holder of pkgdown and downlit")
   )
 Description: Builds package websites with 'Quarto'. The whole site,
     help pages and vignettes included, is rendered by 'Quarto', so every
@@ -28,10 +28,11 @@ SystemRequirements: Quarto command line tool
     (<https://github.com/quarto-dev/quarto-cli>).
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.0.0)
 Imports:
     cli,
     desc,
-    downlit,
     fansi,
     fs,
     processx,
