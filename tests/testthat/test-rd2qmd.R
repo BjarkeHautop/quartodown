@@ -338,7 +338,15 @@ test_that("example_blocks() runs @examplesIf examples only if the condition hold
   expect_false(any(grepl("examplesIf", blocks)))
   expect_identical(
     blocks[nzchar(blocks)][-(1:3)],
-    c(example_chunk_header, "f()", "g()", "```")
+    c(
+      "```{r, include=FALSE}",
+      "invisible(TRUE)",
+      "```",
+      example_chunk_header,
+      "f()",
+      "g()",
+      "```"
+    )
   )
 
   blocks <- example_blocks(examples_if("1 == 2"), "examplepkg")

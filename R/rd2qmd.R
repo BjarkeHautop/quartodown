@@ -498,6 +498,12 @@ resolve_examples_if <- function(segments) {
           eval(str2lang(cond), new.env(parent = globalenv())),
           error = function(e) FALSE
         ))
+        # Rerun the condition in the examples' session too, for its side
+        # effects, e.g. `require("broom")` attaching broom.
+        if (run) {
+          s$code <- sprintf("invisible(%s)", cond)
+          out[[length(out) + 1L]] <- s
+        }
         next
       }
       if (grepl(examples_if_close, code)) {
