@@ -1,7 +1,7 @@
 # ---- hover tooltips -----------------------------------------------------------
 #
 # Links references to the package's own topics in docs/ to their reference
-# page, with a tooltip showing the signature and a one-line summary. Any
+# page, with a tooltip showing the signature and the topic's title. Any
 # existing downlit href is replaced, as downlit can't resolve the package's
 # own, unpublished topics. Matched are `fu`/`va`/`kw` spans and `%op%`
 # `op`/`sc` spans in code blocks, and inline `<code>`, linked or not, in the
@@ -138,15 +138,14 @@ inject_tooltips_html <- function(
 
 # ---- topic index --------------------------------------------------------------
 #
-# For each documented alias: its usage, a one-line summary and its topic.
+# For each documented alias: its usage, its topic's title and its topic.
 # Each alias gets the \usage{} block that calls it; the topic's \name gets the
 # whole \usage{}, and any other alias none.
 
 build_topic_index <- function(
   path = ".",
   config = list(),
-  topics = rd_topics(path),
-  quiet = FALSE
+  topics = rd_topics(path)
 ) {
   index <- list()
   # Only topics with a page (see has_page()) have something to link to.
@@ -154,8 +153,6 @@ build_topic_index <- function(
     rd <- t$rd
     topic <- t$basename
     aliases <- t$alias
-    # Relative, so the {.file} link in the warning below resolves.
-    rd_name <- fs::path_rel(file.path(path, "man", paste0(topic, ".Rd")))
 
     tags <- rd_tags(rd)
     usage_node <- rd[tags == "\\usage"]
@@ -170,12 +167,9 @@ build_topic_index <- function(
       paste(usage_blocks, collapse = "\n\n")
     }
 
-    sentence <- first_sentence(rd_section_text(rd, tags, "\\description"))
-    if (!quiet && sentence$clipped) {
-      cli::cli_warn(c(
-        "The tooltip summary for {.file {rd_name}} is longer than 200 characters and got truncated mid-word.",
-        "i" = "Shorten the first sentence of \\description{{}} to fit within 200 characters."
-      ))
+    title <- rd_section_text(rd, tags, "\\title")
+    if (!is.null(title)) {
+      title <- squish(title)
     }
 
     for (alias in aliases) {
@@ -187,7 +181,7 @@ build_topic_index <- function(
       }
       index[[alias]] <- list(
         usage = usage,
-        brief = sentence$text,
+        brief = title,
         topic = topic
       )
     }
@@ -306,26 +300,6 @@ rd_flatten <- function(x) {
   } else {
     inner
   }
-}
-
-# The first sentence of `text`, cut at `max_chars` (then `clipped` is TRUE).
-first_sentence <- function(text, max_chars = 200) {
-  if (is.null(text)) {
-    return(list(text = NULL, clipped = FALSE))
-  }
-  text <- squish(text)
-  if (nchar(text) == 0) {
-    return(list(text = NULL, clipped = FALSE))
-  }
-
-  m <- regexpr("[.!?](\\s|$)", text, perl = TRUE)
-  sentence <- trimws(if (m != -1) substr(text, 1, m) else text)
-
-  clipped <- nchar(sentence) > max_chars
-  if (clipped) {
-    sentence <- paste0(trimws(substr(sentence, 1, max_chars)), "...")
-  }
-  list(text = sentence, clipped = clipped)
 }
 
 # ---- tooltip contents ---------------------------------------------------------

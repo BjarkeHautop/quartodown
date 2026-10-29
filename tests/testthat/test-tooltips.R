@@ -13,7 +13,7 @@ foo_index <- list(
 
 # ---- build_topic_index() ------------------------------------------------------
 
-test_that("build_topic_index() extracts usage and first-sentence brief", {
+test_that("build_topic_index() extracts usage and the title as brief", {
   dir <- withr::local_tempdir()
   write_rd(
     dir,
@@ -35,10 +35,7 @@ test_that("build_topic_index() extracts usage and first-sentence brief", {
 
   expect_named(index, "foo")
   expect_equal(index$foo$usage, "foo(a, b)")
-  expect_equal(
-    index$foo$brief,
-    "Adds `a` and `b` together and returns the sum."
-  )
+  expect_equal(index$foo$brief, "Add two numbers")
   expect_equal(index$foo$topic, "foo")
 })
 
@@ -152,7 +149,7 @@ test_that("an alias with no \\usage{} block of its own gets no signature", {
 
   expect_no_warning(index <- build_topic_index(dir))
   expect_null(index[["foo"]]$usage)
-  expect_equal(index[["foo"]]$brief, "Prints a foo object.")
+  expect_equal(index[["foo"]]$brief, "Foo methods")
   expect_equal(index[["print.foo"]]$usage, "print.foo(x, ...)")
 })
 
@@ -251,7 +248,7 @@ test_that("replacement functions and S4 methods match their \\usage{} blocks", {
   )
 })
 
-test_that("a lifecycle badge is left out of the brief", {
+test_that("the brief is the title as plain text, with code in backticks", {
   dir <- withr::local_tempdir()
   write_rd(
     dir,
@@ -259,78 +256,14 @@ test_that("a lifecycle badge is left out of the brief", {
     c(
       "\\name{foo}",
       "\\alias{foo}",
-      "\\title{Foo}",
+      "\\title{Do \\code{foo} with",
+      "  \\href{https://example.com}{a thing}}",
       "\\usage{foo()}",
-      "\\description{",
-      "\\ifelse{html}{\\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\\strong{[Experimental]}}",
-      "",
-      "Does \\href{https://example.com}{a thing}.\\if{latex}{ In LaTeX.}",
-      "}"
+      "\\description{Does it.}"
     )
   )
 
-  expect_equal(build_topic_index(dir)$foo$brief, "Does a thing.")
-})
-
-test_that("a description longer than 200 characters warns and clips with '...'", {
-  dir <- withr::local_tempdir()
-  # no sentence boundary at all
-  write_rd(
-    dir,
-    "foo",
-    c(
-      "\\name{foo}",
-      "\\alias{foo}",
-      "\\title{Foo}",
-      "\\usage{",
-      "foo()",
-      "}",
-      "\\description{",
-      paste(rep("word", 60), collapse = " "),
-      "}"
-    )
-  )
-  expect_warning(index <- build_topic_index(dir), "truncated mid-word")
-  expect_true(endsWith(index$foo$brief, "..."))
-  expect_no_warning(build_topic_index(dir, quiet = TRUE))
-
-  # one well-formed sentence that simply runs past 200 characters
-  write_rd(
-    dir,
-    "foo",
-    c(
-      "\\name{foo}",
-      "\\alias{foo}",
-      "\\title{Foo}",
-      "\\usage{",
-      "foo()",
-      "}",
-      "\\description{",
-      paste0(paste(rep("word", 45), collapse = " "), "."),
-      "}"
-    )
-  )
-  expect_warning(index <- build_topic_index(dir), "truncated mid-word")
-  expect_true(endsWith(index$foo$brief, "..."))
-})
-
-test_that("a topic with no description prose has a NULL brief", {
-  dir <- withr::local_tempdir()
-  write_rd(
-    dir,
-    "bar",
-    c(
-      "\\name{bar}",
-      "\\alias{bar}",
-      "\\title{Bar}",
-      "\\usage{",
-      "bar()",
-      "}",
-      "\\description{",
-      "}"
-    )
-  )
-  expect_null(build_topic_index(dir)$bar$brief)
+  expect_equal(build_topic_index(dir)$foo$brief, "Do `foo` with a thing")
 })
 
 # ---- inject_tooltips_html() ---------------------------------------------------

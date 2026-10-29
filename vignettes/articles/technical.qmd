@@ -103,9 +103,8 @@ else the first `URL` in `DESCRIPTION` that isn't a GitHub, GitLab or Codeberg
 repository.
 
 References to the package's own functions also get a hover tooltip with their
-usage and the first sentence of their description. `build_site()` warns when a
-first sentence is longer than 200 characters, since the tooltip cuts it off. To
-build without tooltips, use `build_site(tooltips = FALSE)`.
+usage and title. A usage longer than 12 lines is shortened. To build without
+tooltips, use `build_site(tooltips = FALSE)`.
 
 ## The theme
 
