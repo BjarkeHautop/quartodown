@@ -622,6 +622,15 @@ test_that("code in the brief is rendered as <code>, with its contents escaped", 
   )
 })
 
+test_that("a long \\usage{} is clipped, keeping its last line", {
+  usage <- paste(c("f(", sprintf("  a%d,", 1:20), "  b", ")"), collapse = "\n")
+  expect_equal(
+    strsplit(clip_usage(usage), "\n")[[1]],
+    c("f(", sprintf("  a%d,", 1:9), "  # ... 12 more lines", ")")
+  )
+  expect_identical(clip_usage("f(x)"), "f(x)")
+})
+
 # ---- add_tooltips_html() / postprocess_pages() --------------------------------
 
 test_that("add_tooltips_html() adds the tips' contents before </body>", {

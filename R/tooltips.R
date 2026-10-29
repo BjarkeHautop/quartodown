@@ -330,6 +330,26 @@ first_sentence <- function(text, max_chars = 200) {
 
 # ---- tooltip contents ---------------------------------------------------------
 
+# A \usage{} of more than `max_lines` lines, such as `theme()`'s ~150
+# arguments, as its first lines, a line saying how many are left out and its
+# last line (usually the closing parenthesis), so the tip fits on the screen.
+clip_usage <- function(usage, max_lines = 12) {
+  lines <- strsplit(usage, "\n", fixed = TRUE)[[1]]
+  n <- length(lines)
+  if (n <= max_lines) {
+    return(usage)
+  }
+  keep <- max_lines - 2
+  paste(
+    c(
+      lines[seq_len(keep)],
+      sprintf("  # ... %d more lines", n - keep - 1),
+      lines[[n]]
+    ),
+    collapse = "\n"
+  )
+}
+
 # `tips`: id -> list(usage, brief, name), rendered as a hidden payload that
 # quartodown-after-body.html's script reads via
 # `data-for`/`data-quartodown-tip`.
@@ -338,7 +358,7 @@ tooltip_payload_html <- function(tips) {
     names(tips),
     function(id) {
       tip <- tips[[id]]
-      sig <- if (!is.null(tip$usage)) tip$usage else tip$name
+      sig <- if (!is.null(tip$usage)) clip_usage(tip$usage) else tip$name
       brief_html <- if (!is.null(tip$brief)) {
         brief <- gsub("`([^`]+)`", "<code>\\1</code>", html_escape(tip$brief))
         paste0("<span class=\"quartodown-tip-brief\">", brief, "</span>")

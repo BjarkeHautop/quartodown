@@ -1,9 +1,14 @@
 /*-- scss:defaults --*/
-// Bootstrap's system fonts and heading sizes, as in Quarto's default theme,
-// for the dark theme too. Only used when the light theme is `default`, so a
-// Bootswatch theme keeps its own fonts.
+// Bootstrap's system fonts, as in Quarto's default theme, for the dark theme
+// too. Only used when the light theme is `default`, so a Bootswatch theme
+// keeps its own fonts and heading sizes.
 $font-family-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-$h1-font-size: 2.5rem;
-$h2-font-size: 2rem;
-$h3-font-size: 1.75rem;
+// Smaller than Bootstrap's, which are made for landing pages: each level
+// about 1.25 times the next, so sections like a help page's Arguments don't
+// outweigh its title, and an h3 stands apart from an h2.
+$h1-font-size: 2.25rem;
+$h2-font-size: 1.5rem;
+$h3-font-size: 1.2rem;
+$h4-font-size: 1.05rem;
+$h5-font-size: 1rem;
 $web-font-path: false;
