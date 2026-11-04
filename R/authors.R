@@ -9,7 +9,7 @@ pkg_citation_meta <- function(path) {
     meta[["Date/Publication"]] <- if (is.na(date)) Sys.time() else date
   }
   if (!is.null(meta$Title)) {
-    meta$Title <- trimws(gsub("\\s+", " ", meta$Title))
+    meta$Title <- squish(meta$Title)
   }
   meta
 }
@@ -125,6 +125,6 @@ build_authors_qmd <- function(path, config = list()) {
     "```"
   )
 
-  writeLines(lines, file.path(project_dir(path), "authors.qmd"))
+  write_utf8(lines, file.path(project_dir(path), "authors.qmd"))
   invisible()
 }

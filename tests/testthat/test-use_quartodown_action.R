@@ -15,7 +15,7 @@ test_that("use_quartodown_action() writes the workflow and ignores .github", {
   expect_identical(workflow$name, "quartodown")
   steps <- workflow$jobs$quartodown$steps
   run <- unlist(lapply(steps, function(step) step$run))
-  expect_true("quartodown::build_site()" %in% run)
+  expect_true("quartodown::build_site(workers = 4)" %in% run)
 
   rbuildignore <- readLines(file.path(dir, ".Rbuildignore"))
   expect_identical(sum(rbuildignore == "^\\.github$"), 1L)

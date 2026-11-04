@@ -89,7 +89,7 @@ gallery_entry("theme")
 ## A sidebar
 
 `navbar: style: sidebar` moves the navigation into a sidebar beside every page,
-listing every function on the reference.
+which also lists every reference page.
 
 ```{r}
 #| label: gallery-sidebar

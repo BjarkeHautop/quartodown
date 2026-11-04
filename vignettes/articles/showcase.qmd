@@ -3,9 +3,9 @@ title: "Quarto features"
 code-annotations: hover
 ---
 
-quartodown renders every page with Quarto itself, so all of Quarto's authoring
-features work in your vignettes and articles. This page shows some of them as
-they look on a quartodown site.
+quartodown renders every page with Quarto itself, so all of Quarto's features
+for writing documents work in your vignettes and articles. This page shows some
+of them as they look on a quartodown site, each with the source that makes it.
 
 ## Callouts
 
@@ -25,6 +25,30 @@ Give a callout a title with a heading as its first line.
 
 Callouts can be collapsible, which is handy for details most readers can skip.
 :::
+
+<details>
+<summary>Source</summary>
+
+````markdown
+::: {.callout-note}
+Callouts draw attention to a piece of text. There are five types: `note`, `tip`,
+`important`, `warning` and `caution`.
+:::
+
+::: {.callout-tip}
+## Tip with a title
+
+Give a callout a title with a heading as its first line.
+:::
+
+::: {.callout-warning collapse="true"}
+## Click to expand
+
+Callouts can be collapsible, which is handy for details most readers can skip.
+:::
+````
+
+</details>
 
 ## Tabsets
 
@@ -57,6 +81,42 @@ aggregate(mpg ~ cyl, data = mtcars, FUN = mean)
 ```
 :::
 
+<!-- `r ''` before a ```{r} line keeps knitr from running it as a chunk; it renders as nothing. -->
+
+<details>
+<summary>Source</summary>
+
+````markdown
+::: {.panel-tabset}
+## Summary
+
+`r ''````{r}
+#| label: tabset-summary
+
+summary(mtcars$mpg)
+```
+
+## Plot
+
+`r ''````{r}
+#| label: tabset-plot
+#| fig-height: 4
+
+hist(mtcars$mpg, main = NULL, xlab = "Miles per gallon", col = "steelblue")
+```
+
+## By cylinders
+
+`r ''````{r}
+#| label: tabset-by-cyl
+
+aggregate(mpg ~ cyl, data = mtcars, FUN = mean)
+```
+:::
+````
+
+</details>
+
 ## Code annotations
 
 Hover over the numbers to see the annotations.
@@ -69,6 +129,26 @@ quartodown::build_site(devel = TRUE) # <2>
 1. Write `_quartodown.yml` and gitignore the build output.
 2. Build the site, loading the package with `pkgload::load_all()`, and open it
    in your browser.
+
+<details>
+<summary>Source</summary>
+
+````markdown
+---
+code-annotations: hover
+---
+
+```r
+quartodown::use_quartodown() # <1>
+quartodown::build_site(devel = TRUE) # <2>
+```
+
+1. Write `_quartodown.yml` and gitignore the build output.
+2. Build the site, loading the package with `pkgload::load_all()`, and open it
+   in your browser.
+````
+
+</details>
 
 ## Function links
 
@@ -94,11 +174,34 @@ the page, and as a popup when you hover over the reference.
 [^footnote]: This is a footnote. It can contain *formatting*, `code` and
     [links](https://quarto.org/).
 
+<details>
+<summary>Source</summary>
+
+````markdown
+Footnotes are written with `[^name]`.[^footnote]
+
+[^footnote]: This is a footnote. It can contain *formatting*, `code` and
+    [links](https://quarto.org/).
+````
+
+</details>
+
 Content can also be placed in the margin.
 
 ::: {.column-margin}
 This note sits in the margin, next to the paragraph it belongs to.
 :::
+
+<details>
+<summary>Source</summary>
+
+````markdown
+::: {.column-margin}
+This note sits in the margin, next to the paragraph it belongs to.
+:::
+````
+
+</details>
 
 ## Figures and cross-references
 
@@ -108,7 +211,6 @@ Code output, such as plots, gets a caption and a label you can reference: see
 ```{r}
 #| label: fig-pressure
 #| fig-cap: "Vapor pressure of mercury as a function of temperature."
-#| code-fold: true
 
 plot(pressure, type = "b", pch = 19, col = "steelblue")
 ```
@@ -121,6 +223,32 @@ Tables can be cross-referenced in the same way, as in @tbl-cars.
 
 knitr::kable(head(mtcars[, 1:6]))
 ```
+
+<details>
+<summary>Source</summary>
+
+````markdown
+Code output, such as plots, gets a caption and a label you can reference: see
+@fig-pressure.
+
+`r ''````{r}
+#| label: fig-pressure
+#| fig-cap: "Vapor pressure of mercury as a function of temperature."
+
+plot(pressure, type = "b", pch = 19, col = "steelblue")
+```
+
+Tables can be cross-referenced in the same way, as in @tbl-cars.
+
+`r ''````{r}
+#| label: tbl-cars
+#| tbl-cap: "The first rows of the `mtcars` data."
+
+knitr::kable(head(mtcars[, 1:6]))
+```
+````
+
+</details>
 
 ## Colored output
 
@@ -157,6 +285,21 @@ $$ {#eq-mean}
 
 Equations can be referenced too: @eq-mean is the sample mean.
 
+<details>
+<summary>Source</summary>
+
+````markdown
+Inline math, like $e^{i\pi} + 1 = 0$, and display math:
+
+$$
+  \bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i
+$$ {#eq-mean}
+
+Equations can be referenced too: @eq-mean is the sample mean.
+````
+
+</details>
+
 ## Diagrams
 
 Mermaid and Graphviz diagrams are drawn from text:
@@ -169,6 +312,22 @@ flowchart LR
   B -->|quarto render| C[docs/]
   C --> D[Tooltips added]
 ```
+
+<details>
+<summary>Source</summary>
+
+````markdown
+`r ''````{mermaid}
+%%| label: build-diagram
+
+flowchart LR
+  A[Package sources] --> B[_quarto/]
+  B -->|quarto render| C[docs/]
+  C --> D[Tooltips added]
+```
+````
+
+</details>
 
 ## Layout
 
@@ -184,6 +343,24 @@ a grid.
 **Right column.** On narrow screens the columns stack.
 :::::
 :::
+
+<details>
+<summary>Source</summary>
+
+````markdown
+::: {layout-ncol="2"}
+::::: {}
+**Left column.** Quarto's layout options arrange content, including figures, in
+a grid.
+:::::
+
+::::: {}
+**Right column.** On narrow screens the columns stack.
+:::::
+:::
+````
+
+</details>
 
 ## Learn more
 

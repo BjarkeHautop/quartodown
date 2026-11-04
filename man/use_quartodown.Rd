@@ -21,7 +21,14 @@ section. Also adds the \code{.gitignore}/\code{.Rbuildignore} entries the build
 needs (see Details) if they're not already there.
 }
 \details{
-An existing \verb{_quartodown.yml} is never overwritten.
+In a package with a pkgdown configuration (\verb{_pkgdown.yml}, also in
+\verb{pkgdown/}), it's translated instead, with any files it needs, such as
+\verb{_quartodown/extra.scss}, and the settings that couldn't be translated are
+listed. See "Coming from pkgdown" in
+\code{vignette("customizing", package = "quartodown")}.
+
+An existing \verb{_quartodown.yml}, or file in \verb{_quartodown/}, is never
+overwritten.
 
 \code{use_quartodown()} adds the following lines to \code{.gitignore} and
 \code{.Rbuildignore} (only the ones not already present in each file):
@@ -39,7 +46,8 @@ _quarto/*
 \verb{_quarto/} is the Quarto project \code{\link[=build_site]{build_site()}} generates and renders
 into \verb{docs/}. Its \verb{_freeze/} directory holds the results of code run with
 \code{build_site(freeze = TRUE)}, which can be committed so later builds, e.g.
-on CI, reuse them. \verb{_quartodown/} holds the site's configuration and any
+on CI, reuse them (they aren't rerun when only the package's code or its
+dependencies change, so delete it to refresh them). \verb{_quartodown/} holds the site's configuration and any
 files it uses, such as \code{extra.scss}.
 }
 \examples{

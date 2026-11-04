@@ -19,13 +19,14 @@
 #' `_quartodown/_quartodown.yml` is optional; [use_quartodown()] creates
 #' one. It can contain:
 #'
-#' * `url`: the site's address, if it isn't the first `URL` in `DESCRIPTION`
+#' * `url`: the site's address. It defaults to the first `URL` in `DESCRIPTION`
 #'   that isn't a source repository.
 #' * `reference`: the sections of the function reference index and the topics
 #'   each lists, by name or with selectors such as `starts_with()`. The format
 #'   is the same as pkgdown's.
 #' * `navbar`: the items on the navbar's `left` and `right`: keywords such as
-#'   `reference` and `articles`, vignettes, and Quarto navbar items and menus.
+#'   `reference` and `articles`, vignettes, and Quarto navbar items and menus;
+#'   and the icons in its `tools`, by default `repo`.
 #'   With `style: sidebar`, the `left` items go in a sidebar instead, with a
 #'   link to every reference page.
 #' * `home`: `file`, the `.md` or `.qmd` file the home page shows instead of
@@ -36,13 +37,28 @@
 #'   replace it; and under `sidebar` and `footer`, the `roles` shown, with
 #'   `before`/`after` text in the sidebar and `text` in the footer.
 #' * `repo`: the repository's `url`s (`home`, and the prefixes of links to a
-#'   file, `source`; an issue, `issue`; and a user, `user`) and `branch`, if
-#'   not from DESCRIPTION's GitHub, GitLab or Codeberg `URL`.
+#'   file, `source`; an issue, `issue`; and a user, `user`) and `branch`. They
+#'   default to those of DESCRIPTION's GitHub, GitLab or Codeberg `URL`.
 #' * `theme`: the `light` and `dark` themes: names of Quarto's built-in
 #'   themes, such as `flatly` and `darkly`, or `.scss` files in
 #'   `_quartodown/`. By default, `default` and `darkly`.
 #' * `redirects`: pairs of paths, from an old page to the one replacing it,
 #'   such as `["reference/old.html", "reference/new.html"]`.
+#' * `development`: `mode`, `release` (the default) to build the site into
+#'   `docs/`, or `devel` to build a site for the development version into
+#'   `docs/dev/`, next to the released version's; `unreleased` marks the
+#'   version as unreleased, and `auto` picks from the version number and
+#'   whether the package is on CRAN. The environment variable
+#'   `QUARTODOWN_DEV_MODE` overrides it. The format is the same as pkgdown's.
+#'   Content in `.quartodown-devel` or `.quartodown-release` shows on only
+#'   that site.
+#' * `vignettes`: `files`, files and folders outside `vignettes/` that the
+#'   vignettes use by a relative path, such as `man/rmd/` for a child document
+#'   `../man/rmd/shared.Rmd`, copied with them.
+#' * `logo`: `false` to leave the logo, `man/figures/logo.svg` or `.png`
+#'   (and in light mode `logo-light`, if it exists), off the pages' titles.
+#' * `internal-pages`: `true` to give every `\keyword{internal}` topic a
+#'   reference page, rather than only those the reference index lists.
 #' * `quarto`: settings merged over the generated Quarto configuration.
 #'
 #' `_quartodown/extra.scss` and `_quartodown/extra.css`, if they exist, style
@@ -53,20 +69,24 @@
 #' See `vignette("customizing", package = "quartodown")` for the details.
 #'
 #' @param path Path to the package root.
-#' @param tooltips Logical. Link references to the package's own functions
-#'   (in code blocks and inline code) to their reference page, with a hover
-#'   tooltip showing the function's usage and the first sentence of its
-#'   description?
+#' @param tooltips Logical. Give references to the package's own functions
+#'   (in code blocks and inline code) a hover tooltip showing the function's
+#'   usage and the first sentence of its description?
 #' @param freeze Logical. Reuse the results of code that ran in an earlier
 #'   build, for pages whose source hasn't changed since? Uses Quarto's
 #'   [freeze](https://quarto.org/docs/projects/code-execution.html#freeze),
-#'   which keeps them in `_quarto/_freeze/`.
-#' @param quiet Logical. Hide Quarto's rendering output?
+#'   which keeps them in `_quarto/_freeze/`. Changes to the package's code
+#'   or its dependencies aren't detected; delete `_quarto/_freeze/` to rerun
+#'   everything.
+#' @param quiet Logical. Hide Quarto's rendering output? If a page fails to
+#'   render, its error is shown either way.
 #' @param devel Logical. By default, the examples and vignettes run against
 #'   the package installed from `path` into a temporary library. With
 #'   `devel = TRUE`, they run against it loaded with [pkgload::load_all()]
 #'   instead, which is faster, but code that starts other R processes (e.g.
 #'   with callr or parallel workers) won't find the package there.
+#' @param workers Number of processes to build the site with. More than 1
+#'   needs the [mirai](https://mirai.r-lib.org/) package.
 #' @param preview Logical. Open the built site in a web browser with
 #'   [preview_site()]? By default, only in interactive sessions.
 #' @return Invisibly, the path to the built site.
@@ -83,8 +103,18 @@ build_site <- function(
   freeze = FALSE,
   quiet = TRUE,
   devel = FALSE,
+  workers = 1,
   preview = interactive()
 ) {
+  if (
+    !is.numeric(workers) ||
+      length(workers) != 1 ||
+      is.na(workers) ||
+      workers < 1 ||
+      workers != round(workers)
+  ) {
+    cli::cli_abort("{.arg workers} must be a whole number of at least 1.")
+  }
   config <- read_config(path)
   check_quarto()
   topics <- rd_topics(path)
@@ -107,28 +137,52 @@ build_site <- function(
   } else {
     install_envvars(path, scratch)
   }
+  local_workers(workers)
 
+  cli::cli_progress_step(
+    "Writing the Quarto project to {.path _quarto/}",
+    msg_done = "Wrote the Quarto project to {.path _quarto/}"
+  )
   reset_project(path, freeze = freeze)
   copy_vignettes(path, config)
-  copy_figures(path)
+  copy_package_files(path, config)
   with_libpaths(envvars, write_man_pages(path, config, topics))
   import_markdown_files(path, config)
-  copy_theme_files(path)
+  copy_theme_files(path, config)
   copy_site_files(path)
   write_home(path, config)
   build_reference_qmd(path, config, topics)
   build_authors_qmd(path, config)
   settings <- write_quarto_config(path, config, freeze, topics)
-  write_404(path, settings$website$`site-url`)
 
-  render_project(path, envvars, quiet = quiet)
-  write_pkgdown_yml(path, settings$website$`site-url`)
+  cli::cli_progress_done()
+
+  run_examples(path, envvars, settings, freeze = freeze, workers = workers)
+  render_project(
+    path,
+    envvars,
+    settings,
+    config,
+    quiet = quiet,
+    workers = workers,
+    scratch = scratch
+  )
+
+  done <- if (isTRUE(tooltips)) {
+    "Linked code and added tooltips"
+  } else {
+    "Linked code"
+  }
+  cli::cli_progress_step("Linking code", msg_done = done)
+  write_pkgdown_yml(path, settings$website$`site-url`, config)
   postprocess_pages(path, config, topics, tooltips = tooltips)
   write_redirects(path, config)
+  cli::cli_progress_done()
+  cli::cli_alert_success("Built the site in {.path {site_dir(path, config)}}")
 
   if (isTRUE(preview) && !identical(Sys.getenv("TESTTHAT"), "true")) {
     if (requireNamespace("servr", quietly = TRUE)) {
-      serve_site(path, reopen = FALSE)
+      serve_site(path, config, reopen = FALSE)
     } else {
       cli::cli_inform(c(
         "i" = "Install {.pkg servr} to preview the site in your browser."
@@ -136,7 +190,7 @@ build_site <- function(
     }
   }
 
-  invisible(docs_dir(path))
+  invisible(site_dir(path, config))
 }
 
 theme_files <- c(
@@ -179,9 +233,16 @@ read_config <- function(path) {
       "repo",
       "theme",
       "redirects",
+      "development",
+      "vignettes",
+      "logo",
+      "internal-pages",
       "quarto"
     )
   )
+  if (is.list(config$vignettes)) {
+    warn_unknown_fields(names(config$vignettes), "files", "vignettes")
+  }
   if (is.list(config$home)) {
     warn_unknown_fields(
       names(config$home),
@@ -192,6 +253,9 @@ read_config <- function(path) {
   }
   if (is.list(config$theme)) {
     warn_unknown_fields(names(config$theme), c("light", "dark"), "theme")
+  }
+  if (is.list(config$development)) {
+    warn_unknown_fields(names(config$development), "mode", "development")
   }
   if (is.list(config$repo)) {
     warn_unknown_fields(names(config$repo), c("url", "branch"), "repo")
@@ -210,6 +274,13 @@ read_config <- function(path) {
       paste("authors:", where)
     )
   }
+  if (!is.null(config$logo) && !isTRUE(config$logo) && !isFALSE(config$logo)) {
+    config_abort("logo", "must be {.code true} or {.code false}.")
+  }
+  pages <- config[["internal-pages"]]
+  if (!is.null(pages) && !isTRUE(pages) && !isFALSE(pages)) {
+    config_abort("internal-pages", "must be {.code true} or {.code false}.")
+  }
   config_redirects(config) # Checks it before the slow render.
   config
 }
@@ -218,11 +289,14 @@ read_config <- function(path) {
 # need the package's files and topics, so a mistake fails before the slow
 # install and render rather than during them.
 check_config <- function(path, config, topics) {
+  dev_mode(path, config)
   home_file(path, config)
   quarto_theme(path, config)
   navbar_style(config)
   navbar_layout(path, config)
   reference_block_topics(reference_blocks(config, topics), topics)
+  check_internal_links(config, topics, pkg_name(path))
+  check_vignette_paths(path, config)
   invisible()
 }
 
@@ -265,7 +339,7 @@ warn_unknown_fields <- function(fields, known, parent = NULL) {
   }
 }
 
-copy_theme_files <- function(path) {
+copy_theme_files <- function(path, config = list()) {
   src <- system.file(
     "quarto",
     theme_files,
@@ -278,7 +352,25 @@ copy_theme_files <- function(path) {
     file.path(project_dir(path), "quartodown.scss"),
     append = TRUE
   )
+  # Without `development:`, there's only ever the one site.
+  if (has_dev_mode(config)) {
+    write(
+      dev_mode_meta(dev_mode(path, config)),
+      file.path(project_dir(path), "quartodown-header.html"),
+      append = TRUE
+    )
+  }
   invisible()
+}
+
+# The site's dev_mode(), for the after-body script, which labels the navbar's
+# version with it and links the other site. A development site isn't indexed
+# by search engines, which should send people to the released version's.
+dev_mode_meta <- function(mode) {
+  c(
+    sprintf('<meta name="quartodown-dev-mode" content="%s">', mode),
+    if (mode == "devel") '<meta name="robots" content="noindex">'
+  )
 }
 
 # ---- Quarto configuration -----------------------------------------------------
@@ -291,6 +383,7 @@ quarto_config <- function(
 ) {
   pkg <- pkg_name(path)
   version <- desc::desc_get_field("Version", default = "", file = path)
+  mode <- dev_mode(path, config)
 
   navbar <- list(search = TRUE)
   items <- navbar_items(path, config)
@@ -309,9 +402,9 @@ quarto_config <- function(
   settings <- list(
     project = list(
       type = "website",
-      `output-dir` = "../docs/"
+      `output-dir` = if (mode == "devel") "../docs/dev/" else "../docs/"
     ),
-    language = list(`search-text-placeholder` = " Search for"),
+    language = list(`search-text-placeholder` = " Search"),
     website = list(
       # after-body script splits the version into its own <small>.
       title = trimws(paste(pkg, version)),
@@ -348,13 +441,16 @@ quarto_config <- function(
   # For the sitemap, among others.
   url <- site_url(path, config)
   if (!is.na(url)) {
-    settings$website$`site-url` <- url
+    settings$website$`site-url` <- if (mode == "devel") {
+      paste0(url, "/dev")
+    } else {
+      url
+    }
   }
   settings$website <- c(settings$website, social_cards(path))
-  logos <- c("man/figures/logo.png", "man/figures/logo.svg")
-  logos <- logos[file.exists(file.path(path, logos))]
-  if (length(logos) > 0) {
-    settings$website$favicon <- logos[[1]]
+  logo <- logo_file(path)
+  if (!is.null(logo)) {
+    settings$website$favicon <- logo
   }
 
   if (isTRUE(freeze)) {
@@ -387,7 +483,7 @@ quarto_theme <- function(path, config = list()) {
     if (is.null(value)) {
       next
     }
-    if (!is.character(value) || length(value) != 1) {
+    if (!is_string(value)) {
       config_abort(
         "theme: {mode}",
         "must be a single theme name."
@@ -404,6 +500,31 @@ quarto_theme <- function(path, config = list()) {
   list(light = c(theme$light, layers), dark = c(theme$dark, layers))
 }
 
+# The package's logo, `man/figures/logo` with the first of the `exts` that
+# exists (or the `-light` variant, `light = TRUE`), or NULL. The favicon
+# prefers PNG, which every browser shows as one.
+logo_file <- function(path, light = FALSE, exts = c("png", "svg")) {
+  logos <- paste0("man/figures/logo", if (light) "-light", ".", exts)
+  logos <- logos[file.exists(file.path(path, logos))]
+  if (length(logos) > 0) logos[[1]]
+}
+
+# The logo shown by the title of every page not showing it already, unless
+# `logo: false`: the `logo_file()`, preferring an SVG, which stays sharp at
+# any size, or with a `-light` variant, both, named by the theme they show
+# in. NULL without a logo.
+site_logo <- function(path, config) {
+  if (isFALSE(config$logo)) {
+    return(NULL)
+  }
+  logo <- logo_file(path, exts = c("svg", "png"))
+  light <- logo_file(path, light = TRUE, exts = c("svg", "png"))
+  if (is.null(logo) || is.null(light)) {
+    return(logo)
+  }
+  c(light = light, dark = logo)
+}
+
 # The preview of a link to the site on social media and chat apps: the
 # package's title and, as a small square card, its logo. They don't show SVGs.
 social_cards <- function(path) {
@@ -411,7 +532,7 @@ social_cards <- function(path) {
   logo <- "man/figures/logo.png"
   c(
     list(`open-graph` = TRUE, `twitter-card` = list(`card-style` = "summary")),
-    if (!is.na(title)) list(description = trimws(gsub("\\s+", " ", title))),
+    if (!is.na(title)) list(description = squish(title)),
     # From the site's root, not each page's folder.
     if (file.exists(file.path(path, logo))) list(image = paste0("/", logo))
   )
@@ -434,7 +555,9 @@ merge_quarto_config <- function(x, val) {
   x
 }
 
-# Returns, invisibly, the settings written.
+# Also writes the 404 page, as the render list (see render_list()), set unless
+# the `quarto:` settings have one, needs every page written. Returns,
+# invisibly, the settings written.
 write_quarto_config <- function(
   path,
   config = list(),
@@ -442,12 +565,24 @@ write_quarto_config <- function(
   topics = rd_topics(path)
 ) {
   settings <- quarto_config(path, config, freeze = freeze, topics = topics)
+  write_404(path, settings$website$`site-url`)
+  if (is.null(settings$project$render)) {
+    settings$project$render <- render_list(
+      project_dir(path),
+      vignette_files(path, config)
+    )
+  }
+  write_quarto_yml(settings, project_dir(path))
+  invisible(settings)
+}
+
+# Quarto reads YAML 1.2, whose booleans are only `true`/`false`.
+write_quarto_yml <- function(settings, dir) {
   yaml::write_yaml(
     settings,
-    file.path(project_dir(path), "_quarto.yml"),
+    file.path(dir, "_quarto.yml"),
     handlers = list(logical = yaml::verbatim_logical)
   )
-  invisible(settings)
 }
 
 # ---- home page ----------------------------------------------------------------
@@ -459,12 +594,16 @@ write_home <- function(path, config = list()) {
   lines <- if (is.null(file)) {
     description_home(path)
   } else {
-    readLines(file.path(path, file), warn = FALSE, encoding = "UTF-8")
+    read_utf8(file.path(path, file))
   }
-  writeLines(
-    enc2utf8(build_website_readme(lines, path, config)),
-    file.path(project_dir(path), "index.qmd"),
-    useBytes = TRUE
+  write_utf8(
+    build_website_readme(
+      lines,
+      path,
+      config,
+      qmd = !is.null(file) && grepl("\\.qmd$", file, ignore.case = TRUE)
+    ),
+    file.path(project_dir(path), "index.qmd")
   )
 }
 
@@ -475,7 +614,7 @@ home_file <- function(path, config = list()) {
   if (is.null(file)) {
     return(if (file.exists(file.path(path, "README.md"))) "README.md")
   }
-  if (!is.character(file) || length(file) != 1) {
+  if (!is_string(file)) {
     config_abort(
       "home: file",
       "must be a single file path."
@@ -562,15 +701,29 @@ check_home_config <- function(home) {
 description_home <- function(path) {
   pkg <- pkg_name(path)
   description <- desc::desc_get_field("Description", default = "", file = path)
-  c(paste("#", pkg), "", trimws(gsub("\\s+", " ", description)))
+  c(paste("#", pkg), "", squish(description))
 }
 
 # With _quartodown.yml's `home: sidebar: false`, the page is `lines` as
-# written, only made to render like on GitHub.
-build_website_readme <- function(lines, path = ".", config = list()) {
+# written, only made to render like on GitHub. Its code runs only if it's a
+# .qmd (`qmd = TRUE`).
+build_website_readme <- function(
+  lines,
+  path = ".",
+  config = list(),
+  qmd = FALSE
+) {
   # A .qmd's front matter stays at the top.
   parts <- split_front_matter(lines)
-  lines <- github_markdown_to_quarto(parts$body, mermaid = TRUE)
+  lines <- github_markdown_to_quarto(
+    parts$body,
+    mermaid = TRUE,
+    executable = qmd
+  )
+  if (!qmd) {
+    lines <- escape_knitr_blocks(lines)
+  }
+  lines <- link_community_files(lines, path)
   lines <- theme_pictures_to_images(lines)
   if (!isFALSE(config$home$sidebar)) {
     lines <- home_page_with_sidebar(lines, path, config)
@@ -579,12 +732,9 @@ build_website_readme <- function(lines, path = ".", config = list()) {
 }
 
 home_page_with_sidebar <- function(lines, path, config = list()) {
-  badges <- extract_readme_badges(lines)
-  lines <- remove_marker_block(
-    lines,
-    "<!-- badges: start -->",
-    "<!-- badges: end -->"
-  )
+  parts <- split_readme_badges(lines)
+  badges <- parts$badges
+  lines <- parts$lines
 
   # Not a `# comment` in a code block.
   in_code <- nzchar(code_block_lines(lines))
@@ -612,23 +762,16 @@ home_page_with_sidebar <- function(lines, path, config = list()) {
   }
 }
 
-extract_readme_badges <- function(lines) {
+# The README's `badges` (the non-blank lines between `<!-- badges: start -->`
+# and `<!-- badges: end -->`) and its other `lines`, without the block.
+split_readme_badges <- function(lines) {
   start <- which(lines == "<!-- badges: start -->")
   end <- which(lines == "<!-- badges: end -->")
   if (length(start) != 1 || length(end) != 1 || end <= start) {
-    return(character())
+    return(list(badges = character(), lines = lines))
   }
   badges <- lines[seq_len(end - start - 1) + start]
-  badges[nzchar(trimws(badges))]
-}
-
-remove_marker_block <- function(lines, start_marker, end_marker) {
-  start <- which(lines == start_marker)
-  end <- which(lines == end_marker)
-  if (length(start) != 1 || length(end) != 1 || end <= start) {
-    return(lines)
-  }
-  lines[-seq(start, end)]
+  list(badges = badges[nzchar(trimws(badges))], lines = lines[-seq(start, end)])
 }
 
 # ---- light/dark images --------------------------------------------------------
@@ -641,11 +784,11 @@ theme_pictures_to_images <- function(lines) {
   if (!any(grepl("<picture", lines, fixed = TRUE))) {
     return(lines)
   }
-  text <- paste(lines, collapse = "\n")
-  m <- gregexpr("(?s)<picture\\b.*?</picture>", text, perl = TRUE)
-  regmatches(text, m) <- lapply(regmatches(text, m), function(pictures) {
-    vapply(pictures, theme_picture_to_images, character(1), USE.NAMES = FALSE)
-  })
+  text <- gsub_fn(
+    paste(lines, collapse = "\n"),
+    "(?s)<picture\\b.*?</picture>",
+    function(picture, groups) theme_picture_to_images(picture)
+  )
   split_lines(text)
 }
 

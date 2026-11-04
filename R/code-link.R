@@ -1,9 +1,10 @@
 # ---- after rendering ----------------------------------------------------------
 #
 # Each docs/**/*.html page is read and written once, and in between: its ANSI
-# codes protected from xml2 (see protect_ansi()), its code linked
-# (link_code_html()), references to the package's own topics given tooltips
-# (add_tooltips_html()) and the ANSI codes made `<span>`s (ansi_to_html()).
+# codes protected from xml2 (see protect_ansi()), the other site's content
+# removed (other_site_classes()), its code linked (link_code_html()), references to the package's own topics given tooltips
+# (add_tooltips_html()), the logo put by its title (add_logo_html()) and the
+# ANSI codes made `<span>`s (ansi_to_html()).
 
 postprocess_pages <- function(
   path,
@@ -11,30 +12,154 @@ postprocess_pages <- function(
   topics = rd_topics(path),
   tooltips = TRUE
 ) {
-  docs <- docs_dir(path)
-  index <- if (isTRUE(tooltips)) build_topic_index(path, config, topics)
+  docs <- site_dir(path, config)
+  tooltips <- isTRUE(tooltips)
+  # Without tooltips, their summaries' length doesn't matter.
+  index <- build_topic_index(path, config, topics, quiet = !tooltips)
   pkg <- if (length(index) > 0) pkg_name(path)
-  n_files <- 0L
-  n_links <- 0L
-  for (f in fs::dir_ls(docs, regexp = "\\.html$", recurse = TRUE)) {
-    lines <- readLines(f, warn = FALSE, encoding = "UTF-8")
-    html <- link_code_html(protect_ansi(paste(lines, collapse = "\n")))
-    if (length(index) > 0) {
-      prefix <- reference_href_prefix(f, docs)
-      result <- add_tooltips_html(html, index, prefix, pkg = pkg)
-      html <- result$html
-      n_files <- n_files + (result$n > 0)
-      n_links <- n_links + result$n
-    }
-    html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
-    writeLines(enc2utf8(html), f, sep = "", useBytes = TRUE)
+  drop <- other_site_classes(dev_mode(path, config))
+  pages <- fs::dir_ls(docs, regexp = "\\.html$", recurse = TRUE)
+  # A release build leaves the development site in dev/ as it was.
+  if (docs == docs_dir(path)) {
+    pages <- pages[!fs::path_has_parent(pages, file.path(docs, "dev"))]
   }
-  strip_search_ansi(path)
+  logo <- site_logo(path, config)
+  copy_logo(path, docs, logo)
+  map_workers(
+    as.character(pages),
+    postprocess_page,
+    docs = docs,
+    index = index,
+    pkg = pkg,
+    drop = drop,
+    logo = logo,
+    tooltips = tooltips
+  )
+  strip_search_ansi(docs)
+  invisible()
+}
+
+postprocess_page <- function(
+  f,
+  docs,
+  index,
+  pkg,
+  drop,
+  logo = NULL,
+  tooltips = TRUE
+) {
+  html <- paste(read_utf8(f), collapse = "\n")
+  # 404.html is served at any URL, so a relative link would break.
+  if (fs::path_rel(f, docs) != "404.html") {
+    html <- add_logo_html(html, logo, fs::path_rel(docs, start = dirname(f)))
+  }
+  prefix <- reference_href_prefix(f, docs)
+  html <- link_code_html(
+    protect_ansi(html),
+    drop = drop,
+    pkg = pkg,
+    topics = vapply(index, `[[`, character(1), "topic"),
+    topic_path = prefix
+  )
   if (length(index) > 0) {
-    cli::cli_inform(
-      "Added tooltips to {n_links} reference link{?s} across {n_files} file{?s}."
+    html <- add_tooltips_html(
+      html,
+      index,
+      prefix,
+      pkg = pkg,
+      tips = tooltips
+    )$html
+  }
+  html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
+  write_utf8(html, f, sep = "")
+}
+
+# ---- logo ---------------------------------------------------------------------
+#
+# The site's logo (site_logo()) floats right of each page's title, its first
+# `<h1>`: the title block's, or on pages without one, such as the changelog,
+# their first heading's. Pages that show it already, typically the home page,
+# don't get it twice.
+
+# Copies the `logo` files into the site, which Quarto copies only when a page
+# links them.
+copy_logo <- function(path, docs, logo) {
+  for (file in logo) {
+    fs::dir_create(fs::path_dir(file.path(docs, file)))
+    fs::file_copy(
+      file.path(path, file),
+      file.path(docs, file),
+      overwrite = TRUE
     )
   }
+  invisible()
+}
+
+# The page `html` with the `logo` before its first `<h1>`; `root` is the
+# relative path from the page to the site's root.
+add_logo_html <- function(html, logo, root = ".") {
+  # Nor on a page showing it already, such as a README with it in its title.
+  shown <- "<img\\b[^>]*\\bsrc=[\"'][^\"']*man/figures/logo"
+  if (length(logo) == 0 || grepl(shown, html, perl = TRUE)) {
+    return(html)
+  }
+  class <- "quartodown-logo"
+  if (!is.null(names(logo))) {
+    class <- paste(class, paste0(names(logo), "-content"))
+  }
+  img <- sprintf(
+    '<img src="%s" class="%s" alt="">',
+    html_escape(paste0(root, "/", logo)),
+    class
+  )
+  html <- sub(
+    "(?s)(id=\"quarto-document-content\".*?)(<h1\\b)",
+    paste0("\\1", paste(img, collapse = ""), "\\2"),
+    html,
+    perl = TRUE
+  )
+  wrap_title_block(html)
+}
+
+# On a page with content in the margin, the content's elements are items of a
+# grid, each holding its own floats, so the title block would grow to the
+# logo's height. The title block and what follows it up to the first section
+# become one item instead, unless they're placed in columns of their own.
+wrap_title_block <- function(html) {
+  if (!grepl("<main\\b[^>]*\\bpage-columns\\b", html, perl = TRUE)) {
+    return(html)
+  }
+  gsub_fn(
+    html,
+    "(?s)<header id=\"title-block-header\".*?(?=<section\\b|</main>)",
+    function(block, groups) {
+      if (
+        grepl("class=\"[^\"]*\\b(page-columns|column-)", block, perl = TRUE)
+      ) {
+        return(block)
+      }
+      paste0("<div class=\"quartodown-title-block\">", block, "</div>")
+    }
+  )
+}
+
+# Content for only one of the released and development versions' sites is
+# marked `.quartodown-devel` or `.quartodown-release`: the class whose
+# elements this site's pages drop. An unreleased package has no release to
+# install, so its site keeps the development content.
+other_site_classes <- function(mode) {
+  if (mode == "release") "quartodown-devel" else "quartodown-release"
+}
+
+drop_classes <- function(doc, classes) {
+  if (length(classes) == 0) {
+    return(invisible())
+  }
+  xpath <- sprintf(
+    ".//*[contains(concat(' ', normalize-space(@class), ' '), ' %s ')]",
+    classes
+  )
+  xml2::xml_remove(xml2::xml_find_all(doc, paste(xpath, collapse = "|")))
   invisible()
 }
 
@@ -44,14 +169,30 @@ postprocess_pages <- function(
 # markers of annotated code blocks. Those are linked token by token instead
 # (link_annotated()).
 
-# The page `html` (a string) with its code linked, as xml2 writes it.
-link_code_html <- function(html) {
+# The page `html` (a string) with its code linked, as xml2 writes it, and
+# the elements with the `drop` classes removed. `topics` maps the aliases of
+# the package `pkg` to their pages, under `topic_path`.
+link_code_html <- function(
+  html,
+  drop = character(),
+  pkg = NULL,
+  topics = character(),
+  topic_path = "reference/"
+) {
   # downlit collects the packages a page attaches with `library()` in this
-  # option; reset it so they don't carry over to the next page.
-  old <- options(downlit.attached = NULL)
+  # option; reset it so they don't carry over to the next page. The package's
+  # own topics are looked up in `topics`: for a package
+  # loaded with `load_all()`, downlit would parse all of man/ on each lookup.
+  old <- options(
+    downlit.attached = NULL,
+    downlit.package = pkg,
+    downlit.topic_index = topics,
+    downlit.topic_path = topic_path
+  )
   on.exit(options(old))
 
   doc <- xml2::read_html(html, encoding = "UTF-8")
+  drop_classes(doc, drop)
   # downlit rewrites every `pre.sourceCode.r`; hide annotated blocks from it.
   annotated <- xml2::xml_find_all(
     doc,

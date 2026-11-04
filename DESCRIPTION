@@ -34,6 +34,7 @@ Imports:
     downlit,
     fansi,
     fs,
+    processx,
     quarto,
     tools,
     utils,
@@ -41,6 +42,7 @@ Imports:
     yaml
 Suggests:
     httr2,
+    mirai (>= 2.4.1),
     pkgload,
     servr,
     testthat (>= 3.0.0),
@@ -49,4 +51,4 @@ VignetteBuilder:
     quarto
 Config/Needs/website: tibble
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1

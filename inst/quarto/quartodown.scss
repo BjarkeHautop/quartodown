@@ -26,6 +26,8 @@ $quartodown-navbar-bg: mix(mix($body-bg, $primary, 95%), $body-color, 95%);
   --bs-navbar-brand-hover-color: #{$primary} !important;
   --bs-navbar-toggler-border-color: #{rgba($body-color, 0.15)} !important;
   --bs-navbar-toggler-icon-bg: #{$quartodown-navbar-toggler-icon-bg} !important;
+  // Else the dark `white`: invisible code in navbar items and dropdowns.
+  --bs-code-color: #{$code-color} !important;
 }
 
 // Bootstrap also sets this on the icon itself, which beats the inherited value.
@@ -41,6 +43,17 @@ $quartodown-navbar-bg: mix(mix($body-bg, $primary, 95%), $body-color, 95%);
   opacity: 1 !important;
   padding: 0.375rem 0.5rem !important;
   border-radius: var(--bs-border-radius);
+}
+
+// Put the tools after the search box, which Quarto puts last.
+.navbar .quarto-navbar-tools {
+  order: 1000;
+}
+
+@media (max-width: 991.98px) {
+  .navbar .quarto-navbar-tools {
+    order: 5;
+  }
 }
 
 .navbar .quarto-navigation-tool:hover {
@@ -85,12 +98,70 @@ body:not(.docked) .navbar-container.container-fluid {
   opacity: 0.7;
 }
 
+// A development or unreleased version, in the theme's `$danger`, mixed toward
+// the text color until it's readable on the navbar (4.5:1, WCAG's for small
+// text): many themes' red is too light, or too dark, for it.
+$quartodown-version-dev-color: $danger;
+$quartodown-mix: 100%;
+@while $quartodown-mix > 0% and
+  contrast-ratio($quartodown-navbar-bg, $quartodown-version-dev-color) < 4.5 {
+  $quartodown-mix: $quartodown-mix - 10%;
+  $quartodown-version-dev-color: mix($danger, $body-color, $quartodown-mix);
+}
+
+.navbar-version-dev {
+  color: $quartodown-version-dev-color;
+  opacity: 1;
+}
+
+// The link to the other of the release and development sites.
+.navbar-brand-container {
+  display: flex;
+  align-items: center;
+}
+
+// The navbar's `--bs-*` variables are the dark theme's (see above), so it
+// uses this compile's colors. Not `$primary`, which is too dark to read on
+// some dark themes' navbar (darkly's).
+.navbar-version-switch {
+  flex: none;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid rgba($body-color, 0.4);
+  border-radius: 1rem;
+  background-color: rgba($body-color, 0.08);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: $body-color;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $link-color;
+    color: $link-color;
+  }
+}
+
 .navbar-nav .nav-link:hover {
   background: RGBA(var(--bs-primary-rgb), 0.1);
 }
 
 .navbar-nav .nav-link.active {
   border-bottom: 3px solid var(--bs-primary);
+}
+
+// Quarto takes the vertical padding off dropdown menus and their section
+// headers, leaving a menu's first header against its top border.
+.navbar ul.dropdown-menu {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.navbar .dropdown-header {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 // Below `navbar-expand-lg`'s breakpoint the menu collapses behind the toggler.
@@ -110,8 +181,8 @@ body:not(.docked) .navbar-container.container-fluid {
     column-gap: 0.25rem;
   }
 
-  // The left items wrap within the space the right ones (the repository
-  // icon) leave, so those stay on the first row.
+  // The left items wrap within the space the right ones leave, so those stay
+  // on the first row.
   .navbar-collapse .navbar-nav.me-auto {
     flex: 1 1 0;
     min-width: 0;
@@ -143,9 +214,9 @@ body:not(.docked) .navbar-container.container-fluid {
     margin-right: 0;
   }
 
-  // With only icons to show (the repository icon, when `navbar: style:
-  // sidebar` moves the other items into the sidebar), keep them in the bar
-  // instead of behind a toggler.
+  // With only icons to show (`right` icons, when `navbar: style: sidebar`
+  // moves the other items into the sidebar), keep them in the bar instead of
+  // behind a toggler.
   .navbar-container:not(:has(.navbar-collapse .nav-item:not(.compact))) {
     .navbar-toggler {
       display: none;
@@ -168,8 +239,22 @@ body:not(.docked) .navbar-container.container-fluid {
 }
 
 #quarto-search .aa-Input,
-#quarto-search .aa-Input::placeholder {
+#quarto-search .aa-Input::placeholder,
+#quarto-search .aa-Form .aa-Label svg,
+#quarto-search .aa-Form .aa-LoadingIndicator svg,
+#quarto-search .aa-Form .aa-ClearButton {
   color: $body-color;
+}
+
+// On narrow screens the box is a button whose icon Quarto colors with
+// `$navbar-dark-color`, near white on the light navbar. Color it like the
+// navbar tools.
+.navbar .aa-DetachedSearchButton .aa-DetachedSearchButtonIcon {
+  color: $body-color;
+}
+
+.navbar .aa-DetachedSearchButton:hover .aa-DetachedSearchButtonIcon {
+  color: $primary;
 }
 
 // Tighten the top of the home page.
@@ -182,6 +267,19 @@ body:not(.docked) .navbar-container.container-fluid {
 .quartodown-home h1 img {
   margin-left: 2rem;
   margin-bottom: 1rem;
+}
+
+// The logo by every other page's title (see add_logo_html()).
+.quartodown-logo {
+  float: right;
+  width: 120px;
+  margin: 0 0 1rem 1.5rem;
+}
+
+@media (max-width: 575.98px) {
+  .quartodown-logo {
+    width: 80px;
+  }
 }
 
 // No table of contents on the home page, which has its own sidebar.
@@ -209,8 +307,10 @@ body:not(.docked) .navbar-container.container-fluid {
 
 /* typography ================================================================ */
 
+// flow-root keeps the border beside a floated logo rather than under it.
 h2,
 .source-note {
+  display: flow-root;
   padding-bottom: 0.35rem;
   border-bottom: 1px solid var(--bs-border-color);
 }
@@ -329,6 +429,30 @@ dl.ref-index dd {
   margin-bottom: 0.5rem;
 }
 
+// A topic's lifecycle stage, after its names, in the colors of the
+// lifecycle package's badges (pkgdown's too).
+.lifecycle {
+  color: var(--bs-secondary-color);
+  background-color: var(--bs-secondary-bg);
+  border-radius: 5px;
+}
+
+.lifecycle-stable {
+  background-color: rgb(16, 128, 1);
+  color: #fff;
+}
+
+.lifecycle-superseded {
+  background-color: rgb(7, 64, 128);
+  color: #fff;
+}
+
+.lifecycle-experimental,
+.lifecycle-deprecated {
+  background-color: rgb(253, 128, 8);
+  color: #000;
+}
+
 /* margin sidebar (home page Links/License/Citation/Developers) ============== */
 
 // Normal body text color and size, not Quarto's muted, smaller margin text.
@@ -369,6 +493,43 @@ img.ror {
   height: 16px;
   margin-right: 4px;
   vertical-align: text-bottom;
+}
+
+/* diagrams =================================================================== */
+
+// Quarto colors mermaid's labels `$primary` and its edges `$secondary`, which
+// some dark themes' background swallows (darkly's). Mix them toward the text
+// color until readable: 4.5:1 for the labels, 3:1 (WCAG's for graphics) for
+// the edges. The nodes' tint is faint enough to compare with `$body-bg`.
+$quartodown-mermaid-label-color: $primary;
+$quartodown-mix: 100%;
+@while $quartodown-mix > 0% and
+  contrast-ratio($body-bg, $quartodown-mermaid-label-color) < 4.5 {
+  $quartodown-mix: $quartodown-mix - 10%;
+  $quartodown-mermaid-label-color: mix($primary, $body-color, $quartodown-mix);
+}
+
+$quartodown-mermaid-edge-color: $secondary;
+$quartodown-mix: 100%;
+@while $quartodown-mix > 0% and
+  contrast-ratio($body-bg, $quartodown-mermaid-edge-color) < 3 {
+  $quartodown-mix: $quartodown-mix - 10%;
+  $quartodown-mermaid-edge-color: mix($secondary, $body-color, $quartodown-mix);
+}
+
+:root {
+  --mermaid-label-fg-color: #{$quartodown-mermaid-label-color};
+  --mermaid-edge-color: #{$quartodown-mermaid-edge-color};
+}
+
+// Mermaid gives edge labels' inner `<p>` and `.labelBkg` its own theme's gray,
+// which Quarto's mermaid variables don't reach. `!important` beats mermaid's
+// rules, scoped to the diagram's id.
+.edgeLabel,
+.edgeLabel p,
+.labelBkg {
+  background-color: var(--mermaid-label-bg-color) !important;
+  color: var(--mermaid-fg-color) !important;
 }
 
 /* tooltips =================================================================== */

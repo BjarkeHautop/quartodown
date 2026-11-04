@@ -13,7 +13,9 @@ preview_site(path = ".")
 The server, invisibly; see \code{\link[servr:httw]{servr::httw()}}.
 }
 \description{
-Serves \verb{docs/}, as built by \code{\link[=build_site]{build_site()}}, in a web browser, and reloads
+Serves \verb{docs/} (or \verb{docs/dev/}, for a development site; see the
+Configuration section of \code{\link[=build_site]{build_site()}}), as built by \code{\link[=build_site]{build_site()}}, in a
+web browser, and reloads
 the page when the site is rebuilt. The server keeps running for the rest of
 the R session and is reused by later calls, including \code{\link[=build_site]{build_site()}}'s
 (which, with a server already running, leaves the open page to reload
