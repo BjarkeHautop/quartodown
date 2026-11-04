@@ -282,16 +282,16 @@ href_package <- function(package) {
   }
 }
 
-# The `URL`s in the DESCRIPTION of `package`, installed or on CRAN.
+# The `URL`s in the DESCRIPTION of `package`, installed or on CRAN, with
+# repositories last, so its site comes first whatever order they're listed in.
 home_urls <- function(package) {
-  if (is_installed(package)) {
-    return(package_urls(package))
+  urls <- if (is_installed(package)) {
+    package_urls(package)
+  } else {
+    parse_urls(unname(cran_description(package)["URL"] %||% NA_character_))
   }
-  description <- cran_description(package)
-  if (is.null(description)) {
-    return(character())
-  }
-  parse_urls(unname(description["URL"]))
+  repo <- !is.na(repo_host(urls))
+  c(urls[!repo], urls[repo])
 }
 
 # The base URL of the package `package`'s reference pages: its site's, or else

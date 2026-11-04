@@ -187,6 +187,26 @@ test_that("a package links to its first URL", {
   expect_equal(href_package("stats"), NA_character_)
 })
 
+test_that("a package links to its site before its repository", {
+  fetched <- local_sites(
+    cran = list(
+      repofirst = c(URL = "https://github.com/a/b, https://a.github.io/b/"),
+      gitlabfirst = c(URL = "https://gitlab.com/a/b, https://b.org"),
+      twosites = c(URL = "https://b.org, https://c.org"),
+      repoonly = c(URL = "https://github.com/a/b")
+    )
+  )
+  expect_equal(href_package("repofirst"), "https://a.github.io/b/")
+  expect_equal(href_package("gitlabfirst"), "https://b.org")
+  expect_equal(href_package("twosites"), "https://b.org")
+  expect_equal(href_package("repoonly"), "https://github.com/a/b")
+
+  # The site's pkgdown.yml is looked for before the repository's.
+  fetched$urls <- character()
+  package_site("repofirst")
+  expect_equal(fetched$urls[[1]], "https://a.github.io/b")
+})
+
 test_that("a site's pkgdown.yml is cached across sessions, but a failed download isn't", {
   local_sites()
   calls <- 0
