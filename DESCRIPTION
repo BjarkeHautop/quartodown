@@ -1,6 +1,6 @@
 Package: quartodown
 Title: Package Websites Built Entirely with 'Quarto'
-Version: 0.1.0
+Version: 0.1.0.9000
 Authors@R: c(
     person("Bjarke", "Hautop Kristensen", email = "bjarke.hautop@gmail.com",
            role = c("aut", "cre", "cph")),
