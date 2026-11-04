@@ -207,7 +207,7 @@
     "href": "reference/use_quartodown_action.html#examples",
     "title": "Set up a GitHub Actions workflow that publishes the site",
     "section": "Examples",
-    "text": "Examples\n\npkg &lt;- tempfile(\"examplepkg\")\ndir.create(pkg)\nwrite(\n  \"Package: examplepkg\\nVersion: 0.0.0.9000\",\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_quartodown_action(pkg)\n#&gt; ✔ Wrote /tmp/RtmpjZ46Hh/examplepkg19c24135c450/.github/workflows/quartodown.yaml.\n#&gt; ✔ Added `^\\.github$` to /tmp/RtmpjZ46Hh/examplepkg19c24135c450/.Rbuildignore.\n#&gt; \n#&gt; Next steps:\n#&gt; 1. Commit and push the workflow.\n#&gt; 2. Once its first run has created the `gh-pages` branch, go to the Pages\n#&gt; section of the repository's settings on GitHub and choose to deploy from that\n#&gt; branch.\nlist.files(pkg, recursive = TRUE, all.files = TRUE)\n#&gt; [1] \".github/workflows/quartodown.yaml\" \".Rbuildignore\"                    \n#&gt; [3] \"DESCRIPTION\"\nunlink(pkg, recursive = TRUE)"
+    "text": "Examples\n\npkg &lt;- tempfile(\"examplepkg\")\ndir.create(pkg)\nwrite(\n  \"Package: examplepkg\\nVersion: 0.0.0.9000\",\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_quartodown_action(pkg)\n#&gt; ✔ Wrote /tmp/RtmpAlGYuI/examplepkg18593f3ebffb/.github/workflows/quartodown.yaml.\n#&gt; ✔ Added `^\\.github$` to /tmp/RtmpAlGYuI/examplepkg18593f3ebffb/.Rbuildignore.\n#&gt; \n#&gt; Next steps:\n#&gt; 1. Commit and push the workflow.\n#&gt; 2. Once its first run has created the `gh-pages` branch, go to the Pages\n#&gt; section of the repository's settings on GitHub and choose to deploy from that\n#&gt; branch.\nlist.files(pkg, recursive = TRUE, all.files = TRUE)\n#&gt; [1] \".github/workflows/quartodown.yaml\" \".Rbuildignore\"                    \n#&gt; [3] \"DESCRIPTION\"\nunlink(pkg, recursive = TRUE)"
   },
   {
     "objectID": "reference/build_site.html",
@@ -319,7 +319,7 @@
     "href": "reference/use_quartodown.html#examples",
     "title": "Set up a package to use quartodown",
     "section": "Examples",
-    "text": "Examples\n\npkg &lt;- tempfile(\"examplepkg\")\ndir.create(pkg)\nwrite(\n  \"Package: examplepkg\\nVersion: 0.0.0.9000\",\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_quartodown(pkg)\n#&gt; ✔ Wrote /tmp/Rtmp1Fi6Io/examplepkg19a5184a2c2/_quartodown/_quartodown.yml (edit this to group your functions).\n#&gt; ✔ Added `_quarto/*` and `!_quarto/_freeze/` to /tmp/Rtmp1Fi6Io/examplepkg19a5184a2c2/.gitignore.\n#&gt; ✔ Added `^docs$`, `^_quarto$`, and `^_quartodown$` to /tmp/Rtmp1Fi6Io/examplepkg19a5184a2c2/.Rbuildignore.\n#&gt; \n#&gt; Next steps:\n#&gt; 1. Edit _quartodown/_quartodown.yml to group your functions the way you want.\n#&gt; 2. Build and preview the site with `quartodown::build_site()`.\nreadLines(file.path(pkg, \"_quartodown\", \"_quartodown.yml\"))\n#&gt;  [1] \"# Configuration for quartodown::build_site(). See\"                         \n#&gt;  [2] \"# vignette(\\\"customizing\\\", package = \\\"quartodown\\\") for all fields,\"     \n#&gt;  [3] \"# including `navbar:` (navbar items and menus) and `quarto:` (other Quarto\"\n#&gt;  [4] \"# settings).\"                                                              \n#&gt;  [5] \"\"                                                                          \n#&gt;  [6] \"# Groups the function reference index into sections, each with a `title:`\" \n#&gt;  [7] \"# and the `contents:` it lists (topic names or selectors such as\"          \n#&gt;  [8] \"# starts_with(\\\"read_\\\")).\"                                                \n#&gt;  [9] \"reference:\"                                                                \n#&gt; [10] \"  - title: All functions\"                                                  \n#&gt; [11] \"    contents:\"                                                             \n#&gt; [12] \"      []\"\nunlink(pkg, recursive = TRUE)"
+    "text": "Examples\n\npkg &lt;- tempfile(\"examplepkg\")\ndir.create(pkg)\nwrite(\n  \"Package: examplepkg\\nVersion: 0.0.0.9000\",\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_quartodown(pkg)\n#&gt; ✔ Wrote /tmp/RtmpzLK1ah/examplepkg183cc4d4509/_quartodown/_quartodown.yml (edit this to group your functions).\n#&gt; ✔ Added `_quarto/*` and `!_quarto/_freeze/` to /tmp/RtmpzLK1ah/examplepkg183cc4d4509/.gitignore.\n#&gt; ✔ Added `^docs$`, `^_quarto$`, and `^_quartodown$` to /tmp/RtmpzLK1ah/examplepkg183cc4d4509/.Rbuildignore.\n#&gt; \n#&gt; Next steps:\n#&gt; 1. Edit _quartodown/_quartodown.yml to group your functions the way you want.\n#&gt; 2. Build and preview the site with `quartodown::build_site()`.\nreadLines(file.path(pkg, \"_quartodown\", \"_quartodown.yml\"))\n#&gt;  [1] \"# Configuration for quartodown::build_site(). See\"                         \n#&gt;  [2] \"# vignette(\\\"customizing\\\", package = \\\"quartodown\\\") for all fields,\"     \n#&gt;  [3] \"# including `navbar:` (navbar items and menus) and `quarto:` (other Quarto\"\n#&gt;  [4] \"# settings).\"                                                              \n#&gt;  [5] \"\"                                                                          \n#&gt;  [6] \"# Groups the function reference index into sections, each with a `title:`\" \n#&gt;  [7] \"# and the `contents:` it lists (topic names or selectors such as\"          \n#&gt;  [8] \"# starts_with(\\\"read_\\\")).\"                                                \n#&gt;  [9] \"reference:\"                                                                \n#&gt; [10] \"  - title: All functions\"                                                  \n#&gt; [11] \"    contents:\"                                                             \n#&gt; [12] \"      []\"\nunlink(pkg, recursive = TRUE)"
   },
   {
     "objectID": "reference/preview_site.html",
@@ -366,9 +366,9 @@
   {
     "objectID": "NEWS.html",
     "href": "NEWS.html",
-    "title": "quartodown 0.1.0",
+    "title": "quartodown (development version)",
     "section": "",
-    "text": "quartodown 0.1.0\n\nInitial release."
+    "text": "quartodown (development version)\n\n\nquartodown 0.1.0\n\nInitial release."
   },
   {
     "objectID": "authors.html",
@@ -389,7 +389,7 @@
     "href": "authors.html#citation",
     "title": "Authors and Citation",
     "section": "Citation",
-    "text": "Citation\n\nSource: DESCRIPTION\n\n\nHautop Kristensen B (2026). quartodown: Package Websites Built Entirely with ‘Quarto’. R package version 0.1.0, https://bjarkehautop.github.io/quartodown/.\n\n@Manual{,\n  title = {quartodown: Package Websites Built Entirely with 'Quarto'},\n  author = {Bjarke {Hautop Kristensen}},\n  year = {2026},\n  note = {R package version 0.1.0},\n  url = {https://bjarkehautop.github.io/quartodown/},\n}"
+    "text": "Citation\n\nSource: DESCRIPTION\n\n\nHautop Kristensen B (2026). quartodown: Package Websites Built Entirely with ‘Quarto’. R package version 0.1.0.9000, https://bjarkehautop.github.io/quartodown/.\n\n@Manual{,\n  title = {quartodown: Package Websites Built Entirely with 'Quarto'},\n  author = {Bjarke {Hautop Kristensen}},\n  year = {2026},\n  note = {R package version 0.1.0.9000},\n  url = {https://bjarkehautop.github.io/quartodown/},\n}"
   },
   {
     "objectID": "vignettes/articles/gallery.html",
