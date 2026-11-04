@@ -103,3 +103,25 @@ test_that("build_site() renders a site with several workers", {
   ))
   expect_site(dir)
 })
+
+test_that("a failed build leaves the previous site in place", {
+  skip_if_no_quarto()
+  dir <- new_installable_pkg()
+  suppressMessages(build_site(dir, preview = FALSE))
+  before <- readLines(file.path(dir, "docs", "index.html"))
+
+  writeLines(
+    c("# examplepkg", "", "Changed."),
+    file.path(dir, "README.md")
+  )
+  writeLines(
+    c("---", "title: Broken", "---", "```{r}", "stop(\"nope\")", "```"),
+    file.path(dir, "vignettes", "broken.qmd")
+  )
+  expect_error(
+    suppressMessages(build_site(dir, preview = FALSE)),
+    "failed to render"
+  )
+
+  expect_identical(readLines(file.path(dir, "docs", "index.html")), before)
+})

@@ -1,5 +1,11 @@
 # quartodown (development version)
 
+- `build_site()` builds the site in `_quarto/_site/`, and replaces the one in
+  `docs/` only when it's complete. So the previous site stays in place during a
+  build, and after a failed one. `preview_site()` now serves it with nanonext
+  rather than servr, so it keeps working while `build_site()` runs. An open page
+  reloads if the new build changed it.
+
 - `use_quartodown()` translates an existing `_pkgdown.yml`: the navbar and
   `articles:` become `navbar:` items and menus, template settings become
   `theme:`, `quarto:` settings and files in `_quartodown/`, and redirects keep

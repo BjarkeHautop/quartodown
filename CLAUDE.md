@@ -136,31 +136,26 @@ quartodown::build_site() # also previews it when interactive
      `freeze`, results are cached in
      `_quarto/_freeze/quartodown/reference/<page>/`, keyed by the page's source
      and the knitr options.
-2. **Rendering** --- clears the site's folder (`site_dir()`: `docs/`, or
-   `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s pkgdown-style
-   `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`, which `auto` picks
-   for a `.9000` version of a package `on_cran()`; that also puts `site-url`
-   under `dev/` and a `noindex` meta in `quartodown-header.html`), keeping
-   `CNAME`, hidden files and, in `docs/`, `dev/` (which `postprocess_pages()`
-   then skips too), makes the package available to the pages' R processes
+2. **Rendering** --- makes the package available to the pages' R processes
    (installed into a temp library prepended via `R_LIBS` and, as profiles such
    as callr's reset `.libPaths()`, a generated `R_PROFILE_USER` profile, or with
    `devel = TRUE` one that runs `pkgload::load_all()`; both first source the
    user's own profile, `profile_envvars()`; plus `R_CLI_NUM_COLORS=256` for
-   colored output), renders `_quarto/` into it (`output-dir: ../docs/`; with
-   `processx` rather than `quarto::quarto_render()`, whose `quiet` passes
-   `--quiet`, which hides errors too, so `render_error_log()` can show them;
-   with `workers > 1`, split by `shard_pages()` into that many Quarto processes,
-   each on a copy in `_quarto/_shards/<k>/` (inside the package, for code that
-   finds it from the working directory, e.g. testthat snapshots), whose sites
+   colored output), renders `_quarto/` into `build_dir()` (`output-dir: _site`,
+   i.e. `_quarto/_site/`; with `processx` rather than `quarto::quarto_render()`,
+   whose `quiet` passes `--quiet`, which hides errors too, so
+   `render_error_log()` can show them; with `workers > 1`, split by
+   `shard_pages()` into that many Quarto processes, each on a copy in
+   `_quarto/_shards/<k>/` (inside the package, for code that finds it from the
+   working directory, e.g. testthat snapshots), whose sites
    `merge_shard_sites()` ([R/workers.R](R/workers.R)) joins, relinking `.qmd`
-   hrefs to other shards' pages) and writes `docs/pkgdown.yml` (`urls` +
-   `articles`, all downlit reads). The name is fixed: downlit fetches
+   hrefs to other shards' pages) and writes `pkgdown.yml` (`urls` + `articles`,
+   all downlit reads). The name is fixed: downlit fetches
    `<site URL>/pkgdown.yml` to link other packages' code to this site, so it
    must not be renamed.
 3. **After rendering** --- `postprocess_pages()`
-   ([R/code-link.R](R/code-link.R)) reads and writes each `docs/**/*.html` once.
-   In between, `add_logo_html()` puts `site_logo()`
+   ([R/code-link.R](R/code-link.R)) reads and writes each page in `build_dir()`
+   once. In between, `add_logo_html()` puts `site_logo()`
    (`man/figures/logo.svg`/`.png`, with a `logo-light` variant; off with
    `logo: false`) before the first `<h1>` of every page but 404.html and those
    already showing `man/figures/logo*`, such as the README home page, (on
@@ -184,10 +179,20 @@ quartodown::build_site() # also previews it when interactive
    `quartodown-after-body.html`. Then `write_redirects()`
    ([R/redirects.R](R/redirects.R)) writes redirect pages for
    `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:` needs
-   front matter, which generated pages lack). Finally, with
-   `preview = interactive()`, `serve_site()` ([R/project.R](R/project.R)) serves
-   `docs/` with `servr::httw()`. The server is kept in the package-level `the`
-   environment and reused by later builds, whose open page live-reloads.
+   front matter, which generated pages lack). Then `publish_site()`
+   ([R/project.R](R/project.R)) moves the finished site to `site_dir()`
+   (`docs/`, or `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s
+   pkgdown-style `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`,
+   which `auto` picks for a `.9000` version of a package `on_cran()`; that also
+   puts `site-url` under `dev/` and a `noindex` meta in
+   `quartodown-header.html`), by renaming its top-level entries, keeping
+   `CNAME`, hidden files and, in `docs/`, `dev/`. So `docs/` keeps the previous
+   site during a build and after a failed one. Finally, with
+   `preview = interactive()`, `serve_site()` serves `docs/` with nanonext, whose
+   native threads keep serving while R builds. The server is kept in the
+   package-level `the` environment and reused by later builds. It can't
+   live-reload, so on localhost the after-body script re-fetches the page every
+   second and reloads when it changed.
 
 ### Navbar / articles
 

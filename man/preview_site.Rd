@@ -10,16 +10,16 @@ preview_site(path = ".")
 \item{path}{Path to the package root.}
 }
 \value{
-The server, invisibly; see \code{\link[servr:httw]{servr::httw()}}.
+The site's local URL, invisibly.
 }
 \description{
 Serves \verb{docs/} (or \verb{docs/dev/}, for a development site; see the
 Configuration section of \code{\link[=build_site]{build_site()}}), as built by \code{\link[=build_site]{build_site()}}, in a
-web browser, and reloads
-the page when the site is rebuilt. The server keeps running for the rest of
-the R session and is reused by later calls, including \code{\link[=build_site]{build_site()}}'s
-(which, with a server already running, leaves the open page to reload
-instead of opening another).
+web browser. The server keeps running for the rest of the R session and is
+reused by later calls, including \code{\link[=build_site]{build_site()}}'s (which, with a server
+already running, leaves the open page to reload instead of opening another).
+It keeps serving the previous site while \code{\link[=build_site]{build_site()}} runs. An open page
+reloads if the new build changed it.
 }
 \examples{
 \dontrun{

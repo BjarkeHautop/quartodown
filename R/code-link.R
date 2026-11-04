@@ -1,6 +1,6 @@
 # ---- after rendering ----------------------------------------------------------
 #
-# Each docs/**/*.html page is read and written once, and in between: its ANSI
+# Each page of the built site is read and written once, and in between: its ANSI
 # codes protected from xml2 (see protect_ansi()), the other site's content
 # removed (other_site_classes()), its code linked (link_code_html()), references to the package's own topics given tooltips
 # (add_tooltips_html()), the logo put by its title (add_logo_html()) and the
@@ -10,9 +10,9 @@ postprocess_pages <- function(
   path,
   config = list(),
   topics = rd_topics(path),
-  tooltips = TRUE
+  tooltips = TRUE,
+  docs = site_dir(path, config)
 ) {
-  docs <- site_dir(path, config)
   tooltips <- isTRUE(tooltips)
   # Without tooltips, their summaries' length doesn't matter.
   index <- build_topic_index(path, config, topics, quiet = !tooltips)
@@ -22,10 +22,6 @@ postprocess_pages <- function(
   pkg <- if (length(index) > 0) pkg_name(path)
   drop <- other_site_classes(dev_mode(path, config))
   pages <- fs::dir_ls(docs, regexp = "\\.html$", recurse = TRUE)
-  # A release build leaves the development site in dev/ as it was.
-  if (docs == docs_dir(path)) {
-    pages <- pages[!fs::path_has_parent(pages, file.path(docs, "dev"))]
-  }
   logo <- site_logo(path, config)
   copy_logo(path, docs, logo)
   map_workers(

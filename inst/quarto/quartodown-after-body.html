@@ -29,6 +29,33 @@
       navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
     }
   }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
+  }
   // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
     var title = document.querySelector(".navbar-title");
@@ -217,5 +244,6 @@
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
 })();
 </script>

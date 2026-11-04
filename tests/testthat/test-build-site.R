@@ -371,7 +371,7 @@ test_that("write_quarto_config() writes a complete _quarto/_quarto.yml", {
   out_path <- file.path(dir, "_quarto", "_quarto.yml")
   settings <- yaml::read_yaml(out_path)
   expect_identical(settings$website$title, "examplepkg 1.0.0")
-  expect_identical(settings$project$`output-dir`, "../docs/")
+  expect_identical(settings$project$`output-dir`, "_site")
   expect_null(settings$format$html$`code-link`)
   expect_identical(
     settings$knitr$opts_chunk,

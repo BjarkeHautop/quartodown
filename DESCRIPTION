@@ -43,8 +43,8 @@ Imports:
 Suggests:
     httr2,
     mirai (>= 2.4.1),
+    nanonext (>= 1.8.0),
     pkgload,
-    servr,
     testthat (>= 3.0.0),
     withr
 VignetteBuilder:

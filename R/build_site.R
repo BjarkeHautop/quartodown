@@ -2,6 +2,10 @@
 #'
 #' Builds the package website into `docs/` with [Quarto](https://quarto.org/).
 #'
+#' The site is built in a scratch folder, `_quarto/_site/`, and replaces the one
+#' in `docs/` only once it is complete. So the previous site stays there, and
+#' viewable with [preview_site()], while the build runs and if it fails.
+#'
 #' `build_site()` assembles a Quarto website project in `_quarto/` from the
 #' package sources and `_quartodown/_quartodown.yml`, then renders it. It uses
 #' `README.md` (or, without one, `DESCRIPTION`), `man/`, the vignettes (including those in subfolders),
@@ -174,18 +178,20 @@ build_site <- function(
     "Linked code"
   }
   cli::cli_progress_step("Linking code", msg_done = done)
-  write_pkgdown_yml(path, settings$website$`site-url`, config)
-  postprocess_pages(path, config, topics, tooltips = tooltips)
-  write_redirects(path, config)
+  built <- build_dir(path)
+  write_pkgdown_yml(path, settings$website$`site-url`, config, docs = built)
+  postprocess_pages(path, config, topics, tooltips = tooltips, docs = built)
+  write_redirects(path, config, docs = built)
   cli::cli_progress_done()
+  publish_site(path, config)
   cli::cli_alert_success("Built the site in {.path {site_dir(path, config)}}")
 
   if (isTRUE(preview) && !identical(Sys.getenv("TESTTHAT"), "true")) {
-    if (requireNamespace("servr", quietly = TRUE)) {
+    if (requireNamespace("nanonext", quietly = TRUE)) {
       serve_site(path, config, reopen = FALSE)
     } else {
       cli::cli_inform(c(
-        "i" = "Install {.pkg servr} to preview the site in your browser."
+        "i" = "Install {.pkg nanonext} to preview the site in your browser."
       ))
     }
   }
@@ -402,7 +408,7 @@ quarto_config <- function(
   settings <- list(
     project = list(
       type = "website",
-      `output-dir` = if (mode == "devel") "../docs/dev/" else "../docs/"
+      `output-dir` = build_dir_name
     ),
     language = list(`search-text-placeholder` = " Search"),
     website = list(

@@ -715,7 +715,6 @@ test_that("a development site goes in docs/dev/, under the site URL's dev/", {
   expect_identical(site_dir(dir, devel), file.path(dir, "docs", "dev"))
 
   settings <- quarto_config(dir, devel)
-  expect_identical(settings$project$`output-dir`, "../docs/dev/")
   expect_identical(
     settings$website$`site-url`,
     "https://o.github.io/examplepkg/dev"
@@ -726,39 +725,122 @@ test_that("a development site goes in docs/dev/, under the site URL's dev/", {
   )
 })
 
-test_that("clear_site() keeps the development site in a release build", {
+# A site in build_dir() with the given files.
+write_built_site <- function(dir, files) {
+  built <- file.path(dir, "_quarto", "_site")
+  for (file in file.path(built, files)) {
+    dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+    writeLines("new", file)
+  }
+}
+
+test_that("publish_site() replaces the site, keeping CNAME, hidden files and dev/", {
   withr::local_envvar(QUARTODOWN_DEV_MODE = NA)
   dir <- new_pkg()
   docs <- file.path(dir, "docs")
   dir.create(file.path(docs, "dev"), recursive = TRUE)
-  file.create(file.path(docs, c("index.html", "CNAME", "dev/index.html")))
-
-  clear_site(dir, list(development = list(mode = "devel")))
-  expect_setequal(
-    list.files(docs, recursive = TRUE),
-    c("index.html", "CNAME")
+  dir.create(file.path(docs, "old"))
+  dir.create(file.path(docs, ".well-known"))
+  old <- c(
+    "index.html",
+    "stale.html",
+    "old/page.html",
+    "CNAME",
+    ".keep",
+    ".well-known/old",
+    "dev/index.html"
   )
+  file.create(file.path(docs, old))
+  writeLines("old", file.path(docs, "dev/index.html"))
+  write_built_site(dir, c("index.html", "reference/a.html", ".well-known/new"))
 
-  file.create(file.path(docs, "dev/index.html"))
-  clear_site(dir)
+  publish_site(dir)
+
   expect_setequal(
-    list.files(docs, recursive = TRUE),
-    c("CNAME", "dev/index.html")
+    list.files(docs, recursive = TRUE, all.files = TRUE),
+    c(
+      "index.html",
+      "reference/a.html",
+      "CNAME",
+      ".keep",
+      ".nojekyll",
+      ".well-known/new",
+      "dev/index.html"
+    )
+  )
+  expect_identical(readLines(file.path(docs, "index.html")), "new")
+  expect_identical(readLines(file.path(docs, "dev/index.html")), "old")
+  expect_false(file.exists(file.path(dir, "_quarto", "_site")))
+  expect_false(file.exists(file.path(dir, "_quarto", "_old_site")))
+})
+
+test_that("publish_site() merges a release build's dev/ into the development site", {
+  withr::local_envvar(QUARTODOWN_DEV_MODE = NA)
+  dir <- new_pkg()
+  docs <- file.path(dir, "docs")
+  dir.create(file.path(docs, "dev"), recursive = TRUE)
+  writeLines("old", file.path(docs, "dev/index.html"))
+  write_built_site(dir, c("index.html", "dev/redirected.html"))
+
+  publish_site(dir)
+
+  expect_setequal(
+    list.files(file.path(docs, "dev")),
+    c("index.html", "redirected.html")
   )
 })
 
-test_that("postprocess_pages() leaves the development site to its own build", {
+test_that("publish_site() replaces only dev/ for a development site", {
   withr::local_envvar(QUARTODOWN_DEV_MODE = NA)
   dir <- new_pkg()
   docs <- file.path(dir, "docs")
   dir.create(file.path(docs, "dev"), recursive = TRUE)
-  page <- "<html><body><p>Hi</p></body></html>"
-  writeLines(page, file.path(docs, "index.html"))
-  writeLines(page, file.path(docs, "dev", "index.html"))
+  writeLines("old", file.path(docs, "index.html"))
+  writeLines("old", file.path(docs, "dev/stale.html"))
+  write_built_site(dir, "index.html")
 
-  postprocess_pages(dir, tooltips = FALSE, topics = list())
-  expect_identical(readLines(file.path(docs, "dev", "index.html")), page)
-  expect_false(identical(readLines(file.path(docs, "index.html")), page))
+  publish_site(dir, list(development = list(mode = "devel")))
+
+  expect_identical(list.files(file.path(docs, "dev")), "index.html")
+  expect_identical(readLines(file.path(docs, "index.html")), "old")
+  expect_identical(readLines(file.path(docs, "dev/index.html")), "new")
+  expect_true(file.exists(file.path(docs, ".nojekyll")))
+})
+
+test_that("move_path() copies where it can't rename", {
+  from <- withr::local_tempdir()
+  to <- withr::local_tempdir()
+  writeLines("new", file.path(from, "new"))
+  writeLines("old", file.path(to, "old"))
+
+  # A rename can't replace a folder with files in it.
+  move_path(from, to)
+
+  expect_setequal(list.files(to), c("new", "old"))
+  expect_false(dir.exists(from))
+})
+
+test_that("serve_site() serves the current site while R is busy with something else", {
+  skip_if_not_installed("nanonext", "1.8.0")
+  withr::local_options(browser = function(url) NULL)
+  withr::defer({
+    the$server$close()
+    the$server <- NULL
+    the$server_root <- NULL
+  })
+  dir <- new_pkg()
+  docs <- file.path(dir, "docs")
+  dir.create(docs)
+  writeLines("first", file.path(docs, "index.html"))
+
+  url <- suppressMessages(serve_site(dir, reopen = FALSE))
+  # This is on the R thread, which nothing else gets to run on meanwhile.
+  expect_identical(readLines(paste0(url, "/index.html")), "first")
+
+  write_built_site(dir, "index.html")
+  publish_site(dir)
+  expect_identical(serve_site(dir, reopen = FALSE), url)
+  expect_identical(readLines(paste0(url, "/index.html")), "new")
 })
 
 test_that("postprocess_pages() puts the logo on pages not showing it already", {

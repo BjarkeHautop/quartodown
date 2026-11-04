@@ -5,8 +5,11 @@
 # Quarto's `aliases:` does the same, but needs the target page's front matter,
 # which generated pages such as the reference pages don't take.
 
-write_redirects <- function(path, config = list()) {
-  docs <- site_dir(path, config)
+write_redirects <- function(
+  path,
+  config = list(),
+  docs = site_dir(path, config)
+) {
   redirects <- config_redirects(config)
   for (from in names(redirects)) {
     if (file.exists(file.path(docs, from))) {

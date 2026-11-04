@@ -13,11 +13,15 @@ pages, and every Quarto feature works.
 1. **Before rendering**, it installs the package into a temporary library,
    writes a Quarto project into `_quarto/` and runs the reference pages'
    examples against that package.
-2. **During rendering**, Quarto renders `_quarto/` into `docs/`, running the
-   vignettes against that package.
+2. **During rendering**, Quarto renders `_quarto/` into `_quarto/_site/`,
+   running the vignettes against that package.
 3. **After rendering**, it links code to its documentation, adds hover tooltips,
    puts the [logo](../customizing.qmd#the-logo) by each page's title and writes
-   the [redirect](../customizing.qmd#redirects) pages.
+   the [redirect](../customizing.qmd#redirects) pages. Finally, the finished
+   site replaces the one in `docs/`.
+
+Until that last step, `docs/` still has the previous site, also if the build
+fails.
 
 With
 [`development: mode: devel`](../customizing.qmd#development-and-release-sites),
@@ -25,8 +29,9 @@ the site goes in `docs/dev/` instead, and a build into `docs/` leaves `dev/` as
 it is.
 
 In an interactive session it then serves the site with `preview_site()`. The
-server keeps running for the rest of the session, so after a rebuild the open
-page reloads instead of a new one opening.
+server keeps running for the rest of the session, so you can keep reading the
+previous site during a rebuild, and after it an open page that changed reloads
+instead of a new one opening.
 
 `build_site(devel = TRUE)` skips the install and loads the package from source
 with `pkgload::load_all()` instead. It is faster, but code that starts other R
