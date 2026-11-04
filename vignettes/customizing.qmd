@@ -303,8 +303,8 @@ in its front matter does the same.
 ## Development and release sites
 
 By default, every build replaces the site. To keep the site for the version on
-CRAN and have a second one, at `dev/`, for the development version, with a link
-next to the navbar's title to switch between them, set `development: mode:`:
+CRAN and have a second one, at `dev/`, for the development version, with a
+switch next to the navbar's title to go between them, set `development: mode:`:
 
 ```yaml
 development:

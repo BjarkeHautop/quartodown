@@ -7,6 +7,3 @@ reference:
       - preview_site
       - use_quartodown
       - use_quartodown_action
-
-development:
-  mode: auto

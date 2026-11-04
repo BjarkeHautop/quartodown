@@ -16,10 +16,10 @@
 
 - New `development: mode:` setting in `_quartodown.yml`, as in pkgdown: with
   `devel` (or `auto` and a `.9000` version), the site for the development
-  version is built into `docs/dev/`, next to the released version's. A link next
-  to the navbar's title switches between them. `auto` keeps a package that isn't
-  on CRAN yet in `docs/`, as unreleased. Content marked `.quartodown-devel` or
-  `.quartodown-release` is shown on only that site.
+  version is built into `docs/dev/`, next to the released version's. A switch
+  next to the navbar's title goes between them. `auto` keeps a package that
+  isn't on CRAN yet in `docs/`, as unreleased. Content marked
+  `.quartodown-devel` or `.quartodown-release` is shown on only that site.
 
 - New `workers` argument to `build_site()`, to build the site with several
   processes. `use_quartodown_action()`'s workflow uses 4.
