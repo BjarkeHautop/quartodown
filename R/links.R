@@ -3,8 +3,9 @@
 # Where a reference in the site's code to a function, help topic, vignette or
 # package links to: the package's own pages, another package's pkgdown site
 # (found through the pkgdown.yml at its root, see package_site()), or
-# rdrr.io. Only installed packages are linked, so the CRAN package database
-# is never downloaded.
+# rdrr.io. Only installed packages' topics and vignettes are linked, as their
+# help pages' names are only known then; a package that isn't installed links
+# to its home page, see cran_package_urls().
 
 # What a page's links are resolved against: the package `pkg`, its `topics`
 # (alias -> Rd name), the `names` they can be linked by as values (see
@@ -269,12 +270,13 @@ is_bioc_package <- function(package) {
 
 # ---- packages ---------------------------------------------------------------
 
-# The URL of the installed package `package`'s home page, or NA.
+# The URL of the package `package`'s home page, or NA.
 href_package <- function(package) {
-  if (!is_installed(package)) {
-    return(NA_character_)
+  urls <- if (is_installed(package)) {
+    package_urls(package)
+  } else {
+    cran_package_urls(package)
   }
-  urls <- package_urls(package)
   if (length(urls) == 0) NA_character_ else urls[[1]]
 }
 
@@ -290,7 +292,38 @@ package_reference_url <- function(package) {
 
 # The `URL`s in the installed package `package`'s DESCRIPTION.
 package_urls <- function(package) {
-  url <- utils::packageDescription(package, fields = "URL")
+  parse_urls(utils::packageDescription(package, fields = "URL"))
+}
+
+# The `URL`s in the DESCRIPTION of `package`, which isn't installed, or else
+# its CRAN page; none if it isn't on CRAN. Only this package's DESCRIPTION is
+# downloaded, not CRAN's whole package database, from CRAN's CDN, as
+# cran.r-project.org can take over 10 seconds per file.
+cran_package_urls <- function(package) {
+  if (!grepl("^[A-Za-z][A-Za-z0-9.]*$", package)) {
+    return(character())
+  }
+  description <- cached_download(
+    "cran",
+    paste0(
+      "https://cloud.r-project.org/web/packages/",
+      package,
+      "/DESCRIPTION"
+    ),
+    fetch_cran_description
+  )
+  if (is.null(description)) {
+    return(character())
+  }
+  urls <- parse_urls(unname(description["URL"]))
+  if (length(urls) > 0) {
+    urls
+  } else {
+    paste0("https://cran.r-project.org/package=", package)
+  }
+}
+
+parse_urls <- function(url) {
   if (is.na(url)) {
     return(character())
   }
@@ -335,33 +368,38 @@ site_from_yml <- function(yml, url) {
   )
 }
 
-# The pkgdown.yml at the site `url`, or NULL. Kept for a week in a cache
-# shared by the build's workers and later builds, so a site is fetched once.
+# The pkgdown.yml at the site `url`, or NULL.
+pkgdown_yml <- function(url) {
+  cached_download("sites", url, fetch_pkgdown_yml)
+}
+
+# What `fetch(url)` downloads, or NULL. Kept for a week in the cache's `kind`
+# folder, shared by the build's workers and later builds, so it's fetched once.
 # A failed download (rather than a missing file) isn't cached, so the next
 # build tries again; meanwhile a week-old copy is still used. Without a
 # network (see network_down()), nothing is downloaded.
-pkgdown_yml <- function(url) {
-  dir <- file.path(link_cache_dir(), "pkgdown-yml")
+cached_download <- function(kind, url, fetch) {
+  dir <- file.path(link_cache_dir(), kind)
   file <- file.path(dir, paste0(gsub("[^A-Za-z0-9]+", "_", url), ".rds"))
   entry <- if (file.exists(file)) readRDS(file)
   if (!is.null(entry) && difftime(Sys.time(), entry$time, units = "days") < 7) {
-    return(entry$yml)
+    return(entry$value)
   }
   if (network_down()) {
-    return(entry$yml)
+    return(entry$value)
   }
-  result <- fetch_pkgdown_yml(url)
+  result <- fetch(url)
   if (result$failed) {
     note_failed_download(url)
-    return(entry$yml)
+    return(entry$value)
   }
   link_memo$failures <- 0
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   # Written whole, then moved, as another worker may read it.
   tmp <- tempfile(tmpdir = dir)
-  saveRDS(list(time = Sys.time(), yml = result$yml), tmp)
+  saveRDS(list(time = Sys.time(), value = result$value), tmp)
   file.rename(tmp, file)
-  result$yml
+  result$value
 }
 
 # Whether downloads failed three times in a row, in this R session or, in
@@ -390,8 +428,8 @@ note_failed_download <- function(url) {
     return(invisible())
   }
   cli::cli_warn(c(
-    "Couldn't download other packages' {.file pkgdown.yml}, last from {.url {url}}.",
-    "i" = "Their functions not looked up before link to {.url https://rdrr.io} instead of their sites, until a build with a network connection."
+    "Couldn't download other packages' details, last from {.url {url}}.",
+    "i" = "Their functions not looked up before link to {.url https://rdrr.io} instead of their sites, and packages that aren't installed aren't linked, until a build with a network connection."
   ))
 }
 
@@ -399,7 +437,7 @@ link_cache_dir <- function() {
   getOption("quartodown.cache_dir", tools::R_user_dir("quartodown", "cache"))
 }
 
-# Removes from the cache the sites downloaded more than a month ago (one
+# Removes from the cache what was downloaded more than a month ago (what's
 # still in use is downloaded again every week), and an expired offline marker
 # (see network_down()), so the cache doesn't keep growing.
 prune_link_cache <- function() {
@@ -407,8 +445,8 @@ prune_link_cache <- function() {
   age <- function(files, units) {
     difftime(Sys.time(), file.mtime(files), units = units)
   }
-  sites <- list.files(file.path(dir, "pkgdown-yml"), full.names = TRUE)
-  unlink(sites[age(sites, "days") > 30])
+  files <- list.files(file.path(dir, c("sites", "cran")), full.names = TRUE)
+  unlink(files[age(files, "days") > 30])
   marker <- file.path(dir, "offline")
   if (file.exists(marker) && age(marker, "mins") >= 10) {
     unlink(marker)
@@ -416,17 +454,29 @@ prune_link_cache <- function() {
   invisible()
 }
 
-# `yml`, the site `url`'s pkgdown.yml (NULL without one), and whether the
-# download `failed` for another reason than the file not existing.
 fetch_pkgdown_yml <- function(url) {
-  url <- paste0(url, "/pkgdown.yml")
+  fetch_file(paste0(url, "/pkgdown.yml"), function(path) {
+    yml <- yaml::read_yaml(path)
+    if (is.list(yml)) yml
+  })
+}
+
+# The fields of the DESCRIPTION at `url`, as a named character vector.
+fetch_cran_description <- function(url) {
+  fetch_file(url, function(path) read.dcf(path)[1, ])
+}
+
+# `value`, what `parse` makes of the downloaded file at `url` (NULL without
+# one, or if it can't be parsed), and whether the download `failed` for another
+# reason than the file not existing.
+fetch_file <- function(url, parse) {
   status <- tryCatch(
     attr(curlGetHeaders(url, timeout = 10), "status"),
     error = function(e) NA
   )
   if (!identical(status, 200L)) {
     missing <- !is.na(status) && status >= 400 && status < 500
-    return(list(yml = NULL, failed = !missing))
+    return(list(value = NULL, failed = !missing))
   }
   path <- tempfile()
   on.exit(unlink(path))
@@ -438,13 +488,10 @@ fetch_pkgdown_yml <- function(url) {
     warning = function(w) FALSE
   )
   if (!ok) {
-    return(list(yml = NULL, failed = TRUE))
+    return(list(value = NULL, failed = TRUE))
   }
-  yml <- tryCatch(
-    suppressWarnings(yaml::read_yaml(path)),
-    error = function(e) NULL
-  )
-  list(yml = if (is.list(yml)) yml, failed = FALSE)
+  value <- tryCatch(suppressWarnings(parse(path)), error = function(e) NULL)
+  list(value = value, failed = FALSE)
 }
 
 # ---- helpers ----------------------------------------------------------------

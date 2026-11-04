@@ -303,25 +303,29 @@ in its front matter does the same.
 ## Development and release sites
 
 By default, every build replaces the site. To keep the site for the version on
-CRAN and have a second one, at `dev/`, for the development version, set
-`development: mode:`:
+CRAN and have a second one, at `dev/`, for the development version, with a
+switch next to the navbar's title to go between them, set `development: mode:`:
 
 ```yaml
 development:
   mode: auto
 ```
 
+Remember to bump the version to `.9000` right after each release to avoid the
+release version of docs to be overwritten!
+
+::: {.callout-note collapse="true" title="All modes"}
 The modes are the same as pkgdown's:
 
 - `release` (the default): builds into `docs/`.
 - `devel`: builds into `docs/dev/` and marks the version as in development.
 - `unreleased`: builds into `docs/` and marks the version as unreleased, for a
   package not yet on CRAN.
-- `auto` (what `use_quartodown()` sets): `devel` for a version like
-  `1.2.0.9000`, or `unreleased` if the package isn't on CRAN yet; otherwise
-  `release`.
+- `auto`: `devel` for a version like `1.2.0.9000`, or `unreleased` if the
+  package isn't on CRAN yet; otherwise `release`.
 
 The environment variable `QUARTODOWN_DEV_MODE` overrides it.
+:::
 
 Content for only one of the two sites can be set in a `.quartodown-release` or
 `.quartodown-devel` div or span:
@@ -336,13 +340,8 @@ Install the development version with `pak::pak("me/mypkg")`.
 :::
 ```
 
-An unreleased site keeps the `.quartodown-devel` content.
-
-A release build keeps `docs/dev/`, and a link next to the navbar's title
-switches between the two sites. With `mode: auto` and the workflow from
-`use_quartodown_action()`, a release updates the released version's site and
-later pushes update the dev site, as long as you bump the version to `.9000`
-right after each release.
+With `mode: auto`, a package not yet on CRAN keeps the `.quartodown-devel`
+content.
 
 ## Files the vignettes use
 
@@ -404,8 +403,8 @@ To change a single code chunk, use a chunk option such as `#| code-fold: true`.
 
 ## Styling and layout
 
-The site uses Quarto's `default` theme in light mode and `darkly` in dark mode.
-`theme:` picks others from Quarto's [built-in
+The site uses Quarto's `default` theme in light mode and a dark version of it in
+dark mode. `theme:` picks others from Quarto's [built-in
 themes](https://quarto.org/docs/output-formats/html-themes.html), with
 quartodown's styling on top:
 

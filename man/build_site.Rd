@@ -50,6 +50,10 @@ Invisibly, the path to the built site.
 Builds the package website into \verb{docs/} with \href{https://quarto.org/}{Quarto}.
 }
 \details{
+The site is built in a scratch folder, \verb{_quarto/_site/}, and replaces the one
+in \verb{docs/} only once it is complete. So the previous site stays there, and
+viewable with \code{\link[=preview_site]{preview_site()}}, while the build runs and if it fails.
+
 \code{build_site()} assembles a Quarto website project in \verb{_quarto/} from the
 package sources and \verb{_quartodown/_quartodown.yml}, then renders it. It uses
 \code{README.md} (or, without one, \code{DESCRIPTION}), \verb{man/}, the vignettes (including those in subfolders),
@@ -90,7 +94,7 @@ file, \code{source}; an issue, \code{issue}; and a user, \code{user}) and \code{
 default to those of DESCRIPTION's GitHub, GitLab or Codeberg \code{URL}.
 \item \code{theme}: the \code{light} and \code{dark} themes: names of Quarto's built-in
 themes, such as \code{flatly} and \code{darkly}, or \code{.scss} files in
-\verb{_quartodown/}. By default, \code{default} and \code{darkly}.
+\verb{_quartodown/}. By default, \code{default} and a dark version of it.
 \item \code{redirects}: pairs of paths, from an old page to the one replacing it,
 such as \verb{["reference/old.html", "reference/new.html"]}.
 \item \code{development}: \code{mode}, \code{release} (the default) to build the site into

@@ -184,35 +184,150 @@ rd_flatten <- function(x) {
 
 # ---- tooltip contents ---------------------------------------------------------
 
-# A \usage{} of more than `max_lines` lines, such as `theme()`'s ~150
-# arguments, as its first lines, a line saying how many are left out and its
-# last line (usually the closing parenthesis), so the tip fits on the screen.
-clip_usage <- function(usage, max_lines = 12) {
-  lines <- strsplit(usage, "\n", fixed = TRUE)[[1]]
+# The topic index with each usage's HTML in `usage_html`, once per build since
+# the tips repeat across pages.
+highlight_usages <- function(index) {
+  lapply(index, function(entry) {
+    if (!is.null(entry$usage)) {
+      entry$usage_html <- usage_html(entry$usage)
+    }
+    entry
+  })
+}
+
+# `usage` highlighted, and then clipped so that what's left out can't stop it
+# from parsing.
+usage_html <- function(usage) {
+  clip_usage(highlight_usage(usage))
+}
+
+# The HTML of a \usage{} of more than `max_lines` lines, such as `theme()`'s
+# ~150 arguments, as its first lines, a line saying how many are left out and
+# its last line (usually the closing parenthesis), so the tip fits on the
+# screen.
+clip_usage <- function(html, max_lines = 12) {
+  lines <- strsplit(html, "\n", fixed = TRUE)[[1]]
   n <- length(lines)
   if (n <= max_lines) {
-    return(usage)
+    return(html)
   }
   keep <- max_lines - 2
   paste(
     c(
       lines[seq_len(keep)],
-      sprintf("  # ... %d more lines", n - keep - 1),
+      sprintf('  <span class="co"># ... %d more lines</span>', n - keep - 1),
       lines[[n]]
     ),
     collapse = "\n"
   )
 }
 
-# `tips`: id -> list(usage, brief, name), rendered as a hidden payload that
-# quartodown-after-body.html's script reads via
+# `usage` with the classes Pandoc gives R code, so the tip has the colors of
+# the page's code blocks, which keep Quarto's highlighting. Usage that doesn't
+# parse is just escaped.
+highlight_usage <- function(usage) {
+  # The parser counts a tab as up to 8 columns.
+  exprs <- safe_parse(gsub("\t", " ", usage, fixed = TRUE))
+  data <- if (!is.null(exprs)) utils::getParseData(exprs)
+  if (is.null(data)) {
+    return(html_escape(usage))
+  }
+  data <- data[data$terminal, , drop = FALSE]
+  data <- data[order(data$line1, data$col1), , drop = FALSE]
+  classes <- token_classes(data$token, data$text)
+  pos <- token_positions(data, usage)
+  pieces <- character()
+  at <- 1
+  for (i in which(!is.na(classes))) {
+    pieces <- c(
+      pieces,
+      html_escape(substr(usage, at, pos$start[[i]] - 1)),
+      sprintf(
+        '<span class="%s">%s</span>',
+        classes[[i]],
+        html_escape(substr(usage, pos$start[[i]], pos$end[[i]]))
+      )
+    )
+    at <- pos$end[[i]] + 1
+  }
+  paste(
+    c(pieces, html_escape(substr(usage, at, nchar(usage)))),
+    collapse = ""
+  )
+}
+
+# Pandoc's class for each of R's parser tokens, as `text`, or NA for those it
+# leaves plain, such as variables and parentheses.
+token_classes <- function(token, text) {
+  classes <- pandoc_token_classes[token]
+  numbers <- token == "NUM_CONST"
+  classes[numbers] <- ifelse(
+    grepl("^[0-9]+L?$", text[numbers]),
+    "dv",
+    ifelse(grepl("^[0-9.]", text[numbers]), "fl", "cn")
+  )
+  # An argument's name, but not a `function(x)`'s without a default.
+  named <- token == "SYMBOL_FORMALS" & c(token[-1], "") == "EQ_FORMALS"
+  classes[named] <- "at"
+  unname(classes)
+}
+
+pandoc_token_classes <- c(
+  SYMBOL_FUNCTION_CALL = "fu",
+  STR_CONST = "st",
+  NULL_CONST = "cn",
+  COMMENT = "co",
+  SYMBOL_SUB = "at",
+  EQ_SUB = "at",
+  EQ_FORMALS = "at",
+  FUNCTION = "cf",
+  IF = "cf",
+  ELSE = "cf",
+  FOR = "cf",
+  IN = "cf",
+  WHILE = "cf",
+  REPEAT = "cf",
+  BREAK = "cf",
+  NEXT = "cf",
+  LEFT_ASSIGN = "ot",
+  RIGHT_ASSIGN = "ot",
+  EQ_ASSIGN = "ot",
+  "'-'" = "sc",
+  "'+'" = "sc",
+  "'*'" = "sc",
+  "'/'" = "sc",
+  "'^'" = "sc",
+  "'~'" = "sc",
+  "'!'" = "sc",
+  "'?'" = "sc",
+  "'$'" = "sc",
+  "'@'" = "sc",
+  "':'" = "sc",
+  LT = "sc",
+  GT = "sc",
+  LE = "sc",
+  GE = "sc",
+  EQ = "sc",
+  NE = "sc",
+  AND = "sc",
+  AND2 = "sc",
+  OR = "sc",
+  OR2 = "sc",
+  SPECIAL = "sc",
+  PIPE = "sc",
+  NS_GET = "sc",
+  NS_GET_INT = "sc"
+)
+
+# `tips`: id -> list(usage, usage_html, brief, name), rendered as a hidden
+# payload that quartodown-after-body.html's script reads via
 # `data-for`/`data-quartodown-tip`.
 tooltip_payload_html <- function(tips) {
   entries <- vapply(
     names(tips),
     function(id) {
       tip <- tips[[id]]
-      sig <- if (!is.null(tip$usage)) clip_usage(tip$usage) else tip$name
+      sig <- tip$usage_html %||% html_escape(tip$usage %||% tip$name)
       brief_html <- if (!is.null(tip$brief)) {
         brief <- gsub("`([^`]+)`", "<code>\\1</code>", html_escape(tip$brief))
         paste0("<span class=\"quartodown-tip-brief\">", brief, "</span>")
@@ -222,7 +337,7 @@ tooltip_payload_html <- function(tips) {
       sprintf(
         '<div data-for="%s"><code class="quartodown-tip-sig">%s</code>%s</div>',
         id,
-        html_escape(sig),
+        sig,
         brief_html
       )
     },

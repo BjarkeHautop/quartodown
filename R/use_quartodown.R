@@ -156,18 +156,8 @@ add_ignore_lines <- function(path, file_name, lines) {
 starter_config_yml <- function(path) {
   c(
     "# Configuration for quartodown::build_site(). See",
-    "# vignette(\"customizing\", package = \"quartodown\") for all fields,",
-    "# including `navbar:` (navbar items and menus) and `quarto:` (other Quarto",
-    "# settings).",
+    "# vignette(\"customizing\", package = \"quartodown\") for all fields.",
     "",
-    "# Builds the development version (e.g. 1.2.0.9000) into dev/, next to the",
-    "# released version's site; `release` keeps a single site.",
-    "development:",
-    "  mode: auto",
-    "",
-    "# Groups the function reference index into sections, each with a `title:`",
-    "# and the `contents:` it lists (topic names or selectors such as",
-    "# starts_with(\"read_\")).",
     starter_reference_yml(path)
   )
 }

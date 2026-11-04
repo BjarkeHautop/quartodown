@@ -1,19 +1,26 @@
 # ---- the Quarto project ---------------------------------------------------------
 #
 # build_site() assembles a Quarto website project in _quarto/ from the package
-# sources, then renders it into docs/ (`output-dir: ../docs/`). _quarto/ is
-# emptied first on every build, except Quarto's _freeze/ when `freeze = TRUE`.
+# sources, renders it into _quarto/_site/ and, when that is complete, moves it
+# to docs/ (publish_site()). _quarto/ is emptied first on every build, except
+# Quarto's _freeze/ when `freeze = TRUE`.
 
 project_dir <- function(path) file.path(path, "_quarto")
 
 # The built site's folder, which may also hold the development site in dev/.
 docs_dir <- function(path) file.path(path, "docs")
 
-# Where this build goes: docs/, or docs/dev/ for the development site.
+# The finished site's folder: docs/, or docs/dev/ for the development site.
 site_dir <- function(path, config = list()) {
   docs <- docs_dir(path)
   if (dev_mode(path, config) == "devel") file.path(docs, "dev") else docs
 }
+
+# Where the site is built, until publish_site(). In the package rather than a
+# temporary folder, so it's on the same file system as docs/ and moving it
+# takes a rename rather than a copy.
+build_dir_name <- "_site"
+build_dir <- function(path) file.path(project_dir(path), build_dir_name)
 
 dev_modes <- c("release", "devel", "unreleased", "auto")
 
@@ -455,8 +462,6 @@ render_project <- function(
   workers = 1,
   scratch = tempdir()
 ) {
-  clear_site(path, config)
-
   dir <- project_dir(path)
   pages <- unlist(settings$project$render)
   if (is.null(pages)) {
@@ -526,11 +531,8 @@ render_project <- function(
     ))
   }
   if (!is.null(shards)) {
-    merge_shard_sites(path, projects, shards, site_dir(path, config))
+    merge_shard_sites(path, projects, shards, build_dir(path))
   }
-  # Without it, GitHub Pages runs the site through Jekyll, which drops `_`
-  # folders such as _quartodown/.
-  file.create(file.path(docs_dir(path), ".nojekyll"))
 
   if (quiet) {
     cli::cli_progress_done(id = step)
@@ -693,15 +695,49 @@ render_error_log <- function(stderr) {
   cli_lines(utils::tail(lines, 30))
 }
 
-# Empties the folder this build goes in (see site_dir()), as a stale page would
-# otherwise outlive its source. CNAME (GitHub Pages' custom domain) and hidden
-# files such as .nojekyll stay, and so does the development site in dev/,
-# which a release build doesn't replace.
-clear_site <- function(path, config = list()) {
-  dir <- site_dir(path, config)
-  files <- list.files(dir, full.names = TRUE)
-  keep <- if (dir == docs_dir(path)) c("CNAME", "dev") else "CNAME"
-  unlink(files[!basename(files) %in% keep], recursive = TRUE)
+# Replaces the site in site_dir() with the one built in build_dir(), as a stale
+# page would otherwise outlive its source. CNAME (GitHub Pages' custom domain)
+# and hidden files stay, unless the new site has its own, and so does the
+# development site in dev/, which a release build doesn't replace. Only the
+# top-level entries are moved, so the two sites are only mixed for an instant,
+# and the old one is deleted after that.
+publish_site <- function(path, config = list()) {
+  from <- build_dir(path)
+  dest <- site_dir(path, config)
+  dir.create(dest, recursive = TRUE, showWarnings = FALSE)
+  new <- list.files(from, all.files = TRUE, no.. = TRUE)
+  old <- list.files(dest, all.files = TRUE, no.. = TRUE)
+  stale <- old[(!startsWith(old, ".") & old != "CNAME") | old %in% new]
+  if (dest == docs_dir(path)) {
+    stale <- setdiff(stale, "dev")
+  }
+  trash <- file.path(project_dir(path), "_old_site")
+  dir.create(trash, showWarnings = FALSE)
+  for (entry in stale) {
+    move_path(file.path(dest, entry), file.path(trash, entry))
+  }
+  for (entry in new) {
+    move_path(file.path(from, entry), file.path(dest, entry))
+  }
+  # Without it, GitHub Pages runs the site through Jekyll, which drops `_`
+  # folders such as _quartodown/.
+  file.create(file.path(docs_dir(path), ".nojekyll"))
+  unlink(c(trash, from), recursive = TRUE)
+  invisible()
+}
+
+# Renames `from` to `to`. Where that can't work, as across file systems (docs/
+# may be a mount) or onto a folder with files in it, copies it over instead.
+move_path <- function(from, to) {
+  if (suppressWarnings(file.rename(from, to))) {
+    return(invisible())
+  }
+  if (dir.exists(from)) {
+    copy_dir(from, to)
+  } else {
+    file.copy(from, to, overwrite = TRUE)
+  }
+  unlink(from, recursive = TRUE)
   invisible()
 }
 
@@ -848,7 +884,12 @@ site_url <- function(path, config = list()) {
 
 # Other packages' sites (made by quartodown or pkgdown) find this package's
 # reference pages and vignettes through the pkgdown.yml at its site's root.
-write_pkgdown_yml <- function(path, url = site_url(path), config = list()) {
+write_pkgdown_yml <- function(
+  path,
+  url = site_url(path),
+  config = list(),
+  docs = site_dir(path, config)
+) {
   if (is.null(url) || is.na(url)) {
     return(invisible())
   }
@@ -863,7 +904,7 @@ write_pkgdown_yml <- function(path, url = site_url(path), config = list()) {
       ),
       articles = articles
     ),
-    file.path(site_dir(path, config), "pkgdown.yml")
+    file.path(docs, "pkgdown.yml")
   )
 }
 
@@ -871,14 +912,14 @@ write_pkgdown_yml <- function(path, url = site_url(path), config = list()) {
 #'
 #' Serves `docs/` (or `docs/dev/`, for a development site; see the
 #' Configuration section of [build_site()]), as built by [build_site()], in a
-#' web browser, and reloads
-#' the page when the site is rebuilt. The server keeps running for the rest of
-#' the R session and is reused by later calls, including [build_site()]'s
-#' (which, with a server already running, leaves the open page to reload
-#' instead of opening another).
+#' web browser. The server keeps running for the rest of the R session and is
+#' reused by later calls, including [build_site()]'s (which, with a server
+#' already running, leaves the open page to reload instead of opening another).
+#' It keeps serving the previous site while [build_site()] runs. An open page
+#' reloads if the new build changed it.
 #'
 #' @inheritParams build_site
-#' @return The server, invisibly; see [servr::httw()].
+#' @return The site's local URL, invisibly.
 #' @export
 #'
 #' @examples
@@ -891,7 +932,9 @@ preview_site <- function(path = ".") {
 }
 
 # Serves the site (see site_dir()), starting a server unless one already
-# serves it. `reopen` opens the page again in the browser when it does.
+# serves it, and opens it in the browser if it did, or with `reopen`. nanonext
+# serves the files from its own threads, so also while this R session is busy
+# building. The pages reload themselves (see quartodown-after-body.html).
 serve_site <- function(path, config = list(), reopen) {
   docs <- site_dir(path, config)
   if (!file.exists(file.path(docs, "index.html"))) {
@@ -900,24 +943,31 @@ serve_site <- function(path, config = list(), reopen) {
       "i" = "Build it with {.run quartodown::build_site()}."
     ))
   }
-  if (!requireNamespace("servr", quietly = TRUE)) {
+  if (!requireNamespace("nanonext", quietly = TRUE)) {
     cli::cli_abort(c(
-      "Previewing the site needs the {.pkg servr} package.",
-      "i" = "Install it with {.code install.packages(\"servr\")}."
+      "Previewing the site needs the {.pkg nanonext} package.",
+      "i" = "Install it with {.code install.packages(\"nanonext\")}."
     ))
   }
 
   root <- normalizePath(docs)
-  if (!identical(the$server_root, root)) {
+  started <- !identical(the$server_root, root)
+  if (started) {
     if (!is.null(the$server)) {
-      the$server$stop_server()
+      the$server$close()
     }
-    the$server <- servr::httw(docs)
+    the$server <- nanonext::http_server(
+      "http://127.0.0.1:0",
+      nanonext::handler_directory("/", root)
+    )
+    the$server$start()
     the$server_root <- root
-  } else if (reopen) {
-    the$server$browse(reopen = TRUE)
+    cli::cli_inform(c("i" = "Previewing the site at {.url {the$server$url}}"))
   }
-  invisible(the$server)
+  if (started || reopen) {
+    utils::browseURL(the$server$url)
+  }
+  invisible(the$server$url)
 }
 
 # The preview server, kept across calls so rebuilds reuse it, and the

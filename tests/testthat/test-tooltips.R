@@ -296,6 +296,88 @@ test_that("a topic with no \\usage{} shows its name as the signature", {
   )
 })
 
+test_that("usage_html() highlights a signature like a code block, without links", {
+  html <- usage_html("foo(a = \"<b>\", n = 1, f = interactive())")
+  expect_match(html, '<span class="fu">foo</span>', fixed = TRUE)
+  expect_match(html, '<span class="at">a</span>', fixed = TRUE)
+  expect_match(
+    html,
+    '<span class="st">&quot;&lt;b&gt;&quot;</span>',
+    fixed = TRUE
+  )
+  expect_match(html, '<span class="dv">1</span>', fixed = TRUE)
+  expect_match(html, '<span class="fu">interactive</span>', fixed = TRUE)
+  expect_no_match(html, "<a", fixed = TRUE)
+
+  # Usage that doesn't parse is shown as is.
+  expect_identical(usage_html("foo(a <"), "foo(a &lt;")
+})
+
+test_that("usage_html() gives R's tokens the classes Pandoc gives them", {
+  spans <- function(code) {
+    html <- xml2::read_html(paste0("<div>", usage_html(code), "</div>"))
+    nodes <- xml2::xml_find_all(html, ".//span")
+    paste0(xml2::xml_attr(nodes, "class"), ":", xml2::xml_text(nodes))
+  }
+  expect_equal(
+    spans("f(1.5, 1L, TRUE, NULL, NA)"),
+    c(
+      "fu:f",
+      "fl:1.5",
+      "dv:1L",
+      "cn:TRUE",
+      "cn:NULL",
+      "cn:NA"
+    )
+  )
+  expect_equal(spans("x <- y %in% z$a"), c("ot:<-", "sc:%in%", "sc:$"))
+  expect_equal(
+    spans("function(x, y = 2) x # c"),
+    c(
+      "cf:function",
+      "at:y",
+      "at:=",
+      "dv:2",
+      "co:# c"
+    )
+  )
+  # Positions are right after a multibyte character, a tab and a new line.
+  expect_equal(
+    spans("x <- \"æ\"; \tf(a)\ng(b)"),
+    c(
+      "ot:<-",
+      "st:\"æ\"",
+      "fu:f",
+      "fu:g"
+    )
+  )
+})
+
+test_that("usage_html() still highlights a clipped usage", {
+  usage <- paste(
+    c("f(", sprintf("  a%d = %d,", 1:20, 1:20), "  x = c(", "  1)", ")"),
+    collapse = "\n"
+  )
+  lines <- strsplit(usage_html(usage), "\n", fixed = TRUE)[[1]]
+  expect_length(lines, 12)
+  expect_match(lines[[2]], '<span class="at">a1</span>', fixed = TRUE)
+  expect_match(lines[[11]], "# ... 13 more lines", fixed = TRUE)
+})
+
+test_that("highlight_usages() fills the payload's signature", {
+  index <- highlight_usages(list(
+    foo = list(usage = "foo(1)", brief = NULL, topic = "foo", name = "foo"),
+    bar = list(usage = NULL, brief = NULL, topic = "bar", name = "bar")
+  ))
+  payload <- tooltip_payload_html(index)
+  expect_match(payload, '<span class="dv">1</span>', fixed = TRUE)
+  expect_match(
+    payload,
+    '<code class="quartodown-tip-sig">bar</code>',
+    fixed = TRUE
+  )
+})
+
 test_that("code in the brief is rendered as <code>, with its contents escaped", {
   tips <- list(
     t1 = list(usage = "f()", brief = "Stored in `dir(\"a\") < b`.", name = "f")
@@ -311,7 +393,12 @@ test_that("a long \\usage{} is clipped, keeping its last line", {
   usage <- paste(c("f(", sprintf("  a%d,", 1:20), "  b", ")"), collapse = "\n")
   expect_equal(
     strsplit(clip_usage(usage), "\n")[[1]],
-    c("f(", sprintf("  a%d,", 1:9), "  # ... 12 more lines", ")")
+    c(
+      "f(",
+      sprintf("  a%d,", 1:9),
+      '  <span class="co"># ... 12 more lines</span>',
+      ")"
+    )
   )
   expect_identical(clip_usage("f(x)"), "f(x)")
 })

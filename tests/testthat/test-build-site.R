@@ -371,7 +371,7 @@ test_that("write_quarto_config() writes a complete _quarto/_quarto.yml", {
   out_path <- file.path(dir, "_quarto", "_quarto.yml")
   settings <- yaml::read_yaml(out_path)
   expect_identical(settings$website$title, "examplepkg 1.0.0")
-  expect_identical(settings$project$`output-dir`, "../docs/")
+  expect_identical(settings$project$`output-dir`, "_site")
   expect_null(settings$format$html$`code-link`)
   expect_identical(
     settings$knitr$opts_chunk,
@@ -517,7 +517,12 @@ test_that("quarto_config() links GitHub and merges `quarto:` overrides", {
   )
   expect_identical(
     settings$format$html$theme$dark,
-    c("darkly", "quartodown-fonts.scss", "quartodown.scss")
+    c(
+      "default",
+      "quartodown-fonts.scss",
+      "quartodown.scss",
+      "quartodown-dark.scss"
+    )
   )
   expect_true(settings$format$html$toc)
 })
@@ -892,10 +897,11 @@ test_that("quarto_config() adds _quartodown/extra.scss and extra.css when presen
   expect_identical(
     html$theme$dark,
     c(
-      "darkly",
+      "default",
       "quartodown-fonts.scss",
       "quartodown.scss",
-      "_quartodown/extra.scss"
+      "_quartodown/extra.scss",
+      "quartodown-dark.scss"
     )
   )
   expect_identical(html$css, "_quartodown/extra.css")
@@ -907,7 +913,12 @@ test_that("quarto_theme() uses `theme:`, with quartodown's fonts only on `defaul
     quarto_theme(dir),
     list(
       light = c("default", "quartodown-fonts.scss", "quartodown.scss"),
-      dark = c("darkly", "quartodown-fonts.scss", "quartodown.scss")
+      dark = c(
+        "default",
+        "quartodown-fonts.scss",
+        "quartodown.scss",
+        "quartodown-dark.scss"
+      )
     )
   )
   expect_identical(

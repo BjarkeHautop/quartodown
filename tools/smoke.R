@@ -300,8 +300,8 @@ check_tooltips <- function(pages, aliases, pkg) {
 }
 
 # Calls in code blocks that link nowhere, as the percentage of all calls
-# (attribute "percent") and the most common names. downlit gives the `pkg`
-# and `::` of `pkg::fun()` spans of their own, which aren't calls.
+# (attribute "percent") and the most common names. The `pkg` and `::` of
+# `pkg::fun()` can have spans of their own, which aren't calls.
 check_unlinked <- function(pages) {
   unlinked <- character()
   total <- 0
@@ -695,7 +695,15 @@ if (preview) {
     stop("No results to preview in ", smoke_dir, call. = FALSE)
   }
   message("Serving ", smoke_dir, "; press Ctrl+C (Esc in RStudio) to stop.")
-  servr::httd(smoke_dir, daemon = FALSE, browser = TRUE)
+  server <- nanonext::http_server(
+    "http://127.0.0.1:0",
+    nanonext::handler_directory("/", smoke_dir)
+  )
+  server$start()
+  utils::browseURL(server$url)
+  repeat {
+    Sys.sleep(1)
+  }
 } else if (run && !all(results$ok)) {
   quit(status = 1)
 }

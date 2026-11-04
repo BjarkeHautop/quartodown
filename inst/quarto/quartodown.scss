@@ -114,7 +114,8 @@ $quartodown-mix: 100%;
   opacity: 1;
 }
 
-// The link to the other of the release and development sites.
+// The switch between the release and development sites, with the current one
+// filled in.
 .navbar-brand-container {
   display: flex;
   align-items: center;
@@ -124,23 +125,48 @@ $quartodown-mix: 100%;
 // uses this compile's colors. Not `$primary`, which is too dark to read on
 // some dark themes' navbar (darkly's).
 .navbar-version-switch {
+  display: inline-flex;
   flex: none;
-  margin-left: 0.4rem;
-  padding: 0.1rem 0.55rem;
+  margin-left: 0.5rem;
+  margin-right: 1rem;
   border: 1px solid rgba($body-color, 0.4);
   border-radius: 1rem;
-  background-color: rgba($body-color, 0.08);
+  overflow: hidden;
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.4;
-  color: $body-color;
-  text-decoration: none;
   white-space: nowrap;
 
-  &:hover,
-  &:focus-visible {
-    border-color: $link-color;
-    color: $link-color;
+  > * {
+    padding: 0.1rem 0.55rem;
+  }
+
+  > a {
+    color: $body-color;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      background-color: rgba($body-color, 0.12);
+      color: $body-color;
+    }
+  }
+
+  > [aria-current] {
+    background-color: $body-color;
+    color: $quartodown-navbar-bg;
+    cursor: default;
+  }
+
+  // On a phone it shares the navbar's row with the title and the tools.
+  @media (max-width: 575.98px) {
+    margin-left: 0.25rem;
+    margin-right: 0;
+    font-size: 0.65rem;
+
+    > * {
+      padding: 0.1rem 0.35rem;
+    }
   }
 }
 
@@ -568,8 +594,7 @@ a.quartodown-tip-ref {
     display: block;
     white-space: pre-wrap;
     font-family: $font-family-monospace;
-    font-weight: 600;
-    color: var(--bs-link-color);
+    color: var(--bs-body-color); // tokens have the code blocks' colors
     margin-bottom: 0.35em;
     background-color: transparent;
     padding: 0;

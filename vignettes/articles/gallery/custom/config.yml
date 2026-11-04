@@ -1,1 +1,3 @@
-# Only extra.scss, below.
+theme:
+  light: _quartodown/blue-light.scss
+  dark: _quartodown/blue-dark.scss

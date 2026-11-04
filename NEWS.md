@@ -2,7 +2,19 @@
 
 - Code is now linked by quartodown itself instead of downlit, so code blocks
   keep Quarto's highlighting, linking is more consistent, and builds work
-  offline.
+  offline. A package that isn't installed still links to its home page, or else
+  its CRAN page, looked up one package at a time rather than by downloading
+  CRAN's whole package database.
+
+- The default dark theme is now a dark version of Quarto's `default` theme, with
+  a neutral near-black page and soft blue links, rather than `darkly`. Use
+  `theme: dark: darkly` to keep the old look.
+
+- `build_site()` builds the site in `_quarto/_site/`, and replaces the one in
+  `docs/` only when it's complete. So the previous site stays in place during a
+  build, and after a failed one. `preview_site()` now serves it with nanonext
+  rather than servr, so it keeps working while `build_site()` runs. An open page
+  reloads if the new build changed it.
 
 - `use_quartodown()` translates an existing `_pkgdown.yml`: the navbar and
   `articles:` become `navbar:` items and menus, template settings become
@@ -20,11 +32,10 @@
 
 - New `development: mode:` setting in `_quartodown.yml`, as in pkgdown: with
   `devel` (or `auto` and a `.9000` version), the site for the development
-  version is built into `docs/dev/`, next to the released version's. A link next
-  to the navbar's title switches between them. `auto` keeps a package that isn't
-  on CRAN yet in `docs/`, as unreleased. Content marked `.quartodown-devel` or
-  `.quartodown-release` is shown on only that site. `use_quartodown()` sets
-  `mode: auto`.
+  version is built into `docs/dev/`, next to the released version's. A switch
+  next to the navbar's title goes between them. `auto` keeps a package that
+  isn't on CRAN yet in `docs/`, as unreleased. Content marked
+  `.quartodown-devel` or `.quartodown-release` is shown on only that site.
 
 - New `workers` argument to `build_site()`, to build the site with several
   processes. `use_quartodown_action()`'s workflow uses 4.

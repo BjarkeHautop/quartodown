@@ -1,0 +1,56 @@
+/*-- scss:defaults --*/
+// The default dark theme, on top of Quarto's `default`, so both color schemes
+// share a base: a neutral near-black page with soft blue links, in the spirit
+// of quarto.org's dark mode. Plain assignments, without `!default`: Quarto
+// defines some of these before any theme layer, such as `$border-color`. This
+// file is the theme's last layer, which puts its defaults first (Quarto reverses
+// them), so extra.scss can still override them.
+
+$gray-100: #f8f8f8;
+$gray-200: #c2c2c4;
+$gray-300: #949494;
+$gray-400: #707073;
+$gray-500: #495057;
+$gray-600: #404041;
+$gray-700: #333333;
+$gray-800: #242426;
+$gray-900: #151515;
+
+$primary: #75a8d9;
+$secondary: $gray-400;
+$success: #72994e;
+$info: #e7b10a;
+$warning: #ee6331;
+$danger: #d44000;
+$light: #202022;
+$dark: $gray-900;
+
+$body-bg: $gray-900;
+// Softer than the headings, to reduce glare in long reading.
+$body-color: #dcdcde;
+$headings-color: #f4f4f5;
+// Not `$primary`, so a package's dark accent color leaves links readable.
+$link-color: #75a8d9;
+$text-muted: #9ba5ad;
+// 3:1 on the page, WCAG's for borders.
+$border-color: $gray-400;
+
+// Bootstrap's defaults are meant for a light page.
+$pre-color: inherit;
+$code-bg: $body-bg;
+$code-color: #c9a6dc;
+$code-block-bg: #1d1d20;
+
+$footer-bg: $body-bg;
+$popover-bg: $gray-800;
+$input-bg: $gray-800;
+$input-group-addon-bg: $gray-800;
+$dropdown-bg: $body-bg;
+$dropdown-color: $body-color;
+$dropdown-link-color: $body-color;
+$dropdown-link-hover-color: #eeeeee;
+$dropdown-link-hover-bg: $gray-600;
+$nav-tabs-link-active-color: $body-color;
+$nav-tabs-link-hover-border-color: #505050;
+$pagination-disabled-bg: #181818;
+$toc-inactive-border: rgba($gray-800, 0.5);

@@ -58,19 +58,6 @@ built with the settings under it; click one to enlarge it. The screenshots
 follow your light or dark mode. See [Customizing your site](../customizing.qmd)
 for every setting.
 
-## The default
-
-Quarto's `default` theme in light mode and `darkly` in dark mode, with the
-navbar at the top.
-
-```{r}
-#| label: gallery-default
-#| echo: false
-#| output: asis
-
-gallery_entry("default")
-```
-
 ## A built-in theme
 
 `theme:` picks any of Quarto's [built-in
@@ -101,9 +88,9 @@ gallery_entry("sidebar")
 
 ## A custom look
 
-`_quartodown/extra.scss` restyles any part of the site, on top of the theme:
-here a navbar in the accent color, serif headings, rounder code blocks and the
-function reference as cards.
+Your own `.scss` files as themes set the colors, here a blue tint in light mode
+and a navy page in dark mode. `_quartodown/extra.scss` restyles any part of the
+site in both: here rounder code blocks and the function reference as cards.
 
 ```{r}
 #| label: gallery-custom

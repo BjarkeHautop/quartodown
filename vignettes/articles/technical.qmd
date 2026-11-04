@@ -13,11 +13,15 @@ pages, and every Quarto feature works.
 1. **Before rendering**, it installs the package into a temporary library,
    writes a Quarto project into `_quarto/` and runs the reference pages'
    examples against that package.
-2. **During rendering**, Quarto renders `_quarto/` into `docs/`, running the
-   vignettes against that package.
+2. **During rendering**, Quarto renders `_quarto/` into `_quarto/_site/`,
+   running the vignettes against that package.
 3. **After rendering**, it links code to its documentation, adds hover tooltips,
    puts the [logo](../customizing.qmd#the-logo) by each page's title and writes
-   the [redirect](../customizing.qmd#redirects) pages.
+   the [redirect](../customizing.qmd#redirects) pages. Finally, the finished
+   site replaces the one in `docs/`.
+
+Until that last step, `docs/` still has the previous site, also if the build
+fails.
 
 With
 [`development: mode: devel`](../customizing.qmd#development-and-release-sites),
@@ -25,8 +29,9 @@ the site goes in `docs/dev/` instead, and a build into `docs/` leaves `dev/` as
 it is.
 
 In an interactive session it then serves the site with `preview_site()`. The
-server keeps running for the rest of the session, so after a rebuild the open
-page reloads instead of a new one opening.
+server keeps running for the rest of the session, so you can keep reading the
+previous site during a rebuild, and after it an open page that changed reloads
+instead of a new one opening.
 
 `build_site(devel = TRUE)` skips the install and loads the package from source
 with `pkgload::load_all()` instead. It is faster, but code that starts other R
@@ -96,10 +101,13 @@ the package's [repository](../customizing.qmd#the-repository), if it has one.
 
 Function calls in R code, and inline code like `mean()` or `?mean`, link to
 their documentation: the package's own pages, another installed package's site,
-or else [rdrr.io](https://rdrr.io). Where other packages' sites are is cached in
-`tools::R_user_dir("quartodown", "cache")`, and looked up again when more than a
-week old; delete the folder to look them all up again. `docs/pkgdown.yml` lets
-other sites, quartodown's and pkgdown's, link to your reference pages in turn.
+or else [rdrr.io](https://rdrr.io). A package that isn't installed, as in
+`library(pkg)`, links to its home page from its `DESCRIPTION` on CRAN, or else
+its CRAN page, but its functions aren't linked. Where other packages' sites are
+is cached in `tools::R_user_dir("quartodown", "cache")`, and looked up again
+when more than a week old; delete the folder to look them all up again.
+`docs/pkgdown.yml` lets other sites, quartodown's and pkgdown's, link to your
+reference pages in turn.
 
 That file needs the site's address: `url:` in `_quartodown/_quartodown.yml`, or
 else the first `URL` in `DESCRIPTION` that isn't a GitHub, GitLab or Codeberg
@@ -114,7 +122,8 @@ tooltips, use `build_site(tooltips = FALSE)`.
 The site has a light and a dark theme, and follows the browser's preference.
 Each is built in layers:
 
-1. the Quarto theme: `default` in light mode and `darkly` in dark mode, unless
+1. the Quarto theme: `default` in light mode and `default` with
+   `quartodown-dark.scss`, its colors for a dark page, in dark mode, unless
    [`theme:`](../customizing.qmd#styling-and-layout) picks others,
 2. `quartodown.scss`, quartodown's own styling,
 3. `_quartodown/extra.scss`, if the package has one.

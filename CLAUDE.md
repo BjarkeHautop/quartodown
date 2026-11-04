@@ -65,8 +65,8 @@ quartodown::build_site() # also previews it when interactive
      `tools::Rd2HTML()` running build/install/render `\Sexpr` stages (with the
      package's temp library on `.libPaths()`, so it is installed first, before
      stage 1), then cut into sections (YAML `title:`, `##` headings). `\link`s
-     are first rewritten to `\href`s (own topic page, else
-     `downlit::href_topic()`), since Rd2HTML drops link targets; roxygen's R6
+     are first rewritten to `\href`s (own topic page, else `href_topic()`,
+     [R/links.R](R/links.R)), since Rd2HTML drops link targets; roxygen's R6
      `../../pkg/html/` hrefs likewise. Usage and R6 method usage → fenced
      ```` ```r ````; prose stays HTML except inline `<code>` → Markdown code
      spans, `reqn` → `$`/`$$` math, `$` escaped, language-tagged `<pre>` →
@@ -113,9 +113,10 @@ quartodown::build_site() # also previews it when interactive
      (`quartodown.scss`, header/after-body HTML), with `ansi_scss_rules()`
      ([R/ansi.R](R/ansi.R)) appended to `quartodown.scss`. `quarto_theme()`
      builds the light/dark theme lists from `_quartodown.yml`'s `theme:`
-     (default `default`/`darkly`); `quartodown-fonts.scss` (system fonts, no web
-     fonts) is layered in only when the light theme is `default`, so Bootswatch
-     themes keep their fonts.
+     (default `default`, with `quartodown-dark.scss` as the dark theme's last
+     layer, so its defaults come first and `extra.scss` can override them);
+     `quartodown-fonts.scss` (system fonts, no web fonts) is layered in only
+     when the light theme is `default`, so Bootswatch themes keep their fonts.
    - The package's `_quartodown/` folder, copied to `_quarto/_quartodown/` so
      paths in `quarto:` settings resolve the same (Quarto doesn't render `_`
      folders). `extra.scss` is appended to both themes and `extra.css` set as
@@ -136,58 +137,66 @@ quartodown::build_site() # also previews it when interactive
      `freeze`, results are cached in
      `_quarto/_freeze/quartodown/reference/<page>/`, keyed by the page's source
      and the knitr options.
-2. **Rendering** --- clears the site's folder (`site_dir()`: `docs/`, or
-   `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s pkgdown-style
-   `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`, which `auto` picks
-   for a `.9000` version of a package `on_cran()`; that also puts `site-url`
-   under `dev/` and a `noindex` meta in `quartodown-header.html`), keeping
-   `CNAME`, hidden files and, in `docs/`, `dev/` (which `postprocess_pages()`
-   then skips too), makes the package available to the pages' R processes
+2. **Rendering** --- makes the package available to the pages' R processes
    (installed into a temp library prepended via `R_LIBS` and, as profiles such
    as callr's reset `.libPaths()`, a generated `R_PROFILE_USER` profile, or with
    `devel = TRUE` one that runs `pkgload::load_all()`; both first source the
    user's own profile, `profile_envvars()`; plus `R_CLI_NUM_COLORS=256` for
-   colored output), renders `_quarto/` into it (`output-dir: ../docs/`; with
-   `processx` rather than `quarto::quarto_render()`, whose `quiet` passes
-   `--quiet`, which hides errors too, so `render_error_log()` can show them;
-   with `workers > 1`, split by `shard_pages()` into that many Quarto processes,
-   each on a copy in `_quarto/_shards/<k>/` (inside the package, for code that
-   finds it from the working directory, e.g. testthat snapshots), whose sites
+   colored output), renders `_quarto/` into `build_dir()` (`output-dir: _site`,
+   i.e. `_quarto/_site/`; with `processx` rather than `quarto::quarto_render()`,
+   whose `quiet` passes `--quiet`, which hides errors too, so
+   `render_error_log()` can show them; with `workers > 1`, split by
+   `shard_pages()` into that many Quarto processes, each on a copy in
+   `_quarto/_shards/<k>/` (inside the package, for code that finds it from the
+   working directory, e.g. testthat snapshots), whose sites
    `merge_shard_sites()` ([R/workers.R](R/workers.R)) joins, relinking `.qmd`
-   hrefs to other shards' pages) and writes `docs/pkgdown.yml` (`urls` +
-   `articles`, all downlit reads). The name is fixed: downlit fetches
-   `<site URL>/pkgdown.yml` to link other packages' code to this site, so it
+   hrefs to other shards' pages) and writes `pkgdown.yml` (`urls` + `articles`,
+   all that's read of it). The name is fixed: other sites, quartodown's and
+   pkgdown's, fetch `<site URL>/pkgdown.yml` to link code to this site, so it
    must not be renamed.
 3. **After rendering** --- `postprocess_pages()`
-   ([R/code-link.R](R/code-link.R)) reads and writes each `docs/**/*.html` once.
-   In between, `add_logo_html()` puts `site_logo()`
+   ([R/code-link.R](R/code-link.R)) reads and writes each page in `build_dir()`
+   once. In between, `add_logo_html()` puts `site_logo()`
    (`man/figures/logo.svg`/`.png`, with a `logo-light` variant; off with
    `logo: false`) before the first `<h1>` of every page but 404.html and those
    already showing `man/figures/logo*`, such as the README home page, (on
    `page-columns` grid pages, `wrap_title_block()` makes the title block and
    intro one grid item so text wraps around it), and `link_code_html()` drops
    the other site's `.quartodown-devel`/ `-release` elements
-   (`other_site_classes()`) and runs downlit over it (replacing Quarto's
-   `code-link`, which would wipe code annotations). `pre.code-annotated` blocks
-   are hidden from downlit and their `span.fu` tokens (and `span.sc` `%op%`s)
-   linked one by one with `downlit::autolink_url()` instead. xml2 drops the ESC
-   of ANSI codes, so `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for
-   a private-use character, and `ansi_to_html()` afterwards converts them with
+   (`other_site_classes()`) and links its code (replacing Quarto's `code-link`,
+   which would wipe code annotations). Code blocks keep Quarto's markup:
+   `code_refs()` finds the references in a block's text with R's parser, and
+   each is wrapped in a link where Quarto put it; inline code is linked by
+   `inline_ref()`. Where a reference links to is decided in
+   [R/links.R](R/links.R): the package's own pages, an installed package's site
+   (through the `pkgdown.yml` at its root, cached for a week in
+   `tools::R_user_dir()`, `cached_download()`) or else rdrr.io. A package that
+   isn't installed links only itself, from its `DESCRIPTION` on CRAN
+   (`cran_package_urls()`). Links to the package's own topics get a tooltip
+   ([R/tooltips.R](R/tooltips.R)), whose contents go in a hidden
+   `.quartodown-tip-payload`, with signatures highlighted with Pandoc's classes
+   (`usage_html()`); the tooltip's style and script are in `quartodown.scss` and
+   `quartodown-after-body.html`. xml2 drops the ESC of ANSI codes, so
+   `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for a private-use
+   character, and `ansi_to_html()` afterwards converts them with
    `fansi::sgr_to_html()` (not `cli::ansi_html()`, which loses colors of nested
-   styles); `strip_search_ansi()` strips them from `search.json`. Before that,
-   `add_tooltips_html()` ([R/tooltips.R](R/tooltips.R)) regex-rewrites the HTML
-   xml2 wrote, linking references to the package's own topics
-   (`<span class="fu|va|kw">` in code blocks, and `op`/`sc` spans holding a
-   `%op%`, and `<code>name()</code>` inline) to their reference page, and
-   appends the tips' contents in a hidden `.quartodown-tip-payload`; the
-   tooltip's style and script are in `quartodown.scss` and
-   `quartodown-after-body.html`. Then `write_redirects()`
-   ([R/redirects.R](R/redirects.R)) writes redirect pages for
-   `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:` needs
-   front matter, which generated pages lack). Finally, with
-   `preview = interactive()`, `serve_site()` ([R/project.R](R/project.R)) serves
-   `docs/` with `servr::httw()`. The server is kept in the package-level `the`
-   environment and reused by later builds, whose open page live-reloads.
+   styles); `strip_search_ansi()` strips them from `search.json`. Then
+   `write_redirects()` ([R/redirects.R](R/redirects.R)) writes redirect pages
+   for `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:`
+   needs front matter, which generated pages lack). Then `publish_site()`
+   ([R/project.R](R/project.R)) moves the finished site to `site_dir()`
+   (`docs/`, or `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s
+   pkgdown-style `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`,
+   which `auto` picks for a `.9000` version of a package `on_cran()`; that also
+   puts `site-url` under `dev/` and a `noindex` meta in
+   `quartodown-header.html`), by renaming its top-level entries, keeping
+   `CNAME`, hidden files and, in `docs/`, `dev/`. So `docs/` keeps the previous
+   site during a build and after a failed one. Finally, with
+   `preview = interactive()`, `serve_site()` serves `docs/` with nanonext, whose
+   native threads keep serving while R builds. The server is kept in the
+   package-level `the` environment and reused by later builds. It can't
+   live-reload, so on localhost the after-body script re-fetches the page every
+   second and reloads when it changed.
 
 ### Navbar / articles
 

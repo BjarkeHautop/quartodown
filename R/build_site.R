@@ -2,6 +2,10 @@
 #'
 #' Builds the package website into `docs/` with [Quarto](https://quarto.org/).
 #'
+#' The site is built in a scratch folder, `_quarto/_site/`, and replaces the one
+#' in `docs/` only once it is complete. So the previous site stays there, and
+#' viewable with [preview_site()], while the build runs and if it fails.
+#'
 #' `build_site()` assembles a Quarto website project in `_quarto/` from the
 #' package sources and `_quartodown/_quartodown.yml`, then renders it. It uses
 #' `README.md` (or, without one, `DESCRIPTION`), `man/`, the vignettes (including those in subfolders),
@@ -41,7 +45,7 @@
 #'   default to those of DESCRIPTION's GitHub, GitLab or Codeberg `URL`.
 #' * `theme`: the `light` and `dark` themes: names of Quarto's built-in
 #'   themes, such as `flatly` and `darkly`, or `.scss` files in
-#'   `_quartodown/`. By default, `default` and `darkly`.
+#'   `_quartodown/`. By default, `default` and a dark version of it.
 #' * `redirects`: pairs of paths, from an old page to the one replacing it,
 #'   such as `["reference/old.html", "reference/new.html"]`.
 #' * `development`: `mode`, `release` (the default) to build the site into
@@ -174,18 +178,20 @@ build_site <- function(
     "Linked code"
   }
   cli::cli_progress_step("Linking code", msg_done = done)
-  write_pkgdown_yml(path, settings$website$`site-url`, config)
-  postprocess_pages(path, config, topics, tooltips = tooltips)
-  write_redirects(path, config)
+  built <- build_dir(path)
+  write_pkgdown_yml(path, settings$website$`site-url`, config, docs = built)
+  postprocess_pages(path, config, topics, tooltips = tooltips, docs = built)
+  write_redirects(path, config, docs = built)
   cli::cli_progress_done()
+  publish_site(path, config)
   cli::cli_alert_success("Built the site in {.path {site_dir(path, config)}}")
 
   if (isTRUE(preview) && !identical(Sys.getenv("TESTTHAT"), "true")) {
-    if (requireNamespace("servr", quietly = TRUE)) {
+    if (requireNamespace("nanonext", quietly = TRUE)) {
       serve_site(path, config, reopen = FALSE)
     } else {
       cli::cli_inform(c(
-        "i" = "Install {.pkg servr} to preview the site in your browser."
+        "i" = "Install {.pkg nanonext} to preview the site in your browser."
       ))
     }
   }
@@ -195,6 +201,7 @@ build_site <- function(
 
 theme_files <- c(
   "quartodown.scss",
+  "quartodown-dark.scss",
   "quartodown-fonts.scss",
   "quartodown-header.html",
   "quartodown-after-body.html",
@@ -402,7 +409,7 @@ quarto_config <- function(
   settings <- list(
     project = list(
       type = "website",
-      `output-dir` = if (mode == "devel") "../docs/dev/" else "../docs/"
+      `output-dir` = build_dir_name
     ),
     language = list(`search-text-placeholder` = " Search"),
     website = list(
@@ -464,9 +471,9 @@ quarto_config <- function(
   settings
 }
 
-# _quartodown.yml's `theme:` (Quarto's `default` and `darkly` unless set), with
-# quartodown's SCSS on top, then the package's _quartodown/extra.scss so it
-# overrides quartodown's.
+# _quartodown.yml's `theme:` (Quarto's `default`, on its own and with
+# quartodown-dark.scss, unless set), with quartodown's SCSS on top, then the
+# package's _quartodown/extra.scss so it overrides quartodown's.
 quarto_theme <- function(path, config = list()) {
   if (!is.null(config$theme) && !is.list(config$theme)) {
     config_abort(
@@ -477,7 +484,7 @@ quarto_theme <- function(path, config = list()) {
       )
     )
   }
-  theme <- list(light = "default", dark = "darkly")
+  theme <- list(light = "default", dark = "default")
   for (mode in names(theme)) {
     value <- config$theme[[mode]]
     if (is.null(value)) {
@@ -497,7 +504,15 @@ quarto_theme <- function(path, config = list()) {
     "quartodown.scss",
     if (file.exists(file.path(path, extra_scss))) extra_scss
   )
-  list(light = c(theme$light, layers), dark = c(theme$dark, layers))
+  list(
+    light = c(theme$light, layers),
+    # Last, for extra.scss to override it: see the file.
+    dark = c(
+      theme$dark,
+      layers,
+      if (is.null(config$theme$dark)) "quartodown-dark.scss"
+    )
+  )
 }
 
 # The package's logo, `man/figures/logo` with the first of the `exts` that

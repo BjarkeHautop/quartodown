@@ -60,15 +60,52 @@ test_that("other packages' topics link to their pkgdown site, or else rdrr.io", 
   expect_equal(sum(fetched$urls == "https://cli.r-lib.org"), 1)
 })
 
-test_that("a package that isn't installed isn't linked or looked up", {
+test_that("a package that isn't installed has no topics or vignettes linked", {
   fetched <- local_sites()
   ctx <- link_context()
   attach_packages(ctx, "notapkg")
   expect_equal(href_topic(ctx, "f", "notapkg"), NA_character_)
   expect_equal(href_topic(ctx, "f", is_fun = TRUE), NA_character_)
-  expect_equal(href_package("notapkg"), NA_character_)
   expect_equal(href_article(ctx, "intro", "notapkg"), NA_character_)
   expect_length(fetched$urls, 0)
+})
+
+test_that("a package that isn't installed links to its home page on CRAN's details", {
+  fetched <- local_sites(
+    cran = list(
+      notapkg = c(Package = "notapkg", URL = "https://a.org, https://b.org"),
+      nourl = c(Package = "nourl")
+    )
+  )
+  expect_equal(href_package("notapkg"), "https://a.org")
+  expect_equal(
+    href_package("nourl"),
+    "https://cran.r-project.org/package=nourl"
+  )
+  expect_equal(href_package("notoncran"), NA_character_)
+  expect_equal(href_package("not/a package"), NA_character_)
+
+  # Each is only looked up once, even the one that isn't on CRAN.
+  expect_equal(href_package("notapkg"), "https://a.org")
+  expect_equal(href_package("notoncran"), NA_character_)
+  expect_equal(
+    fetched$urls,
+    sprintf(
+      "https://cloud.r-project.org/web/packages/%s/DESCRIPTION",
+      c("notapkg", "nourl", "notoncran")
+    )
+  )
+})
+
+test_that("a package that isn't installed isn't linked without a network", {
+  local_sites()
+  local_mocked_bindings(
+    fetch_cran_description = function(url) list(value = NULL, failed = TRUE)
+  )
+  expect_equal(href_package("a"), NA_character_)
+  expect_equal(href_package("b"), NA_character_)
+  expect_warning(expect_equal(href_package("c"), NA_character_), "rdrr.io")
+  expect_true(network_down())
 })
 
 test_that("a re-exported function links to the package it comes from", {
@@ -133,7 +170,7 @@ test_that("a site's pkgdown.yml is cached across sessions, but a failed download
   local_sites()
   calls <- 0
   result <- list(
-    yml = list(urls = list(reference = "https://x.org/ref")),
+    value = list(urls = list(reference = "https://x.org/ref")),
     failed = FALSE
   )
   local_mocked_bindings(fetch_pkgdown_yml = function(url) {
@@ -144,7 +181,7 @@ test_that("a site's pkgdown.yml is cached across sessions, but a failed download
   expect_equal(pkgdown_yml("https://x.org")$urls$reference, "https://x.org/ref")
   expect_equal(calls, 1)
 
-  result <- list(yml = NULL, failed = TRUE)
+  result <- list(value = NULL, failed = TRUE)
   expect_null(pkgdown_yml("https://y.org"))
   expect_null(pkgdown_yml("https://y.org"))
   expect_equal(calls, 3)
@@ -160,20 +197,20 @@ test_that("a site without urls in its pkgdown.yml has them under its root", {
 test_that("a failed download falls back to a week-old copy", {
   local_sites()
   result <- list(
-    yml = list(urls = list(reference = "https://x.org/ref")),
+    value = list(urls = list(reference = "https://x.org/ref")),
     failed = FALSE
   )
   local_mocked_bindings(fetch_pkgdown_yml = function(url) result)
   pkgdown_yml("https://x.org")
   # A week later, without a network.
   file <- list.files(
-    file.path(link_cache_dir(), "pkgdown-yml"),
+    file.path(link_cache_dir(), "sites"),
     full.names = TRUE
   )
   entry <- readRDS(file)
   entry$time <- entry$time - 8 * 24 * 3600
   saveRDS(entry, file)
-  result <- list(yml = NULL, failed = TRUE)
+  result <- list(value = NULL, failed = TRUE)
   expect_equal(pkgdown_yml("https://x.org")$urls$reference, "https://x.org/ref")
 })
 
@@ -182,7 +219,7 @@ test_that("after three failed downloads in a row, nothing more is downloaded", {
   calls <- 0
   local_mocked_bindings(fetch_pkgdown_yml = function(url) {
     calls <<- calls + 1
-    list(yml = NULL, failed = TRUE)
+    list(value = NULL, failed = TRUE)
   })
   expect_null(pkgdown_yml("https://a.org"))
   expect_null(pkgdown_yml("https://b.org"))
@@ -203,7 +240,7 @@ test_that("a site that's down doesn't stop the others' downloads", {
   local_mocked_bindings(fetch_pkgdown_yml = function(url) {
     calls <<- calls + 1
     list(
-      yml = if (url != "https://down.org") list(),
+      value = if (url != "https://down.org") list(),
       failed = url == "https://down.org"
     )
   })
@@ -222,7 +259,7 @@ test_that("a site that's down doesn't stop the others' downloads", {
 
 test_that("sites downloaded a month ago and an expired offline marker are pruned", {
   local_sites()
-  dir <- file.path(link_cache_dir(), "pkgdown-yml")
+  dir <- file.path(link_cache_dir(), "sites")
   dir.create(dir, recursive = TRUE)
   old <- file.path(dir, "old.rds")
   recent <- file.path(dir, "recent.rds")

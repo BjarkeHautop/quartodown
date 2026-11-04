@@ -1,47 +1,15 @@
-/*-- scss:defaults --*/
-// A teal accent and serif headings, in both themes.
-$primary: #0f766e;
-$headings-font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-
 /*-- scss:rules --*/
-// The navbar as a band of the accent color, with light text and icons.
-.navbar {
-  background-color: $primary !important;
-  --bs-navbar-color: rgba(255, 255, 255, 0.85) !important;
-  --bs-navbar-hover-color: #fff !important;
-  --bs-navbar-active-color: #fff !important;
-  --bs-navbar-brand-color: #fff !important;
-  --bs-navbar-brand-hover-color: #fff !important;
-}
-
-.navbar-title {
-  font-family: $headings-font-family;
-}
-
-.navbar-nav .nav-link:hover,
-.navbar .quarto-navigation-tool:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-}
-
-.navbar-nav .nav-link.active {
-  border-bottom-color: #fff;
-}
-
-.navbar .quarto-navigation-tool {
-  color: #fff !important;
-}
-
-.navbar .quarto-color-scheme-toggle .bi::before {
-  filter: brightness(0) invert(1);
-}
-
 // Rounder code blocks, marked with the accent.
 div.sourceCode {
   border-radius: 0.75rem;
   border-left: 4px solid $primary;
 }
 
-// Each function on the reference index as a card.
+// Each function on the reference index as a card, below the logo.
+dl.ref-index {
+  clear: both;
+}
+
 dl.ref-index dt,
 dl.ref-index dd {
   background: rgba($body-color, 0.04);

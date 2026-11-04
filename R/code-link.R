@@ -1,6 +1,6 @@
 # ---- after rendering ----------------------------------------------------------
 #
-# Each docs/**/*.html page is read and written once, and in between: its ANSI
+# Each page of the built site is read and written once, and in between: its ANSI
 # codes protected from xml2 (see protect_ansi()), the other site's content
 # removed (other_site_classes()), its code linked, with tooltips for the
 # package's own topics (link_code_html()), the logo put by its title
@@ -10,18 +10,17 @@ postprocess_pages <- function(
   path,
   config = list(),
   topics = rd_topics(path),
-  tooltips = TRUE
+  tooltips = TRUE,
+  docs = site_dir(path, config)
 ) {
-  docs <- site_dir(path, config)
   tooltips <- isTRUE(tooltips)
   index <- build_topic_index(path, config, topics)
+  if (tooltips) {
+    index <- highlight_usages(index)
+  }
   pkg <- if (length(index) > 0) pkg_name(path)
   drop <- other_site_classes(dev_mode(path, config))
   pages <- fs::dir_ls(docs, regexp = "\\.html$", recurse = TRUE)
-  # A release build leaves the development site in dev/ as it was.
-  if (docs == docs_dir(path)) {
-    pages <- pages[!fs::path_has_parent(pages, file.path(docs, "dev"))]
-  }
   logo <- site_logo(path, config)
   copy_logo(path, docs, logo)
   prune_link_cache()
@@ -321,15 +320,23 @@ code_refs <- function(ctx, text) {
   }
   refs <- do.call(rbind, refs)
   refs <- refs[!duplicated(refs$i), , drop = FALSE]
-  # From the parser's lines and columns to positions in `text`.
-  lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
-  line_start <- cumsum(c(1, nchar(lines) + 1))
-  rows <- data[refs$i, , drop = FALSE]
+  pos <- token_positions(data[refs$i, , drop = FALSE], text)
   data.frame(
-    start = line_start[rows$line1] + rows$col1 - 1,
-    end = line_start[rows$line2] + rows$col2 - 1,
+    start = pos$start,
+    end = pos$end,
     url = refs$url,
     own = refs$own
+  )
+}
+
+# Where the parse data `rows` of the R code `text` `start` and `end` in it,
+# from the parser's lines and columns.
+token_positions <- function(rows, text) {
+  lines <- strsplit(text, "\n", fixed = TRUE)[[1]]
+  line_start <- cumsum(c(1, nchar(lines) + 1))
+  list(
+    start = line_start[rows$line1] + rows$col1 - 1,
+    end = line_start[rows$line2] + rows$col2 - 1
   )
 }
 
