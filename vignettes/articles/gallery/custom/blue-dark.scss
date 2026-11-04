@@ -1,0 +1,24 @@
+/*-- scss:defaults --*/
+// The same blue on a navy page.
+$primary: #7fb3e6;
+$link-color: $primary;
+$body-bg: #10161d;
+$body-color: #d6dde5;
+$headings-color: #f0f4f8;
+$text-muted: #9aa8b6;
+$border-color: #6b7a8a;
+$code-color: #c3b1e8;
+$code-bg: $body-bg;
+$code-block-bg: #18212b;
+$pre-color: inherit;
+
+// Bootstrap's defaults for these are meant for a light page.
+$input-bg: #1c2530;
+$popover-bg: #1c2530;
+$footer-bg: $body-bg;
+$dropdown-bg: $body-bg;
+$dropdown-color: $body-color;
+$dropdown-link-color: $body-color;
+$dropdown-link-hover-color: $headings-color;
+$dropdown-link-hover-bg: #2a3542;
+$nav-tabs-link-active-color: $body-color;
