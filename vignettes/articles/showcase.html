@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-5e9a84f7005357d19bed59457b8bfb26.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -493,10 +493,9 @@ Source
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
-<span><span class="co">#&gt;   10.40   15.43   19.20   20.09   22.80   33.90</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(mtcars<span class="sc">$</span>mpg)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   10.40   15.43   19.20   20.09   22.80   33.90</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
@@ -504,8 +503,7 @@ Source
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span>, main <span class="op">=</span> <span class="cn">NULL</span>, xlab <span class="op">=</span> <span class="st">"Miles per gallon"</span>, col <span class="op">=</span> <span class="st">"steelblue"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span>(mtcars<span class="sc">$</span>mpg, <span class="at">main =</span> <span class="cn">NULL</span>, <span class="at">xlab =</span> <span class="st">"Miles per gallon"</span>, <span class="at">col =</span> <span class="st">"steelblue"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="cell-output-display">
@@ -519,12 +517,11 @@ Source
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span>, data <span class="op">=</span> <span class="va">mtcars</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   cyl      mpg</span></span>
-<span><span class="co">#&gt; 1   4 26.66364</span></span>
-<span><span class="co">#&gt; 2   6 19.74286</span></span>
-<span><span class="co">#&gt; 3   8 15.10000</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span>(mpg <span class="sc">~</span> cyl, <span class="at">data =</span> mtcars, <span class="at">FUN =</span> mean)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   cyl      mpg</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1   4 26.66364</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2   6 19.74286</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3   8 15.10000</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
@@ -566,8 +563,8 @@ Source
 </details></section><section id="code-annotations" class="level2"><h2 class="anchored" data-anchor-id="code-annotations">Code annotations</h2>
 <p>Hover over the numbers to see the annotations.</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="annotated-cell-3"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-1" class="code-annotation-target"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quartodown</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/use_quartodown.html">use_quartodown</a></span>()</span>
-<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="2">2</button><span id="annotated-cell-3-2" class="code-annotation-target"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">quartodown</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/build_site.html">build_site</a></span>(<span class="at">devel =</span> <span class="cn">TRUE</span>)</span><div class="code-annotation-gutter-bg"></div>
+<div class="sourceCode" id="annotated-cell-3"><pre class="sourceCode r code-annotation-code code-with-copy code-annotated"><code class="sourceCode r"><button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="1">1</button><span id="annotated-cell-3-1" class="code-annotation-target"><a href="#annotated-cell-3-1" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu">use_quartodown</span>()</span>
+<button class="code-annotation-anchor" data-target-cell="annotated-cell-3" data-target-annotation="2">2</button><span id="annotated-cell-3-2" class="code-annotation-target"><a href="#annotated-cell-3-2" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu">build_site</span>(<span class="at">devel =</span> <span class="cn">TRUE</span>)</span><div class="code-annotation-gutter-bg"></div>
 <div class="code-annotation-gutter"></div></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
@@ -589,8 +586,8 @@ Source
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/use_quartodown.html">use_quartodown</a></span>() <span class="co"># &lt;1&gt;</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/build_site.html">build_site</a></span>(<span class="at">devel =</span> <span class="cn">TRUE</span>) <span class="co"># &lt;2&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu">use_quartodown</span>() <span class="co"># &lt;1&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu">build_site</span>(<span class="at">devel =</span> <span class="cn">TRUE</span>) <span class="co"># &lt;2&gt;</span></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Write <span class="in">`_quartodown.yml`</span> and gitignore the build output.</span>
@@ -599,16 +596,15 @@ Source
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </details></section><section id="function-links" class="level2"><h2 class="anchored" data-anchor-id="function-links">Function links</h2>
-<p>Functions from this package are linked to their reference page, with a tooltip on hover, both inline, like <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/build_site.html">build_site()</a></code>, and in code:</p>
+<p>Functions from this package are linked to their reference page, with a tooltip on hover, both inline, like <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site()</a></code>, and in code:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/build_site.html">build_site</a></span><span class="op">(</span>devel <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../../reference/preview_site.html">preview_site</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site</a></span>(<span class="at">devel =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/preview_site.html">preview_site</a></span>()</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
-<p>In code, functions from other packages are linked to their own documentation by <a href="https://downlit.r-lib.org/">downlit</a>, like <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> in the tabset above.</p>
+<p>In code, functions from other packages are linked to their own documentation, like <code><a href="https://rdrr.io/r/base/summary.html">summary()</a></code> in the tabset above.</p>
 </section><section id="footnotes-and-margin-content" class="level2 page-columns page-full"><h2 class="anchored" data-anchor-id="footnotes-and-margin-content">Footnotes and margin content</h2>
 <p>Footnotes are written with <code>[^name]</code>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Quarto shows them at the end of the page, and as a popup when you hover over the reference.</p>
 <details><summary>
@@ -637,8 +633,7 @@ Source
 <p>Code output, such as plots, gets a caption and a label you can reference: see <a href="#fig-pressure" class="quarto-xref">Figure 1</a>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">pressure</span>, type <span class="op">=</span> <span class="st">"b"</span>, pch <span class="op">=</span> <span class="fl">19</span>, col <span class="op">=</span> <span class="st">"steelblue"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span>(pressure, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"steelblue"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="cell-output-display">
@@ -655,8 +650,7 @@ Figure 1: Vapor pressure of mercury as a function of temperature.
 <p>Tables can be cross-referenced in the same way, as in <a href="#tbl-cars" class="quarto-xref">Table 1</a>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span>(<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(mtcars[, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div id="tbl-cars" class="cell quarto-float quarto-figure quarto-figure-center anchored">
@@ -763,34 +757,32 @@ Source
 <p>Output keeps the colors it has in the console, such as cli’s messages and errors:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">cli</span><span class="fu">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_h1.html">cli_h2</a></span><span class="op">(</span><span class="st">"Checking {.pkg quartodown}"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style='font-weight: bold;'>Checking </span><span class='fansi-color-004' style='font-weight: bold;'>quartodown</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="fu">cli</span><span class="fu">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_alert.html">cli_alert_success</a></span><span class="op">(</span><span class="st">"Found {.val {3}} vignettes."</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Found <span class='fansi-color-004'>3</span> vignettes.</span></span>
-<span><span class="fu">cli</span><span class="fu">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_abort.html">cli_abort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"Can't find {.file _quartodown.yml}."</span>,</span>
-<span>  <span class="st">"i"</span> <span class="op">=</span> <span class="st">"Create one with {.fn quartodown::use_quartodown}."</span></span>
-<span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span class='fansi-color-003' style='font-weight: bold;'>Error</span><span style='font-weight: bold;'>:</span></span></span>
-<span><span class="co">#&gt; <span class='fansi-color-003'>!</span> Can't find <span class='fansi-color-004'>_quartodown.yml</span>.</span></span>
-<span><span class="co">#&gt; <span class='fansi-color-006'>ℹ</span> Create one with `quartodown::use_quartodown()`.</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cli<span class="sc">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_h1.html">cli_h2</a></span>(<span class="st">"Checking {.pkg quartodown}"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ── <span style='font-weight: bold;'>Checking </span><span class='fansi-color-004' style='font-weight: bold;'>quartodown</span> ──</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>cli<span class="sc">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_alert.html">cli_alert_success</a></span>(<span class="st">"Found {.val {3}} vignettes."</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Found <span class='fansi-color-004'>3</span> vignettes.</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>cli<span class="sc">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_abort.html">cli_abort</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Can't find {.file _quartodown.yml}."</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"i"</span> <span class="ot">=</span> <span class="st">"Create one with {.fn quartodown::use_quartodown}."</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-003' style='font-weight: bold;'>Error</span><span style='font-weight: bold;'>:</span></span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-003'>!</span> Can't find <span class='fansi-color-004'>_quartodown.yml</span>.</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-006'>ℹ</span> Create one with `quartodown::use_quartodown()`.</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
 <p>and tibbles:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1.5</span>, <span class="cn">NA</span>, <span class="fl">3</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="cn">NA</span>, <span class="st">"c"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span class='fansi-color-246'># A tibble: 3 × 2</span></span></span>
-<span><span class="co">#&gt;       x y    </span></span>
-<span><span class="co">#&gt;   <span class='fansi-color-246' style='font-style: italic;'>&lt;dbl&gt;</span> <span class='fansi-color-246' style='font-style: italic;'>&lt;chr&gt;</span></span></span>
-<span><span class="co">#&gt; <span class='fansi-color-250'>1</span>  -<span class='fansi-color-001'>1.5</span> a    </span></span>
-<span><span class="co">#&gt; <span class='fansi-color-250'>2</span>  <span class='fansi-color-001'>NA</span>   <span class='fansi-color-001'>NA</span>   </span></span>
-<span><span class="co">#&gt; <span class='fansi-color-250'>3</span>   3   c</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>tibble<span class="sc">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span>(<span class="at">x =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="sc">-</span><span class="fl">1.5</span>, <span class="cn">NA</span>, <span class="dv">3</span>), <span class="at">y =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"a"</span>, <span class="cn">NA</span>, <span class="st">"c"</span>))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-246'># A tibble: 3 × 2</span></span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       x y    </span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   <span class='fansi-color-246' style='font-style: italic;'>&lt;dbl&gt;</span> <span class='fansi-color-246' style='font-style: italic;'>&lt;chr&gt;</span></span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-250'>1</span>  -<span class='fansi-color-001'>1.5</span> a    </span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-250'>2</span>  <span class='fansi-color-001'>NA</span>   <span class='fansi-color-001'>NA</span>   </span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-250'>3</span>   3   c</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
@@ -1072,7 +1064,7 @@ Source
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -1699,15 +1691,21 @@ Source
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig"><span><span class='fu'>use_quartodown</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code>build_site()</code> reads.</span></div><div data-for="t2"><code class="quartodown-tip-sig"><span><span class='fu'>build_site</span><span class='op'>(</span></span>
-<span>  path <span class='op'>=</span> <span class='st'>"."</span>,</span>
-<span>  tooltips <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  freeze <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  quiet <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  devel <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  workers <span class='op'>=</span> <span class='fl'>1</span>,</span>
-<span>  preview <span class='op'>=</span> <span class='fu'>interactive</span><span class='op'>(</span><span class='op'>)</span></span>
-<span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t3"><code class="quartodown-tip-sig"><span><span class='fu'>preview_site</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code>build_site()</code>), as built by <code>build_site()</code>, in a web browser.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">build_site</span>(
+  <span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">tooltips</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">freeze</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">quiet</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">devel</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">workers</span> <span class="at">=</span> <span class="dv">1</span>,
+  <span class="at">preview</span> <span class="at">=</span> <span class="fu">interactive</span>()
+)</code><span class="quartodown-tip-brief">Build the package website</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">preview_site</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Preview the built site</span>
+</div>
+</div>
 </body>
 </html>

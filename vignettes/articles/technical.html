@@ -32,9 +32,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-5e9a84f7005357d19bed59457b8bfb26.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -395,9 +395,9 @@ Warning
 <p>To save Quarto starting an R process per page, all examples run beforehand in one R process, which resets the global environment, search path, options and the like between pages, as <code>R CMD check</code> does. Pages whose examples fail or produce HTML widgets are left for Quarto to run.</p>
 <p>Under its title, each reference page and vignette links to its source file in the package’s <a href="../customizing.html#the-repository">repository</a>, if it has one.</p>
 </section><section id="code-links-and-tooltips" class="level2"><h2 class="anchored" data-anchor-id="code-links-and-tooltips">Code links and tooltips</h2>
-<p><a href="https://downlit.r-lib.org/">downlit</a> links function calls in R code blocks, and inline code like <code><a href="https://rdrr.io/r/base/mean.html">mean()</a></code>, to their documentation. <code>docs/pkgdown.yml</code> lets downlit on other sites link to your reference pages in turn.</p>
+<p>Function calls in R code, and inline code like <code><a href="https://rdrr.io/r/base/mean.html">mean()</a></code> or <code><a href="https://rdrr.io/r/base/mean.html">?mean</a></code>, link to their documentation: the package’s own pages, another installed package’s site, or else <a href="https://rdrr.io">rdrr.io</a>. A package that isn’t installed, as in <code><a href="https://rdrr.io/r/base/library.html">library(pkg)</a></code>, links to its site from its <code>DESCRIPTION</code> on CRAN, or else its repository or its CRAN page, but its functions aren’t linked. Where other packages’ sites are is cached in <code><a href="https://rdrr.io/r/tools/userdir.html">tools::R_user_dir("quartodown", "cache")</a></code>, and looked up again when more than a week old; delete the folder to look them all up again. <code>docs/pkgdown.yml</code> lets other sites, quartodown’s and pkgdown’s, link to your reference pages in turn.</p>
 <p>That file needs the site’s address: <code>url:</code> in <code>_quartodown/_quartodown.yml</code>, or else the first <code>URL</code> in <code>DESCRIPTION</code> that isn’t a GitHub, GitLab or Codeberg repository.</p>
-<p>References to the package’s own functions also get a hover tooltip with their usage and the first sentence of their description. <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site()</a></code> warns when a first sentence is longer than 200 characters, since the tooltip cuts it off. To build without tooltips, use <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(tooltips = FALSE)</a></code>.</p>
+<p>References to the package’s own functions also get a hover tooltip with their usage and title. A usage longer than 12 lines is shortened. To build without tooltips, use <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(tooltips = FALSE)</a></code>.</p>
 </section><section id="the-theme" class="level2"><h2 class="anchored" data-anchor-id="the-theme">The theme</h2>
 <p>The site has a light and a dark theme, and follows the browser’s preference. Each is built in layers:</p>
 <ol type="1">
@@ -607,7 +607,7 @@ Warning
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -1194,15 +1194,24 @@ Warning
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig"><span><span class='fu'>build_site</span><span class='op'>(</span></span>
-<span>  path <span class='op'>=</span> <span class='st'>"."</span>,</span>
-<span>  tooltips <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  freeze <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  quiet <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  devel <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  workers <span class='op'>=</span> <span class='fl'>1</span>,</span>
-<span>  preview <span class='op'>=</span> <span class='fu'>interactive</span><span class='op'>(</span><span class='op'>)</span></span>
-<span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t2"><code class="quartodown-tip-sig"><span><span class='fu'>preview_site</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code>build_site()</code>), as built by <code>build_site()</code>, in a web browser.</span></div><div data-for="t3"><code class="quartodown-tip-sig"><span><span class='fu'>use_quartodown</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code>build_site()</code> reads.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">build_site</span>(
+  <span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">tooltips</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">freeze</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">quiet</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">devel</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">workers</span> <span class="at">=</span> <span class="dv">1</span>,
+  <span class="at">preview</span> <span class="at">=</span> <span class="fu">interactive</span>()
+)</code><span class="quartodown-tip-brief">Build the package website</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">preview_site</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Preview the built site</span>
+</div>
+<div data-for="t3">
+<code class="quartodown-tip-sig"><span class="fu">use_quartodown</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Set up a package to use quartodown</span>
+</div>
+</div>
 </body>
 </html>

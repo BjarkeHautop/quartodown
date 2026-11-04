@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5e9a84f7005357d19bed59457b8bfb26.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -382,11 +382,10 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/bjarkehautop/quartodown/blob/HEAD/R/project.R"><code>R/project.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site()</a></code>), as built by <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site()</a></code>, in a web browser. The server keeps running for the rest of the R session and is reused by later calls, including <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site()</a></code>’s (which, with a server already running, leaves the open page to reload instead of opening another). It keeps serving the previous site while <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site()</a></code> runs. An open page reloads if the new build changed it.</p>
+<p>Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site()</a></code>), as built by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site()</a></code>, in a web browser. The server keeps running for the rest of the R session and is reused by later calls, including <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site()</a></code>’s (which, with a server already running, leaves the open page to reload instead of opening another). It keeps serving the previous site while <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site()</a></code> runs. An open page reloads if the new build changed it.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./preview_site.html">preview_site</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./preview_site.html">preview_site</a></span>(<span class="at">path =</span> <span class="st">"."</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section><section id="arguments" class="level2"><h2 class="anchored" data-anchor-id="arguments">Arguments</h2>
@@ -401,9 +400,8 @@ Path to the package root.
 <p>The site’s local URL, invisibly.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./preview_site.html">preview_site</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site</a></span>()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./preview_site.html">preview_site</a></span>()</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 
@@ -604,7 +602,7 @@ Path to the package root.
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -1191,15 +1189,21 @@ Path to the package root.
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig"><span><span class='fu'>build_site</span><span class='op'>(</span></span>
-<span>  path <span class='op'>=</span> <span class='st'>"."</span>,</span>
-<span>  tooltips <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  freeze <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  quiet <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  devel <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  workers <span class='op'>=</span> <span class='fl'>1</span>,</span>
-<span>  preview <span class='op'>=</span> <span class='fu'>interactive</span><span class='op'>(</span><span class='op'>)</span></span>
-<span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t2"><code class="quartodown-tip-sig"><span><span class='fu'>preview_site</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code>build_site()</code>), as built by <code>build_site()</code>, in a web browser.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">preview_site</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Preview the built site</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">build_site</span>(
+  <span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">tooltips</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">freeze</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">quiet</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">devel</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">workers</span> <span class="at">=</span> <span class="dv">1</span>,
+  <span class="at">preview</span> <span class="at">=</span> <span class="fu">interactive</span>()
+)</code><span class="quartodown-tip-brief">Build the package website</span>
+</div>
+</div>
 </body>
 </html>

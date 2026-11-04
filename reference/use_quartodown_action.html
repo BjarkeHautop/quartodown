@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5e9a84f7005357d19bed59457b8bfb26.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -383,11 +383,10 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/bjarkehautop/quartodown/blob/HEAD/R/use_quartodown_action.R"><code>R/use_quartodown_action.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Writes <code>.github/workflows/quartodown.yaml</code>, a GitHub Actions workflow that builds the site and deploys it to the <code>gh-pages</code> branch. It runs <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site()</a></code> on every push, pull request and release, but only deploys when it isn’t a pull request. Also adds <code>^\.github$</code> to <code>.Rbuildignore</code> if it’s not already there.</p>
+<p>Writes <code>.github/workflows/quartodown.yaml</code>, a GitHub Actions workflow that builds the site and deploys it to the <code>gh-pages</code> branch. It runs <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site()</a></code> on every push, pull request and release, but only deploys when it isn’t a pull request. Also adds <code>^\.github$</code> to <code>.Rbuildignore</code> if it’s not already there.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./use_quartodown_action.html">use_quartodown_action</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span>, overwrite <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_quartodown_action.html">use_quartodown_action</a></span>(<span class="at">path =</span> <span class="st">"."</span>, <span class="at">overwrite =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section><section id="arguments" class="level2"><h2 class="anchored" data-anchor-id="arguments">Arguments</h2>
@@ -415,26 +414,25 @@ Logical. Replace an existing <code>.github/workflows/quartodown.yaml</code>? By 
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pkg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempfile</a></span><span class="op">(</span><span class="st">"examplepkg"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.create</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/write.html">write</a></span><span class="op">(</span></span>
-<span>  <span class="st">"Package: examplepkg\nVersion: 0.0.0.9000"</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">pkg</span>, <span class="st">"DESCRIPTION"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./use_quartodown_action.html">use_quartodown_action</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Wrote <span class='fansi-color-004'>/tmp/RtmpRhChLo/examplepkg18ba6cc3328e/.github/workflows/quartodown.yaml</span>.</span></span>
-<span><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `^\.github$` to <span class='fansi-color-004'>/tmp/RtmpRhChLo/examplepkg18ba6cc3328e/.Rbuildignore</span>.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Next steps:</span></span>
-<span><span class="co">#&gt; 1. Commit and push the workflow.</span></span>
-<span><span class="co">#&gt; 2. Once its first run has created the `gh-pages` branch, go to the Pages</span></span>
-<span><span class="co">#&gt; section of the repository's settings on GitHub and choose to deploy from that</span></span>
-<span><span class="co">#&gt; branch.</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="va">pkg</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, all.files <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] ".github/workflows/quartodown.yaml" ".Rbuildignore"                    </span></span>
-<span><span class="co">#&gt; [3] "DESCRIPTION"</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html">unlink</a></span><span class="op">(</span><span class="va">pkg</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pkg <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempfile</a></span>(<span class="st">"examplepkg"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.create</a></span>(pkg)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/write.html">write</a></span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Package: examplepkg</span><span class="sc">\n</span><span class="st">Version: 0.0.0.9000"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"DESCRIPTION"</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_quartodown_action.html">use_quartodown_action</a></span>(pkg)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Wrote <span class='fansi-color-004'>/tmp/Rtmp2WWRtB/examplepkg19504c9298c/.github/workflows/quartodown.yaml</span>.</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `^\.github$` to <span class='fansi-color-004'>/tmp/Rtmp2WWRtB/examplepkg19504c9298c/.Rbuildignore</span>.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Next steps:</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1. Commit and push the workflow.</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2. Once its first run has created the `gh-pages` branch, go to the Pages</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; section of the repository's settings on GitHub and choose to deploy from that</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; branch.</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span>(pkg, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">all.files =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] ".github/workflows/quartodown.yaml" ".Rbuildignore"                    </span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3] "DESCRIPTION"</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/unlink.html">unlink</a></span>(pkg, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
@@ -636,7 +634,7 @@ Logical. Replace an existing <code>.github/workflows/quartodown.yaml</code>? By 
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -1223,15 +1221,21 @@ Logical. Replace an existing <code>.github/workflows/quartodown.yaml</code>? By 
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig"><span><span class='fu'>build_site</span><span class='op'>(</span></span>
-<span>  path <span class='op'>=</span> <span class='st'>"."</span>,</span>
-<span>  tooltips <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  freeze <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  quiet <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
-<span>  devel <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
-<span>  workers <span class='op'>=</span> <span class='fl'>1</span>,</span>
-<span>  preview <span class='op'>=</span> <span class='fu'>interactive</span><span class='op'>(</span><span class='op'>)</span></span>
-<span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t2"><code class="quartodown-tip-sig"><span><span class='fu'>use_quartodown_action</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span>, overwrite <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Writes <code>.github/workflows/quartodown.yaml</code>, a GitHub Actions workflow that builds the site and deploys it to the <code>gh-pages</code> branch.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">use_quartodown_action</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">overwrite</span> <span class="at">=</span> <span class="cn">FALSE</span>)</code><span class="quartodown-tip-brief">Set up a GitHub Actions workflow that publishes the site</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">build_site</span>(
+  <span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">tooltips</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">freeze</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">quiet</span> <span class="at">=</span> <span class="cn">TRUE</span>,
+  <span class="at">devel</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">workers</span> <span class="at">=</span> <span class="dv">1</span>,
+  <span class="at">preview</span> <span class="at">=</span> <span class="fu">interactive</span>()
+)</code><span class="quartodown-tip-brief">Build the package website</span>
+</div>
+</div>
 </body>
 </html>
