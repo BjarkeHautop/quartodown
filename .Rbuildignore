@@ -14,3 +14,5 @@
 ^\.pre-commit-config\.yaml$
 ^vignettes/articles$
 ^tools$
+^cran-comments\.md$
+^CRAN-SUBMISSION$

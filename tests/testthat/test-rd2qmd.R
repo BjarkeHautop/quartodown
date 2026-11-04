@@ -186,6 +186,8 @@ test_that("rd_to_qmd() names the Rd file whose \\Sexpr{}s fail", {
 
 test_that("rd_to_qmd() runs a section's \\Sexpr{} once, not again for the examples", {
   log <- withr::local_tempfile()
+  # Windows' backslashes would be escapes in the Rd and the R string.
+  log <- gsub("\\", "/", log, fixed = TRUE)
   qmd <- rd_qmd(c(
     "\\name{foo}",
     "\\alias{foo}",

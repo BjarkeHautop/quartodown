@@ -1,3 +1,3 @@
-# quartodown 0.0.0.9000
+# quartodown 0.1.0
 
 * Initial release.
