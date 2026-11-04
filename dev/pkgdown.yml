@@ -1,9 +1,0 @@
-urls:
-  reference: https://bjarkehautop.github.io/quartodown/dev/reference
-  article: https://bjarkehautop.github.io/quartodown/dev/vignettes
-articles:
-  customizing: customizing.html
-  quartodown: quartodown.html
-  gallery: articles/gallery.html
-  showcase: articles/showcase.html
-  technical: articles/technical.html
