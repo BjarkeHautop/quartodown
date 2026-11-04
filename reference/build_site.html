@@ -68,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-c85997ea31a2b74222a96203aca30d45.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-dark-5e9a84f7005357d19bed59457b8bfb26.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <link href="../site_libs/bootstrap/bootstrap-a81e34253019ca5b3287748a8349aa5f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
@@ -458,6 +458,7 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
+<p>The site is built in a scratch folder, <code>_quarto/_site/</code>, and replaces the one in <code>docs/</code> only once it is complete. So the previous site stays there, and viewable with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./preview_site.html">preview_site()</a></code>, while the build runs and if it fails.</p>
 <p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site()</a></code> assembles a Quarto website project in <code>_quarto/</code> from the package sources and <code>_quartodown/_quartodown.yml</code>, then renders it. It uses <code>README.md</code> (or, without one, <code>DESCRIPTION</code>), <code>man/</code>, the vignettes (including those in subfolders), <code>NEWS.md</code>, <code>LICENSE</code>/<code>LICENSE.md</code>, and <code>CODE_OF_CONDUCT.md</code>, <code>CONTRIBUTING.md</code> and <code>SUPPORT.md</code> (at the top level or in <code>.github/</code>). See <code>vignette("quartodown")</code> for what the site contains.</p>
 <p>While it builds, the environment variable <code>IN_QUARTODOWN</code> is <code>"true"</code>, so the package’s examples and vignettes can check <code>identical(Sys.getenv("IN_QUARTODOWN"), "true")</code>. <code>IN_QUARTODOWN_PKG</code> is the name of the package whose site it is, which code shared between packages can check.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
@@ -484,7 +485,7 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
 <p><code>repo</code>: the repository’s <code>url</code>s (<code>home</code>, and the prefixes of links to a file, <code>source</code>; an issue, <code>issue</code>; and a user, <code>user</code>) and <code>branch</code>. They default to those of DESCRIPTION’s GitHub, GitLab or Codeberg <code>URL</code>.</p>
 </li>
 <li>
-<p><code>theme</code>: the <code>light</code> and <code>dark</code> themes: names of Quarto’s built-in themes, such as <code>flatly</code> and <code>darkly</code>, or <code>.scss</code> files in <code>_quartodown/</code>. By default, <code>default</code> and <code>darkly</code>.</p>
+<p><code>theme</code>: the <code>light</code> and <code>dark</code> themes: names of Quarto’s built-in themes, such as <code>flatly</code> and <code>darkly</code>, or <code>.scss</code> files in <code>_quartodown/</code>. By default, <code>default</code> and a dark version of it.</p>
 </li>
 <li>
 <p><code>redirects</code>: pairs of paths, from an old page to the one replacing it, such as <code>["reference/old.html", "reference/new.html"]</code>.</p>
@@ -546,6 +547,33 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
     if (overflow > 0) {
       navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
     }
+  }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
   }
   // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
@@ -735,6 +763,7 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
 })();
 </script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -1280,6 +1309,6 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
 <span>  devel <span class='op'>=</span> <span class='cn'>FALSE</span>,</span>
 <span>  workers <span class='op'>=</span> <span class='fl'>1</span>,</span>
 <span>  preview <span class='op'>=</span> <span class='fu'>interactive</span><span class='op'>(</span><span class='op'>)</span></span>
-<span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t2"><code class="quartodown-tip-sig"><span><span class='fu'>preview_site</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code>build_site()</code>), as built by <code>build_site()</code>, in a web browser, and reloads the page when the site is rebuilt.</span></div><div data-for="t3"><code class="quartodown-tip-sig"><span><span class='fu'>use_quartodown</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code>build_site()</code> reads.</span></div></div>
+<span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t2"><code class="quartodown-tip-sig"><span><span class='fu'>preview_site</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code>build_site()</code>), as built by <code>build_site()</code>, in a web browser.</span></div><div data-for="t3"><code class="quartodown-tip-sig"><span><span class='fu'>use_quartodown</span><span class='op'>(</span>path <span class='op'>=</span> <span class='st'>"."</span><span class='op'>)</span></span></code><span class="quartodown-tip-brief">Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code>build_site()</code> reads.</span></div></div>
 </body>
 </html>
