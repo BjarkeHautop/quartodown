@@ -611,6 +611,32 @@ test_that("a topic with no \\usage{} shows its name as the signature", {
   )
 })
 
+test_that("usage_html() highlights a signature like a code block, without links", {
+  html <- usage_html("foo(a = \"<b>\", n = 1, f = interactive())")
+  expect_match(html, "<span class='fu'>foo</span>", fixed = TRUE)
+  expect_match(html, "<span class='st'>\"&lt;b&gt;\"</span>", fixed = TRUE)
+  expect_match(html, "<span class='fl'>1</span>", fixed = TRUE)
+  expect_match(html, "<span class='fu'>interactive</span>", fixed = TRUE)
+  expect_no_match(html, "<a", fixed = TRUE)
+
+  # Usage that doesn't parse is shown as is.
+  expect_identical(usage_html("foo(a <"), "foo(a &lt;")
+})
+
+test_that("highlight_usages() fills the payload's signature", {
+  index <- highlight_usages(list(
+    foo = list(usage = "foo(1)", brief = NULL, topic = "foo", name = "foo"),
+    bar = list(usage = NULL, brief = NULL, topic = "bar", name = "bar")
+  ))
+  payload <- tooltip_payload_html(index)
+  expect_match(payload, "<span class='fl'>1</span>", fixed = TRUE)
+  expect_match(
+    payload,
+    '<code class="quartodown-tip-sig">bar</code>',
+    fixed = TRUE
+  )
+})
+
 test_that("code in the brief is rendered as <code>, with its contents escaped", {
   tips <- list(
     t1 = list(usage = "f()", brief = "Stored in `dir(\"a\") < b`.", name = "f")

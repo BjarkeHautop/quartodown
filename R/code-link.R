@@ -16,6 +16,9 @@ postprocess_pages <- function(
   tooltips <- isTRUE(tooltips)
   # Without tooltips, their summaries' length doesn't matter.
   index <- build_topic_index(path, config, topics, quiet = !tooltips)
+  if (tooltips) {
+    index <- highlight_usages(index)
+  }
   pkg <- if (length(index) > 0) pkg_name(path)
   drop <- other_site_classes(dev_mode(path, config))
   pages <- fs::dir_ls(docs, regexp = "\\.html$", recurse = TRUE)

@@ -330,15 +330,41 @@ first_sentence <- function(text, max_chars = 200) {
 
 # ---- tooltip contents ---------------------------------------------------------
 
-# `tips`: id -> list(usage, brief, name), rendered as a hidden payload that
-# quartodown-after-body.html's script reads via
+# The topic index with each usage's HTML in `usage_html`, once per build since
+# the tips repeat across pages.
+highlight_usages <- function(index) {
+  lapply(index, function(entry) {
+    if (!is.null(entry$usage)) {
+      entry$usage_html <- usage_html(entry$usage)
+    }
+    entry
+  })
+}
+
+# `usage` with the classes of the page's code blocks, which downlit highlights
+# too, so the tip has their colors. Without downlit's links, as the tip is for
+# reading. Usage that doesn't parse is just escaped.
+usage_html <- function(usage) {
+  html <- downlit::highlight(
+    usage,
+    classes = downlit::classes_pandoc(),
+    pre_class = NULL
+  )
+  if (is.na(html)) {
+    return(html_escape(usage))
+  }
+  gsub("</?a\\b[^>]*>", "", html, perl = TRUE)
+}
+
+# `tips`: id -> list(usage, usage_html, brief, name), rendered as a hidden
+# payload that quartodown-after-body.html's script reads via
 # `data-for`/`data-quartodown-tip`.
 tooltip_payload_html <- function(tips) {
   entries <- vapply(
     names(tips),
     function(id) {
       tip <- tips[[id]]
-      sig <- if (!is.null(tip$usage)) tip$usage else tip$name
+      sig <- tip$usage_html %||% html_escape(tip$usage %||% tip$name)
       brief_html <- if (!is.null(tip$brief)) {
         brief <- gsub("`([^`]+)`", "<code>\\1</code>", html_escape(tip$brief))
         paste0("<span class=\"quartodown-tip-brief\">", brief, "</span>")
@@ -348,7 +374,7 @@ tooltip_payload_html <- function(tips) {
       sprintf(
         '<div data-for="%s"><code class="quartodown-tip-sig">%s</code>%s</div>',
         id,
-        html_escape(sig),
+        sig,
         brief_html
       )
     },

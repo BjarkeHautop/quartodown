@@ -590,8 +590,7 @@ a.quartodown-tip-ref {
     display: block;
     white-space: pre-wrap;
     font-family: $font-family-monospace;
-    font-weight: 600;
-    color: var(--bs-link-color);
+    color: var(--bs-body-color); // tokens have the code blocks' colors
     margin-bottom: 0.35em;
     background-color: transparent;
     padding: 0;
