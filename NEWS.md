@@ -2,9 +2,7 @@
 
 - Code is now linked by quartodown itself instead of downlit, so code blocks
   keep Quarto's highlighting, linking is more consistent, and builds work
-  offline. A package that isn't installed still links to its home page, or else
-  its CRAN page, looked up one package at a time rather than by downloading
-  CRAN's whole package database.
+  offline.
 
 - The default dark theme is now a dark version of Quarto's `default` theme, with
   a neutral near-black page and soft blue links, rather than `darkly`. Use
