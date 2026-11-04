@@ -172,7 +172,7 @@ quartodown::build_site() # also previews it when interactive
    (through the `pkgdown.yml` at its root, cached for a week in
    `tools::R_user_dir()`, `cached_download()`) or else rdrr.io. A package that
    isn't installed links only itself, from its `DESCRIPTION` on CRAN
-   (`cran_package_urls()`). Links to the package's own topics get a tooltip
+   (`cran_description()`). Links to the package's own topics get a tooltip
    ([R/tooltips.R](R/tooltips.R)), whose contents go in a hidden
    `.quartodown-tip-payload`, with signatures highlighted with Pandoc's classes
    (`usage_html()`); the tooltip's style and script are in `quartodown.scss` and
@@ -229,8 +229,8 @@ With `navbar: style: sidebar`, `quarto_config()` moves the resolved `left` items
 into a docked `website: sidebar:` (`sidebar_contents()`): menus become sections,
 and the reference item becomes a section listing every topic the index lists
 (`sidebar_reference()`, one sub-section per titled group). Labels are plain
-text, not code spans, since `add_tooltips_html()` would nest a link in the
-sidebar link; `quartodown.scss` sets them in the code font. Pages then have
+text, not code spans, since `link_code_html()` would nest a link in the sidebar
+link; `quartodown.scss` sets them in the code font. Pages then have
 `body.docked`, which turns off the navbar's width cap and the after-body
 script's title alignment, so the title sits above the sidebar.
 

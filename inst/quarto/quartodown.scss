@@ -561,7 +561,7 @@ $quartodown-mix: 100%;
 
 /* tooltips =================================================================== */
 
-// References to the package's own topics, linked by add_tooltips_html(). One
+// References to the package's own topics, linked by link_code_html(). One
 // `position: fixed` tooltip per page (see quartodown-after-body.html), so code
 // blocks' `overflow: auto` can't clip it.
 a.quartodown-tip-ref {

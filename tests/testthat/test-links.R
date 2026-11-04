@@ -97,6 +97,27 @@ test_that("a package that isn't installed links to its home page on CRAN's detai
   )
 })
 
+test_that("help(package = ) of a package that isn't installed finds its site", {
+  local_sites(
+    list("https://a.org" = list(urls = list(reference = "https://a.org/ref"))),
+    cran = list(
+      hassite = c(URL = "https://a.org"),
+      nosite = c(Package = "nosite")
+    )
+  )
+  ctx <- link_context()
+  expect_no_warning(url <- inline_ref(ctx, "help(package = \"hassite\")")$url)
+  expect_equal(url, "https://a.org/ref")
+  expect_equal(
+    inline_ref(ctx, "help(package = \"nosite\")")$url,
+    "https://rdrr.io/pkg/nosite/man"
+  )
+  expect_equal(
+    inline_ref(ctx, "help(package = \"notoncran\")")$url,
+    NA_character_
+  )
+})
+
 test_that("a package that isn't installed isn't linked without a network", {
   local_sites()
   local_mocked_bindings(

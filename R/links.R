@@ -5,7 +5,7 @@
 # (found through the pkgdown.yml at its root, see package_site()), or
 # rdrr.io. Only installed packages' topics and vignettes are linked, as their
 # help pages' names are only known then; a package that isn't installed links
-# to its home page, see cran_package_urls().
+# to its home page, see cran_description().
 
 # What a page's links are resolved against: the package `pkg`, its `topics`
 # (alias -> Rd name), the `names` they can be linked by as values (see
@@ -272,22 +272,42 @@ is_bioc_package <- function(package) {
 
 # The URL of the package `package`'s home page, or NA.
 href_package <- function(package) {
-  urls <- if (is_installed(package)) {
-    package_urls(package)
+  urls <- home_urls(package)
+  if (length(urls) > 0) {
+    urls[[1]]
+  } else if (!is_installed(package) && !is.null(cran_description(package))) {
+    paste0("https://cran.r-project.org/package=", package)
   } else {
-    cran_package_urls(package)
+    NA_character_
   }
-  if (length(urls) == 0) NA_character_ else urls[[1]]
 }
 
-# The base URL of the installed package `package`'s reference pages: its
-# site's, or else rdrr.io's.
+# The `URL`s in the DESCRIPTION of `package`, installed or on CRAN.
+home_urls <- function(package) {
+  if (is_installed(package)) {
+    return(package_urls(package))
+  }
+  description <- cran_description(package)
+  if (is.null(description)) {
+    return(character())
+  }
+  parse_urls(unname(description["URL"]))
+}
+
+# The base URL of the package `package`'s reference pages: its site's, or else
+# rdrr.io's; NA if it's neither installed nor on CRAN.
 package_reference_url <- function(package) {
   if (package %in% base_packages) {
     return(paste0("https://rdrr.io/r/", package))
   }
-  package_site(package)$reference %||%
-    paste0("https://rdrr.io/pkg/", package, "/man")
+  site <- package_site(package)$reference
+  if (!is.null(site)) {
+    return(site)
+  }
+  if (!is_installed(package) && is.null(cran_description(package))) {
+    return(NA_character_)
+  }
+  paste0("https://rdrr.io/pkg/", package, "/man")
 }
 
 # The `URL`s in the installed package `package`'s DESCRIPTION.
@@ -295,32 +315,24 @@ package_urls <- function(package) {
   parse_urls(utils::packageDescription(package, fields = "URL"))
 }
 
-# The `URL`s in the DESCRIPTION of `package`, which isn't installed, or else
-# its CRAN page; none if it isn't on CRAN. Only this package's DESCRIPTION is
-# downloaded, not CRAN's whole package database, from CRAN's CDN, as
-# cran.r-project.org can take over 10 seconds per file.
-cran_package_urls <- function(package) {
+# The fields of the DESCRIPTION of `package` on CRAN, or NULL if it isn't there.
+# Only this package's is downloaded, not CRAN's whole package database, from
+# CRAN's CDN, as cran.r-project.org can take over 10 seconds per file.
+cran_description <- function(package) {
   if (!grepl("^[A-Za-z][A-Za-z0-9.]*$", package)) {
-    return(character())
+    return(NULL)
   }
-  description <- cached_download(
-    "cran",
-    paste0(
-      "https://cloud.r-project.org/web/packages/",
-      package,
-      "/DESCRIPTION"
-    ),
-    fetch_cran_description
-  )
-  if (is.null(description)) {
-    return(character())
-  }
-  urls <- parse_urls(unname(description["URL"]))
-  if (length(urls) > 0) {
-    urls
-  } else {
-    paste0("https://cran.r-project.org/package=", package)
-  }
+  cached(paste0("cran:", package), function() {
+    cached_download(
+      "cran",
+      paste0(
+        "https://cloud.r-project.org/web/packages/",
+        package,
+        "/DESCRIPTION"
+      ),
+      fetch_cran_description
+    )
+  })
 }
 
 parse_urls <- function(url) {
@@ -337,17 +349,16 @@ parse_urls <- function(url) {
   )
 }
 
-# The pkgdown site of the installed package `package`, from the
-# pkgdown.yml it's installed with, or else at the root of one of its URLs:
-# `reference` and `article`, its pages' base URLs, and `articles`. NULL
-# without one.
+# The pkgdown site of the package `package`, from the pkgdown.yml it's
+# installed with, or else at the root of one of its URLs: `reference` and
+# `article`, its pages' base URLs, and `articles`. NULL without one.
 package_site <- function(package) {
   cached(paste0("site:", package), function() {
     local <- system.file("pkgdown.yml", package = package)
     if (local != "") {
       return(site_from_yml(yaml::read_yaml(local), NULL))
     }
-    for (url in package_urls(package)) {
+    for (url in home_urls(package)) {
       url <- sub("/+$", "", url)
       yml <- pkgdown_yml(url)
       if (is.list(yml)) {
