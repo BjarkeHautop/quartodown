@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.11.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Technical details – quartodown 0.1.0</title>
+<title>Technical details – quartodown 0.1.0.9000</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -32,9 +32,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-a60b9aca1d64e211604f042428c696ed.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-a63861887011647881fed7dcfea54449.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-a60b9aca1d64e211604f042428c696ed.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-cec79b75b621f41fbf3f714b42497c04.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -55,7 +55,7 @@ ul.task-list li input[type="checkbox"] {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
-    "search-text-placeholder": " Search for",
+    "search-text-placeholder": " Search",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -76,13 +76,13 @@ visitors who prefer it, before Quarto reads the stored choice.
     // No localStorage: keep Quarto's light default.
   }
 })();
-</script><meta property="og:title" content="Technical details – quartodown 0.1.0">
+</script><meta property="og:title" content="Technical details – quartodown 0.1.0.9000">
 <meta property="og:description" content="Package Websites Built Entirely with ‘Quarto’">
 <meta property="og:image" content="https://bjarkehautop.github.io/quartodown/man/figures/logo.png">
-<meta property="og:site_name" content="quartodown 0.1.0">
+<meta property="og:site_name" content="quartodown 0.1.0.9000">
 <meta property="og:image:height" content="600">
 <meta property="og:image:width" content="520">
-<meta name="twitter:title" content="Technical details – quartodown 0.1.0">
+<meta name="twitter:title" content="Technical details – quartodown 0.1.0.9000">
 <meta name="twitter:description" content="Package Websites Built Entirely with ‘Quarto’">
 <meta name="twitter:image" content="https://bjarkehautop.github.io/quartodown/man/figures/logo.png">
 <meta name="twitter:card" content="summary">
@@ -262,7 +262,7 @@ visitors who prefer it, before Quarto reads the stored choice.
   <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">quartodown 0.1.0</span>
+    <span class="navbar-title">quartodown 0.1.0.9000</span>
     </a>
   </div>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
@@ -306,15 +306,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span class="menu-text">Changelog</span></a>
   </li>  
 </ul>
-<ul class="navbar-nav navbar-nav-scroll ms-auto">
-<li class="nav-item compact">
-    <a class="nav-link" href="https://github.com/bjarkehautop/quartodown"> <i class="bi bi-github" role="img" aria-label="GitHub">
-</i> 
-<span class="menu-text"></span></a>
-  </li>  
-</ul>
 </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
+    <a href="https://github.com/bjarkehautop/quartodown" title="GitHub" class="quarto-navigation-tool px-1" aria-label="GitHub"><i class="bi bi-github"></i></a>
   <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="bi"></i></button>
 </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -334,7 +328,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content" tabindex="-1"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
-<h1 class="title">Technical details</h1>
+<img src="../../man/figures/logo-light.svg" class="quartodown-logo light-content" alt=""><img src="../../man/figures/logo.svg" class="quartodown-logo dark-content" alt=""><h1 class="title">Technical details</h1>
 </div>
 
 
@@ -356,16 +350,32 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">quartodown::build_site()</a></code> runs in three stages:</p>
 <ol type="1">
 <li>
-<strong>Before rendering</strong>, it installs the package into a temporary library and writes a Quarto project into <code>_quarto/</code>.</li>
+<strong>Before rendering</strong>, it installs the package into a temporary library, writes a Quarto project into <code>_quarto/</code> and runs the reference pages’ examples against that package.</li>
 <li>
-<strong>During rendering</strong>, Quarto renders <code>_quarto/</code> into <code>docs/</code>, running the examples and vignettes against that package.</li>
+<strong>During rendering</strong>, Quarto renders <code>_quarto/</code> into <code>docs/</code>, running the vignettes against that package.</li>
 <li>
-<strong>After rendering</strong>, it links code to its documentation, adds hover tooltips and writes the <a href="../../vignettes/customizing.html#redirects">redirect</a> pages.</li>
+<strong>After rendering</strong>, it links code to its documentation, adds hover tooltips, puts the <a href="../customizing.html#the-logo">logo</a> by each page’s title and writes the <a href="../customizing.html#redirects">redirect</a> pages.</li>
 </ol>
-<p>In an interactive session it then serves <code>docs/</code> with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/preview_site.html">preview_site()</a></code>. The server keeps running for the rest of the session, so after a rebuild the open page reloads instead of a new one opening.</p>
+<p>With <a href="../customizing.html#development-and-release-sites"><code>development: mode: devel</code></a>, the site goes in <code>docs/dev/</code> instead, and a build into <code>docs/</code> leaves <code>dev/</code> as it is.</p>
+<p>In an interactive session it then serves the site with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/preview_site.html">preview_site()</a></code>. The server keeps running for the rest of the session, so after a rebuild the open page reloads instead of a new one opening.</p>
 <p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(devel = TRUE)</a></code> skips the install and loads the package from source with <code><a href="https://pkgload.r-lib.org/reference/load_all.html">pkgload::load_all()</a></code> instead. It is faster, but code that starts other R processes (for example with callr or parallel) won’t find the package, and build-stage <code>\Sexpr{}</code> macros in the man pages don’t run.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site()</a></code>’s <code>workers</code> argument sets the number of processes to build with. More than one needs the <a href="https://mirai.r-lib.org/">mirai</a> package.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(freeze = TRUE)</a></code> reuses the results of code from an earlier build, kept in <code>_quarto/_freeze/</code>, for pages whose source hasn’t changed (Quarto’s <a href="https://quarto.org/docs/projects/code-execution.html#freeze">freeze</a>). Committing <code>_quarto/_freeze/</code> lets builds on CI reuse them too.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Freeze only checks each page’s own source, not your package’s code or the packages it uses. After changing a function or updating a dependency, the pages running that code keep their old output until you delete <code>_quarto/_freeze/</code>.</p>
+</div>
+</div>
 <p>Throughout the build, the environment variable <code>IN_QUARTODOWN</code> is <code>"true"</code>, so the package’s code can tell it is running for the site, and <code>IN_QUARTODOWN_PKG</code> is the package’s name.</p>
-<p><code>_quarto/</code> is rewritten on every build, and gitignored by <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../../reference/use_quartodown.html">quartodown::use_quartodown()</a></code>. To change the site, edit <code>_quartodown/</code> instead (see <a href="../../vignettes/customizing.html">Customizing your site</a>).</p>
+<p><code>_quarto/</code> is rewritten on every build, and gitignored by <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../../reference/use_quartodown.html">quartodown::use_quartodown()</a></code>. To change the site, edit <code>_quartodown/</code> instead (see <a href="../customizing.html">Customizing your site</a>).</p>
 <pre class="text"><code>_quarto/
 ├── _quarto.yml                   # Quarto configuration (navbar, footer, theme)
 ├── index.qmd                     # home page
@@ -375,18 +385,28 @@ visitors who prefer it, before Quarto reads the stored choice.
 ├── authors.qmd                   # authors and citation page
 ├── vignettes/                    # the vignettes, as they are
 ├── man/figures/                  # images for the README and man pages
-├── NEWS.md                       # changelog, with issues and users linked
+├── NEWS.md                       # changelog, titled, with issues and users linked
 ├── _quartodown/                  # the package's _quartodown/, as it is
 └── quartodown.scss               # theme on top of Quarto's HTML</code></pre>
+<p>The files listed under <code>vignettes: files:</code> (see <a href="../customizing.html#files-the-vignettes-use">Customizing your site</a>) are copied to the same paths, so that the vignettes’ relative paths to them resolve as in the package. Documents in them aren’t rendered as pages.</p>
 </section><section id="the-man-pages" class="level2"><h2 class="anchored" data-anchor-id="the-man-pages">The man pages</h2>
 <p>Each <code>man/*.Rd</code> file becomes a reference page, served at <code>reference/&lt;topic&gt;.html</code>. It is rendered with the package’s Rd macros (such as Rdpack’s <code>\insertRef{}</code>), and build-stage <code>\Sexpr{}</code> macros run with the package installed, as in <code>R CMD build</code>. Examples run, with their output in the same block as the code, prefixed with <code>#&gt;</code>. To give a chunk’s output a block of its own, in a vignette too, set <code>#| collapse: false</code> on it.</p>
-<p>If <code>DESCRIPTION</code>’s <code>URL</code> includes a GitHub, GitLab or Codeberg repository, each reference page and vignette links to its source file under the title.</p>
+<p>To save Quarto starting an R process per page, all examples run beforehand in one R process, which resets the global environment, search path, options and the like between pages, as <code>R CMD check</code> does. Pages whose examples fail or produce HTML widgets are left for Quarto to run.</p>
+<p>Under its title, each reference page and vignette links to its source file in the package’s <a href="../customizing.html#the-repository">repository</a>, if it has one.</p>
 </section><section id="code-links-and-tooltips" class="level2"><h2 class="anchored" data-anchor-id="code-links-and-tooltips">Code links and tooltips</h2>
 <p><a href="https://downlit.r-lib.org/">downlit</a> links function calls in R code blocks, and inline code like <code><a href="https://rdrr.io/r/base/mean.html">mean()</a></code>, to their documentation. <code>docs/pkgdown.yml</code> lets downlit on other sites link to your reference pages in turn.</p>
 <p>That file needs the site’s address: <code>url:</code> in <code>_quartodown/_quartodown.yml</code>, or else the first <code>URL</code> in <code>DESCRIPTION</code> that isn’t a GitHub, GitLab or Codeberg repository.</p>
 <p>References to the package’s own functions also get a hover tooltip with their usage and the first sentence of their description. <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site()</a></code> warns when a first sentence is longer than 200 characters, since the tooltip cuts it off. To build without tooltips, use <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(tooltips = FALSE)</a></code>.</p>
 </section><section id="the-theme" class="level2"><h2 class="anchored" data-anchor-id="the-theme">The theme</h2>
-<p>The site uses Quarto’s <code>default</code> theme in light mode and <code>darkly</code> in dark mode, or the themes <code>theme:</code> picks, with <code>quartodown.scss</code> on top of each, and then <code>_quartodown/extra.scss</code> if the package has one. With the <code>default</code> light theme, <code>quartodown-fonts.scss</code> also gives the dark theme the same system fonts and heading sizes. The mode follows the browser’s preference.</p>
+<p>The site has a light and a dark theme, and follows the browser’s preference. Each is built in layers:</p>
+<ol type="1">
+<li>the Quarto theme: <code>default</code> in light mode and <code>darkly</code> in dark mode, unless <a href="../customizing.html#styling-and-layout"><code>theme:</code></a> picks others,</li>
+<li>
+<code>quartodown.scss</code>, quartodown’s own styling,</li>
+<li>
+<code>_quartodown/extra.scss</code>, if the package has one.</li>
+</ol>
+<p>With the <code>default</code> light theme, <code>quartodown-fonts.scss</code> also gives the dark theme the same system fonts and heading sizes.</p>
 <p>Code output keeps the colors packages such as cli give it in a terminal, in shades that suit the light or dark theme.</p>
 
 
@@ -432,8 +452,108 @@ visitors who prefer it, before Quarto reads the stored choice.
     var version = document.createElement("small");
     version.className = "navbar-version";
     version.textContent = text.slice(spaceIndex + 1);
+    // A development or unreleased version's site (see dev_mode()) says so.
+    var mode = document.querySelector('meta[name="quartodown-dev-mode"]');
+    var tips = {
+      devel: "In-development version",
+      unreleased: "Unreleased version"
+    };
+    if (mode && tips[mode.content]) {
+      version.classList.add("navbar-version-dev");
+      version.title = tips[mode.content];
+    }
     title.appendChild(document.createTextNode(" "));
     title.appendChild(version);
+  }
+  // Next to the title, a switch between the released version's site and the
+  // development version's in its dev/ (see dev_mode()), showing both with the
+  // current one marked. The other links to the same page there, or to that
+  // site's home page if it lacks the page. The release build doesn't know
+  // whether there's a dev/ site, so it's looked for here. The answer is
+  // stored, so the switch shows at once on the next page instead of after the
+  // request, and checked again in the background.
+  function addVersionSwitch() {
+    var mode = document.querySelector('meta[name="quartodown-dev-mode"]');
+    var offset = document.querySelector('meta[name="quarto:offset"]');
+    var brand = document.querySelector(".navbar-brand-container");
+    if (!mode || !offset || !brand || !window.fetch) return;
+    if (mode.content !== "devel" && mode.content !== "release") return;
+    var onDev = mode.content === "devel";
+    var root = new URL(offset.content, window.location.href);
+    var other = new URL(onDev ? "../" : "dev/", root);
+    var page = window.location.pathname.slice(root.pathname.length);
+    var target = new URL(page || "index.html", other);
+    // Some servers send a missing page's request on to their 404 page.
+    function exists(url) {
+      return fetch(url, { method: "HEAD" }).then(function (response) {
+        return response.ok && !response.redirected;
+      }, function () {
+        return false;
+      });
+    }
+    var key = "quartodown-site:" + other.href;
+    function stored() {
+      try {
+        return window.localStorage.getItem(key) === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+    function store(found) {
+      try {
+        if (found) {
+          window.localStorage.setItem(key, "1");
+        } else {
+          window.localStorage.removeItem(key);
+        }
+      } catch (e) {
+        // No localStorage: look for the site on each page.
+      }
+    }
+    var versions;
+    function show() {
+      if (versions) return;
+      var current = document.createElement("span");
+      current.setAttribute("aria-current", "true");
+      current.textContent = onDev ? "dev" : "release";
+      current.title = onDev ?
+        "You're viewing the development version's documentation" :
+        "You're viewing the released version's documentation";
+      var link = document.createElement("a");
+      link.href = target.href + window.location.hash;
+      link.textContent = onDev ? "release" : "dev";
+      link.title = onDev ?
+        "Switch to this page in the released version's documentation" :
+        "Switch to this page in the development version's documentation";
+      // Whether the other site has this page is only asked when it's needed.
+      link.addEventListener("click", function (e) {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        var href = link.href;
+        exists(target.href).then(function (same) {
+          window.location.href = same ? href : other.href;
+        });
+      });
+      versions = document.createElement("div");
+      versions.className = "navbar-version-switch";
+      versions.setAttribute("role", "group");
+      versions.setAttribute("aria-label", "Documentation version");
+      versions.appendChild(onDev ? link : current);
+      versions.appendChild(onDev ? current : link);
+      brand.appendChild(versions);
+    }
+    if (stored()) show();
+    exists(other.href + "index.html").then(function (found) {
+      store(found);
+      if (found && !versions) {
+        show();
+        alignNavbarToContent();
+      } else if (!found && versions) {
+        versions.remove();
+        versions = null;
+        alignNavbarToContent();
+      }
+    });
   }
   // Leave `#>` output lines out of what the copy button copies. clipboard.js copies synchronously in its click handler, so a copy
   // event during a copy-button click is its.
@@ -505,6 +625,7 @@ visitors who prefer it, before Quarto reads the stored choice.
   // The payload comes after this script, at the end of the body.
   document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();
+  addVersionSwitch();
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
@@ -1051,7 +1172,8 @@ visitors who prefer it, before Quarto reads the stored choice.
   freeze = FALSE,
   quiet = TRUE,
   devel = FALSE,
+  workers = 1,
   preview = interactive()
-)</code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t2"><code class="quartodown-tip-sig">preview_site(path = &quot;.&quot;)</code><span class="quartodown-tip-brief">Serves <code>docs/</code>, as built by <code>build_site()</code>, in a web browser, and reloads the page when the site is rebuilt.</span></div><div data-for="t3"><code class="quartodown-tip-sig">use_quartodown(path = &quot;.&quot;)</code><span class="quartodown-tip-brief">Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code>build_site()</code> reads.</span></div></div>
+)</code><span class="quartodown-tip-brief">Builds the package website into <code>docs/</code> with Quarto.</span></div><div data-for="t2"><code class="quartodown-tip-sig">preview_site(path = &quot;.&quot;)</code><span class="quartodown-tip-brief">Serves <code>docs/</code> (or <code>docs/dev/</code>, for a development site; see the Configuration section of <code>build_site()</code>), as built by <code>build_site()</code>, in a web browser, and reloads the page when the site is rebuilt.</span></div><div data-for="t3"><code class="quartodown-tip-sig">use_quartodown(path = &quot;.&quot;)</code><span class="quartodown-tip-brief">Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code>build_site()</code> reads.</span></div></div>
 </body>
 </html>

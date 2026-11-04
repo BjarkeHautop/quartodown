@@ -1,63 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://bjarkehautop.github.io/quartodown/LICENSE-text.html</loc>
-    <lastmod>2026-11-04T14:17:16.187Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/vignettes/customizing.html</loc>
-    <lastmod>2026-11-04T14:17:15.589Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/vignettes/articles/technical.html</loc>
-    <lastmod>2026-11-04T14:17:15.591Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/index.html</loc>
-    <lastmod>2026-11-04T14:17:16.349Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/reference/index.html</loc>
-    <lastmod>2026-11-04T14:17:16.350Z</lastmod>
+    <loc>https://bjarkehautop.github.io/quartodown/reference/preview_site.html</loc>
+    <lastmod>2026-11-04T14:46:44.217Z</lastmod>
   </url>
   <url>
     <loc>https://bjarkehautop.github.io/quartodown/reference/use_quartodown_action.html</loc>
-    <lastmod>2026-11-04T14:17:16.178Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/reference/build_site.html</loc>
-    <lastmod>2026-11-04T14:17:16.067Z</lastmod>
+    <lastmod>2026-11-04T14:46:44.217Z</lastmod>
   </url>
   <url>
     <loc>https://bjarkehautop.github.io/quartodown/LICENSE.html</loc>
-    <lastmod>2026-11-04T14:17:16.187Z</lastmod>
+    <lastmod>2026-11-04T14:46:44.217Z</lastmod>
   </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/reference/use_quartodown.html</loc>
-    <lastmod>2026-11-04T14:17:16.165Z</lastmod>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/vignettes/articles/technical.html</loc>
+    <lastmod>2026-11-04T14:46:44.220Z</lastmod>
   </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/reference/preview_site.html</loc>
-    <lastmod>2026-11-04T14:17:16.145Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/NEWS.html</loc>
-    <lastmod>2026-11-04T14:17:16.186Z</lastmod>
-  </url>
-  <url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <loc>https://bjarkehautop.github.io/quartodown/authors.html</loc>
-    <lastmod>2026-11-04T14:17:16.375Z</lastmod>
+    <lastmod>2026-11-04T14:46:44.219Z</lastmod>
   </url>
-  <url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/reference/use_quartodown.html</loc>
+    <lastmod>2026-11-04T14:46:44.219Z</lastmod>
+  </url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/NEWS.html</loc>
+    <lastmod>2026-11-04T14:46:44.219Z</lastmod>
+  </url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/vignettes/customizing.html</loc>
+    <lastmod>2026-11-04T14:46:44.221Z</lastmod>
+  </url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/index.html</loc>
+    <lastmod>2026-11-04T14:46:44.220Z</lastmod>
+  </url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <loc>https://bjarkehautop.github.io/quartodown/vignettes/articles/gallery.html</loc>
-    <lastmod>2026-11-04T14:17:15.590Z</lastmod>
+    <lastmod>2026-11-04T14:46:44.221Z</lastmod>
   </url>
-  <url>
-    <loc>https://bjarkehautop.github.io/quartodown/vignettes/articles/showcase.html</loc>
-    <lastmod>2026-11-04T14:17:15.590Z</lastmod>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/reference/build_site.html</loc>
+    <lastmod>2026-11-04T14:46:44.221Z</lastmod>
   </url>
-  <url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <loc>https://bjarkehautop.github.io/quartodown/vignettes/quartodown.html</loc>
-    <lastmod>2026-11-04T14:17:15.589Z</lastmod>
+    <lastmod>2026-11-04T14:46:44.223Z</lastmod>
+  </url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/LICENSE-text.html</loc>
+    <lastmod>2026-11-04T14:46:44.222Z</lastmod>
+  </url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/vignettes/articles/showcase.html</loc>
+    <lastmod>2026-11-04T14:46:44.223Z</lastmod>
+  </url>
+  <url xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <loc>https://bjarkehautop.github.io/quartodown/reference/index.html</loc>
+    <lastmod>2026-11-04T14:46:44.222Z</lastmod>
   </url>
 </urlset>
