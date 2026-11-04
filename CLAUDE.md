@@ -113,9 +113,10 @@ quartodown::build_site() # also previews it when interactive
      (`quartodown.scss`, header/after-body HTML), with `ansi_scss_rules()`
      ([R/ansi.R](R/ansi.R)) appended to `quartodown.scss`. `quarto_theme()`
      builds the light/dark theme lists from `_quartodown.yml`'s `theme:`
-     (default `default`/`darkly`); `quartodown-fonts.scss` (system fonts, no web
-     fonts) is layered in only when the light theme is `default`, so Bootswatch
-     themes keep their fonts.
+     (default `default`, with `quartodown-dark.scss` as the dark theme's last
+     layer, so its defaults come first and `extra.scss` can override them);
+     `quartodown-fonts.scss` (system fonts, no web fonts) is layered in only
+     when the light theme is `default`, so Bootswatch themes keep their fonts.
    - The package's `_quartodown/` folder, copied to `_quarto/_quartodown/` so
      paths in `quarto:` settings resolve the same (Quarto doesn't render `_`
      folders). `extra.scss` is appended to both themes and `extra.css` set as

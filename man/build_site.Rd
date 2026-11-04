@@ -94,7 +94,7 @@ file, \code{source}; an issue, \code{issue}; and a user, \code{user}) and \code{
 default to those of DESCRIPTION's GitHub, GitLab or Codeberg \code{URL}.
 \item \code{theme}: the \code{light} and \code{dark} themes: names of Quarto's built-in
 themes, such as \code{flatly} and \code{darkly}, or \code{.scss} files in
-\verb{_quartodown/}. By default, \code{default} and \code{darkly}.
+\verb{_quartodown/}. By default, \code{default} and a dark version of it.
 \item \code{redirects}: pairs of paths, from an old page to the one replacing it,
 such as \verb{["reference/old.html", "reference/new.html"]}.
 \item \code{development}: \code{mode}, \code{release} (the default) to build the site into

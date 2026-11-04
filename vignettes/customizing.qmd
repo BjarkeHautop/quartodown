@@ -403,8 +403,8 @@ To change a single code chunk, use a chunk option such as `#| code-fold: true`.
 
 ## Styling and layout
 
-The site uses Quarto's `default` theme in light mode and `darkly` in dark mode.
-`theme:` picks others from Quarto's [built-in
+The site uses Quarto's `default` theme in light mode and a dark version of it in
+dark mode. `theme:` picks others from Quarto's [built-in
 themes](https://quarto.org/docs/output-formats/html-themes.html), with
 quartodown's styling on top:
 

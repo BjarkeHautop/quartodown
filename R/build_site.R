@@ -45,7 +45,7 @@
 #'   default to those of DESCRIPTION's GitHub, GitLab or Codeberg `URL`.
 #' * `theme`: the `light` and `dark` themes: names of Quarto's built-in
 #'   themes, such as `flatly` and `darkly`, or `.scss` files in
-#'   `_quartodown/`. By default, `default` and `darkly`.
+#'   `_quartodown/`. By default, `default` and a dark version of it.
 #' * `redirects`: pairs of paths, from an old page to the one replacing it,
 #'   such as `["reference/old.html", "reference/new.html"]`.
 #' * `development`: `mode`, `release` (the default) to build the site into
@@ -201,6 +201,7 @@ build_site <- function(
 
 theme_files <- c(
   "quartodown.scss",
+  "quartodown-dark.scss",
   "quartodown-fonts.scss",
   "quartodown-header.html",
   "quartodown-after-body.html",
@@ -470,9 +471,9 @@ quarto_config <- function(
   settings
 }
 
-# _quartodown.yml's `theme:` (Quarto's `default` and `darkly` unless set), with
-# quartodown's SCSS on top, then the package's _quartodown/extra.scss so it
-# overrides quartodown's.
+# _quartodown.yml's `theme:` (Quarto's `default`, on its own and with
+# quartodown-dark.scss, unless set), with quartodown's SCSS on top, then the
+# package's _quartodown/extra.scss so it overrides quartodown's.
 quarto_theme <- function(path, config = list()) {
   if (!is.null(config$theme) && !is.list(config$theme)) {
     config_abort(
@@ -483,7 +484,7 @@ quarto_theme <- function(path, config = list()) {
       )
     )
   }
-  theme <- list(light = "default", dark = "darkly")
+  theme <- list(light = "default", dark = "default")
   for (mode in names(theme)) {
     value <- config$theme[[mode]]
     if (is.null(value)) {
@@ -503,7 +504,15 @@ quarto_theme <- function(path, config = list()) {
     "quartodown.scss",
     if (file.exists(file.path(path, extra_scss))) extra_scss
   )
-  list(light = c(theme$light, layers), dark = c(theme$dark, layers))
+  list(
+    light = c(theme$light, layers),
+    # Last, for extra.scss to override it: see the file.
+    dark = c(
+      theme$dark,
+      layers,
+      if (is.null(config$theme$dark)) "quartodown-dark.scss"
+    )
+  )
 }
 
 # The package's logo, `man/figures/logo` with the first of the `exts` that

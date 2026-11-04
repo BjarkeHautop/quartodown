@@ -1,5 +1,9 @@
 # quartodown (development version)
 
+- The default dark theme is now a dark version of Quarto's `default` theme, with
+  a neutral near-black page and soft blue links, rather than `darkly`. Use
+  `theme: dark: darkly` to keep the old look.
+
 - `build_site()` builds the site in `_quarto/_site/`, and replaces the one in
   `docs/` only when it's complete. So the previous site stays in place during a
   build, and after a failed one. `preview_site()` now serves it with nanonext

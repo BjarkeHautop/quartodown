@@ -117,7 +117,8 @@ build without tooltips, use `build_site(tooltips = FALSE)`.
 The site has a light and a dark theme, and follows the browser's preference.
 Each is built in layers:
 
-1. the Quarto theme: `default` in light mode and `darkly` in dark mode, unless
+1. the Quarto theme: `default` in light mode and `default` with
+   `quartodown-dark.scss`, its colors for a dark page, in dark mode, unless
    [`theme:`](../customizing.qmd#styling-and-layout) picks others,
 2. `quartodown.scss`, quartodown's own styling,
 3. `_quartodown/extra.scss`, if the package has one.
