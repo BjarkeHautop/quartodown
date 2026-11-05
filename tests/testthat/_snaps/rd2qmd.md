@@ -6,7 +6,7 @@
       Warning:
       Some links go to internal topics, which have no page:
       * 'man/foo.Rd' links "helper", "helper_alias"
-      i Set `internal-pages: true` in _quartodown.yml to build pages for internal topics, or list them under `reference:`.
+      i List them under `reference:`, in a section with `title: internal` to keep them off the index.
 
 # navbar links to reference pages that won't exist warn
 
@@ -16,7 +16,7 @@
       Warning:
       Some links go to internal topics, which have no page:
       * _quartodown.yml `navbar:` links "topic-guide"
-      i Set `internal-pages: true` in _quartodown.yml to build pages for internal topics, or list them under `reference:`.
+      i List them under `reference:`, in a section with `title: internal` to keep them off the index.
       Warning:
       _quartodown.yml `navbar:` links "fooo", which is not a topic in 'man/'.
 

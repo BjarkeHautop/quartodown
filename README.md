@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 
+[![](https://www.r-pkg.org/badges/version/quartodown)](https://CRAN.R-project.org/package=quartodown)
 [![](https://github.com/bjarkehautop/quartodown/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bjarkehautop/quartodown/actions/workflows/R-CMD-check.yaml)
 [![](https://codecov.io/gh/bjarkehautop/quartodown/graph/badge.svg)](https://app.codecov.io/gh/bjarkehautop/quartodown)
 <!-- badges: end -->

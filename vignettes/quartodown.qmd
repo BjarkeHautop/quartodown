@@ -35,8 +35,13 @@ quartodown::build_site()
 opens it in your browser. You can keep reading it during a rebuild, after which
 the page reloads if it changed, and `preview_site()` opens it again if you've
 closed it. Examples and vignettes run against your package's current source.
-While iterating, `build_site(devel = TRUE)` is faster because it loads the
-package with `pkgload::load_all()` instead of installing it.
+
+Two arguments make builds faster:
+
+- `build_site(devel = TRUE)` loads the package with `pkgload::load_all()`
+  instead of installing it, which is useful while iterating.
+- `build_site(workers = 4)` builds with four processes, which helps most on
+  sites with many pages. It needs the [mirai](https://mirai.r-lib.org/) package.
 
 The following is added to your site:
 

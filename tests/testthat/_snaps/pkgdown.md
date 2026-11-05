@@ -8,9 +8,6 @@
       
       url: https://me.github.io/examplepkg
       
-      # Pages for internal topics too, which some links go to, as pkgdown builds.
-      internal-pages: true
-      
       development:
         mode: auto
       
@@ -52,6 +49,9 @@
       reference:
         - title: Functions
           contents: foo
+        - title: internal
+          contents:
+            - has_keyword("internal")
       
       # pkgdown's addresses of the vignettes and changelog, now under vignettes/
       # and NEWS.html.

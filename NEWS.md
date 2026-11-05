@@ -1,5 +1,8 @@
 # quartodown (development version)
 
+- Image URLs without a file extension, such as the CRAN badge from
+  `usethis::use_cran_badge()`, no longer get `.png` added, which broke them.
+
 - Code is now linked by quartodown itself instead of downlit, so code blocks
   keep Quarto's highlighting, linking is more consistent, and builds work
   offline.
@@ -20,9 +23,7 @@
   pkgdown's addresses of the vignettes and changelog working. It lists what it
   couldn't translate.
 
-- New `internal-pages: true` setting, to build a page for every internal topic,
-  not only those the reference index lists. Links to an internal topic without a
-  page, from another topic's documentation or the navbar, now warn.
+- Links to an internal topic without a page now give a warning.
 
 - The reference index shows lifecycle badges, and `reference:` takes pkgdown's
   `has_lifecycle()` selector. A section titled `internal` is hidden, as in

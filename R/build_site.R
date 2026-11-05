@@ -27,7 +27,7 @@
 #'   that isn't a source repository.
 #' * `reference`: the sections of the function reference index and the topics
 #'   each lists, by name or with selectors such as `starts_with()`. The format
-#'   is the same as pkgdown's.
+#'   is based on pkgdown's.
 #' * `navbar`: the items on the navbar's `left` and `right`: keywords such as
 #'   `reference` and `articles`, vignettes, and Quarto navbar items and menus;
 #'   and the icons in its `tools`, by default `repo`.
@@ -53,7 +53,7 @@
 #'   `docs/dev/`, next to the released version's; `unreleased` marks the
 #'   version as unreleased, and `auto` picks from the version number and
 #'   whether the package is on CRAN. The environment variable
-#'   `QUARTODOWN_DEV_MODE` overrides it. The format is the same as pkgdown's.
+#'   `QUARTODOWN_DEV_MODE` overrides it. The format is based on pkgdown's.
 #'   Content in `.quartodown-devel` or `.quartodown-release` shows on only
 #'   that site.
 #' * `vignettes`: `files`, files and folders outside `vignettes/` that the
@@ -61,8 +61,6 @@
 #'   `../man/rmd/shared.Rmd`, copied with them.
 #' * `logo`: `false` to leave the logo, `man/figures/logo.svg` or `.png`
 #'   (and in light mode `logo-light`, if it exists), off the pages' titles.
-#' * `internal-pages`: `true` to give every `\keyword{internal}` topic a
-#'   reference page, rather than only those the reference index lists.
 #' * `quarto`: settings merged over the generated Quarto configuration.
 #'
 #' `_quartodown/extra.scss` and `_quartodown/extra.css`, if they exist, style
@@ -243,7 +241,6 @@ read_config <- function(path) {
       "development",
       "vignettes",
       "logo",
-      "internal-pages",
       "quarto"
     )
   )
@@ -283,10 +280,6 @@ read_config <- function(path) {
   }
   if (!is.null(config$logo) && !isTRUE(config$logo) && !isFALSE(config$logo)) {
     config_abort("logo", "must be {.code true} or {.code false}.")
-  }
-  pages <- config[["internal-pages"]]
-  if (!is.null(pages) && !isTRUE(pages) && !isFALSE(pages)) {
-    config_abort("internal-pages", "must be {.code true} or {.code false}.")
   }
   config_redirects(config) # Checks it before the slow render.
   config
@@ -432,6 +425,9 @@ quarto_config <- function(
       html = list(
         theme = quarto_theme(path, config),
         toc = TRUE,
+        # Else Pandoc adds `.png` to image URLs without an extension, breaking
+        # badges such as https://www.r-pkg.org/badges/version/<pkg>.
+        `default-image-extension` = "",
         `include-in-header` = "quartodown-header.html",
         `include-after-body` = "quartodown-after-body.html"
       )

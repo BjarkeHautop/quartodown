@@ -30,8 +30,7 @@ it is.
 
 In an interactive session it then serves the site with `preview_site()`. The
 server keeps running for the rest of the session, so you can keep reading the
-previous site during a rebuild, and after it an open page that changed reloads
-instead of a new one opening.
+previous site during a rebuild, and after it an open page that changed reloads.
 
 `build_site(devel = TRUE)` skips the install and loads the package from source
 with `pkgload::load_all()` instead. It is faster, but code that starts other R

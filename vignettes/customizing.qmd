@@ -10,7 +10,7 @@ vignette: >
 If you want to customize your site, you can do so by editing
 `_quartodown/_quartodown.yml`, which `quartodown::use_quartodown()` creates. The
 `_quartodown/` folder at the package root also holds the files that [style the
-site](#styling-and-layout). `_quartodown.yml` has nine fields, all optional:
+site](#styling-and-layout). `_quartodown.yml` has twelve fields, all optional:
 
 - `url:` is the site's address. It defaults to the first `URL` in `DESCRIPTION`
   that isn't on GitHub, GitLab or Codeberg.
@@ -22,6 +22,10 @@ site](#styling-and-layout). `_quartodown.yml` has nine fields, all optional:
   Codeberg `URL` (or `BugReports`) in `DESCRIPTION`.
 - `theme:` picks the light and dark themes.
 - `redirects:` sends visitors from old addresses to new ones.
+- `development:` builds a [separate development
+  site](#development-and-release-sites).
+- `vignettes:` lists [files the vignettes use](#files-the-vignettes-use).
+- `logo:` turns off [the logo](#the-logo) by each page's title.
 - `quarto:` changes any other Quarto setting.
 
 ## The reference index
@@ -61,24 +65,30 @@ The selectors are:
   | `c(...)`                                              | selected by any of the selectors given                                              |
   | `-` before a topic or selector                        | removed from those the entries above select, or as the first entry, from all topics |
 
-Topics that no section lists get a warning and are left off the index. The
-exception is `\keyword{internal}` topics, which are left out, without a page,
-unless named, as with roxygen's `reexports`, or selected with `internal = TRUE`,
-as in `starts_with("dev_", internal = TRUE)`.
+A topic that no section lists is left off the index with a warning, but still
+gets a page. A topic with `\keyword{internal}` is left off without a warning,
+and gets no page. To change that:
 
-Links to an internal topic without a page, from another topic's documentation
-(`\link{helper}`, roxygen's `[helper()]`) or from the navbar, get a warning. To
-build a page for every internal topic, set:
+- **To hide a topic from the index without the warning**, list it in a section
+  titled `internal`, which isn't shown.
+- **To show an internal topic on the index**, name it in a section, as you would
+  for roxygen's `reexports`, or select it with `internal = TRUE`, as in
+  `starts_with("dev_", internal = TRUE)`. This gives it a page too.
+- **To give an internal topic a page but keep it off the index**, list it in the
+  section titled `internal`. To do this for all of them, use
+  `has_keyword("internal")`:
 
 ```yaml
-internal-pages: true
+reference:
+  - title: Read and write
+    contents:
+      - read_data
+  - title: internal
+    contents:
+      - has_keyword("internal")
 ```
 
-To leave a topic off the index without the warning, list it in a section titled
-`internal`, which isn't shown.
-
-The format is the same as pkgdown's `reference:` field, so an existing one can
-be copied over.
+The format is based on pkgdown's `reference:`.
 
 ## The navbar
 
@@ -249,7 +259,7 @@ authors:
 3. Markdown shown under the sidebar's list, or with `before:` above it.
 4. Instead of "Developed by".
 
-The format is the same as pkgdown's `authors:`.
+The format is based on pkgdown's `authors:`.
 
 ## The repository
 
@@ -282,7 +292,7 @@ repo:
 3. Prefix of links to issues.
 4. Prefix of links to users.
 
-The format is the same as pkgdown's `repo:`.
+The format is based on pkgdown's `repo:`.
 
 ## Redirects
 
@@ -531,7 +541,7 @@ quarto:
 
 In a package with a `_pkgdown.yml`, `use_quartodown()` translates it into
 `_quartodown/_quartodown.yml`, and lists the settings it couldn't translate.
-Fields of the same format are copied: `url:`, `reference:`, `home: sidebar:`,
+Fields with a similar format are copied: `url:`, `reference:`, `home: sidebar:`,
 `home: links:`, `authors:`, `repo:`, `redirects:` and `development: mode:`. The
 rest maps as follows:
 

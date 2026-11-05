@@ -203,12 +203,28 @@ translate_pkgdown <- function(path, file) {
   config$quarto <- drop_empty(quarto)
 
   # pkgdown builds every topic's page, which links may rely on.
-  links <- internal_links(config, rd_topics(path), pkg_name(path))
+  topics <- rd_topics(path)
+  links <- internal_links(config, topics, pkg_name(path))
   if (length(links$rd) > 0 || length(links$navbar) > 0) {
-    config$`internal-pages` <- TRUE
+    config$reference <- reference_with_internal_pages(config, topics)
   }
 
   list(config = config, files = files, skipped = skipped)
+}
+
+# `reference:` with a hidden section selecting every internal topic, which gives
+# them pages. All of them, as a new page's own links can go to others. Keeps the
+# default section if there's no `reference:`, as any section replaces it.
+reference_with_internal_pages <- function(config, topics) {
+  blocks <- reference_blocks(config, topics)
+  selector <- "has_keyword(\"internal\")"
+  hidden <- which(vapply(blocks, hidden_block, logical(1)))
+  if (length(hidden) == 0) {
+    return(c(blocks, list(list(title = "internal", contents = list(selector)))))
+  }
+  contents <- as.list(blocks[[hidden[[1]]]]$contents)
+  blocks[[hidden[[1]]]]$contents <- c(contents, selector)
+  blocks
 }
 
 # `x` without its empty lists, at any depth; NULL if nothing is left.
@@ -626,12 +642,10 @@ pkgdown_redirects <- function(path, redirects, vignettes) {
 # The lines of _quartodown.yml for the translated `config`.
 pkgdown_config_yml <- function(config, file) {
   comments <- list(
-    `internal-pages` = "# Pages for internal topics too, which some links go to, as pkgdown builds.",
     redirects = "# pkgdown's addresses of the vignettes and changelog, now under vignettes/\n# and NEWS.html."
   )
   order <- c(
     "url",
-    "internal-pages",
     "development",
     "navbar",
     "home",

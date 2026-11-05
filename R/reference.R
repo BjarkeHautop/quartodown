@@ -528,7 +528,7 @@ reference_blocks <- function(config, topics) {
   public <- !topic_internal(topics)
   list(list(
     title = "All functions",
-    contents = topic_first_alias(topics[public])
+    contents = unname(topic_first_alias(topics[public]))
   ))
 }
 
@@ -540,12 +540,8 @@ reference_block_topics <- function(blocks, topics) {
 }
 
 # Whether each of `topics` gets a reference page: every public topic does,
-# and an internal one only if the reference index lists it or
-# `internal-pages: true`.
+# and an internal one only if a `reference:` section lists it.
 has_page <- function(topics, config = list()) {
-  if (isTRUE(config[["internal-pages"]])) {
-    return(rep(TRUE, length(topics)))
-  }
   blocks <- reference_blocks(config, topics)
   listed <- unlist(reference_block_topics(blocks, topics))
   !topic_internal(topics) | seq_along(topics) %in% listed
@@ -614,7 +610,7 @@ check_internal_links <- function(config, topics, pkg) {
     cli::cli_warn(c(
       "Some links go to internal topics, which have no page:",
       structure(bullets, names = rep("*", length(bullets))),
-      i = "Set {.code internal-pages: true} in _quartodown.yml to build pages for internal topics, or list them under {.code reference:}."
+      i = "List them under {.code reference:}, in a section with {.code title: internal} to keep them off the index."
     ))
   }
   unknown <- links$unknown

@@ -378,9 +378,14 @@ test_that("write_man_pages() writes a page per Rd file, except unlisted internal
   write_man_pages(dir, config)
   expect_setequal(list.files(reference_dir), c("foo.qmd", "reexports.qmd"))
 
-  # `internal-pages: true` gives every topic a page.
+  # A hidden section selecting every internal topic gives them all a page.
   unlink(reference_dir, recursive = TRUE)
-  write_man_pages(dir, list(`internal-pages` = TRUE))
+  config <- reference_config(c(
+    "reference:",
+    "  - title: internal",
+    "    contents: has_keyword(\"internal\")"
+  ))
+  write_man_pages(dir, config)
   expect_setequal(
     list.files(reference_dir),
     c("foo.qmd", "hidden.qmd", "reexports.qmd")
@@ -422,8 +427,12 @@ test_that("a \\link{} to an internal topic without a page is plain text and warn
   page <- read_utf8(file.path(dir, "_quarto", "reference", "foo.qmd"))
   expect_false(any(grepl("helper.html", page, fixed = TRUE)))
 
-  # `internal-pages: true` gives it a page, which the links go to.
-  config <- list(`internal-pages` = TRUE)
+  # A hidden section gives it a page, which the links go to.
+  config <- reference_config(c(
+    "reference:",
+    "  - title: internal",
+    "    contents: has_keyword(\"internal\")"
+  ))
   expect_no_warning(check_internal_links(config, topics, "examplepkg"))
   write_man_pages(dir, config, topics)
   page <- read_utf8(file.path(dir, "_quarto", "reference", "foo.qmd"))
@@ -465,7 +474,9 @@ test_that("navbar links to reference pages that won't exist warn", {
 
   expect_snapshot(check_internal_links(config, topics, "examplepkg"))
 
-  config$`internal-pages` <- TRUE
+  config$reference <- list(
+    list(title = "internal", contents = "has_keyword(\"internal\")")
+  )
   expect_warning(
     check_internal_links(config, topics, "examplepkg"),
     "fooo"

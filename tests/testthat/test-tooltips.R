@@ -123,8 +123,12 @@ test_that("build_topic_index() skips internal topics, which get no page", {
   config <- list(reference = list(list(contents = "helper")))
   expect_identical(build_topic_index(dir, config)$helper$topic, "helper")
 
-  # Or `internal-pages: true` gives every topic one.
-  config <- list(`internal-pages` = TRUE)
+  # Also in a hidden section, selecting every internal topic.
+  config <- list(
+    reference = list(
+      list(title = "internal", contents = "has_keyword(\"internal\")")
+    )
+  )
   expect_identical(build_topic_index(dir, config)$helper$topic, "helper")
 })
 

@@ -128,7 +128,33 @@ test_that("translate_pkgdown() translates a _pkgdown.yml", {
     collapse = "\n"
   ))
   expect_no_error(navbar_layout(dir, config))
-  expect_true(config$`internal-pages`)
+  # The internal topic the package links gets a page, off the index.
+  expect_true(all(has_page(rd_topics(dir), config)))
+})
+
+test_that("reference_with_internal_pages() adds to the reference: it's given", {
+  dir <- new_pkg_with_man()
+  write_rd(dir, "foo")
+  write_rd(dir, "helper", keyword = "internal")
+  topics <- rd_topics(dir)
+  selector <- "has_keyword(\"internal\")"
+
+  # Keeps the default section, listing the public topics.
+  blocks <- reference_with_internal_pages(list(), topics)
+  expect_identical(blocks[[1]]$contents, "foo")
+  expect_identical(blocks[[2]]$title, "internal")
+  expect_identical(blocks[[2]]$contents, list(selector))
+
+  # Joins an existing hidden section, without adding another.
+  config <- list(
+    reference = list(
+      list(title = "Functions", contents = list("foo")),
+      list(title = "internal", contents = list("old"))
+    )
+  )
+  blocks <- reference_with_internal_pages(config, topics)
+  expect_length(blocks, 2)
+  expect_identical(blocks[[2]]$contents, list("old", selector))
 })
 
 test_that("translate_pkgdown() keeps a package without articles: on the articles keyword", {
@@ -144,7 +170,7 @@ test_that("translate_pkgdown() keeps a package without articles: on the articles
       tools = list("repo")
     )
   )
-  expect_null(translation$config$`internal-pages`)
+  expect_null(translation$config$reference)
   expect_null(translation$config$redirects)
   expect_identical(translation$skipped, character())
 })

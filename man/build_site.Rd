@@ -76,7 +76,7 @@ one. It can contain:
 that isn't a source repository.
 \item \code{reference}: the sections of the function reference index and the topics
 each lists, by name or with selectors such as \code{starts_with()}. The format
-is the same as pkgdown's.
+is based on pkgdown's.
 \item \code{navbar}: the items on the navbar's \code{left} and \code{right}: keywords such as
 \code{reference} and \code{articles}, vignettes, and Quarto navbar items and menus;
 and the icons in its \code{tools}, by default \code{repo}.
@@ -102,7 +102,7 @@ such as \verb{["reference/old.html", "reference/new.html"]}.
 \verb{docs/dev/}, next to the released version's; \code{unreleased} marks the
 version as unreleased, and \code{auto} picks from the version number and
 whether the package is on CRAN. The environment variable
-\code{QUARTODOWN_DEV_MODE} overrides it. The format is the same as pkgdown's.
+\code{QUARTODOWN_DEV_MODE} overrides it. The format is based on pkgdown's.
 Content in \code{.quartodown-devel} or \code{.quartodown-release} shows on only
 that site.
 \item \code{vignettes}: \code{files}, files and folders outside \verb{vignettes/} that the
@@ -110,8 +110,6 @@ vignettes use by a relative path, such as \verb{man/rmd/} for a child document
 \code{../man/rmd/shared.Rmd}, copied with them.
 \item \code{logo}: \code{false} to leave the logo, \code{man/figures/logo.svg} or \code{.png}
 (and in light mode \code{logo-light}, if it exists), off the pages' titles.
-\item \code{internal-pages}: \code{true} to give every \verb{\\keyword\{internal\}} topic a
-reference page, rather than only those the reference index lists.
 \item \code{quarto}: settings merged over the generated Quarto configuration.
 }
 
