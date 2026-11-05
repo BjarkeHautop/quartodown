@@ -469,7 +469,7 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
 <p><code>url</code>: the site’s address. It defaults to the first <code>URL</code> in <code>DESCRIPTION</code> that isn’t a source repository.</p>
 </li>
 <li>
-<p><code>reference</code>: the sections of the function reference index and the topics each lists, by name or with selectors such as <code>starts_with()</code>. The format is the same as pkgdown’s.</p>
+<p><code>reference</code>: the sections of the function reference index and the topics each lists, by name or with selectors such as <code>starts_with()</code>. The format is based on pkgdown’s.</p>
 </li>
 <li>
 <p><code>navbar</code>: the items on the navbar’s <code>left</code> and <code>right</code>: keywords such as <code>reference</code> and <code>articles</code>, vignettes, and Quarto navbar items and menus; and the icons in its <code>tools</code>, by default <code>repo</code>. With <code>style: sidebar</code>, the <code>left</code> items go in a sidebar instead, with a link to every reference page.</p>
@@ -490,16 +490,13 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
 <p><code>redirects</code>: pairs of paths, from an old page to the one replacing it, such as <code>["reference/old.html", "reference/new.html"]</code>.</p>
 </li>
 <li>
-<p><code>development</code>: <code>mode</code>, <code>release</code> (the default) to build the site into <code>docs/</code>, or <code>devel</code> to build a site for the development version into <code>docs/dev/</code>, next to the released version’s; <code>unreleased</code> marks the version as unreleased, and <code>auto</code> picks from the version number and whether the package is on CRAN. The environment variable <code>QUARTODOWN_DEV_MODE</code> overrides it. The format is the same as pkgdown’s. Content in <code>.quartodown-devel</code> or <code>.quartodown-release</code> shows on only that site.</p>
+<p><code>development</code>: <code>mode</code>, <code>release</code> (the default) to build the site into <code>docs/</code>, or <code>devel</code> to build a site for the development version into <code>docs/dev/</code>, next to the released version’s; <code>unreleased</code> marks the version as unreleased, and <code>auto</code> picks from the version number and whether the package is on CRAN. The environment variable <code>QUARTODOWN_DEV_MODE</code> overrides it. The format is based on pkgdown’s. Content in <code>.quartodown-devel</code> or <code>.quartodown-release</code> shows on only that site.</p>
 </li>
 <li>
 <p><code>vignettes</code>: <code>files</code>, files and folders outside <code>vignettes/</code> that the vignettes use by a relative path, such as <code>man/rmd/</code> for a child document <code>../man/rmd/shared.Rmd</code>, copied with them.</p>
 </li>
 <li>
 <p><code>logo</code>: <code>false</code> to leave the logo, <code>man/figures/logo.svg</code> or <code>.png</code> (and in light mode <code>logo-light</code>, if it exists), off the pages’ titles.</p>
-</li>
-<li>
-<p><code>internal-pages</code>: <code>true</code> to give every <code>\keyword{internal}</code> topic a reference page, rather than only those the reference index lists.</p>
 </li>
 <li>
 <p><code>quarto</code>: settings merged over the generated Quarto configuration.</p>

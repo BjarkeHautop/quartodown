@@ -393,7 +393,14 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site</a></span>()</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site()</a></code> builds the site into <code>docs/</code> and, in an interactive session, opens it in your browser. You can keep reading it during a rebuild, after which the page reloads if it changed, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/preview_site.html">preview_site()</a></code> opens it again if you’ve closed it. Examples and vignettes run against your package’s current source. While iterating, <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site(devel = TRUE)</a></code> is faster because it loads the package with <code><a href="https://pkgload.r-lib.org/reference/load_all.html">pkgload::load_all()</a></code> instead of installing it.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site()</a></code> builds the site into <code>docs/</code> and, in an interactive session, opens it in your browser. You can keep reading it during a rebuild, after which the page reloads if it changed, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/preview_site.html">preview_site()</a></code> opens it again if you’ve closed it. Examples and vignettes run against your package’s current source.</p>
+<p>Two arguments make builds faster:</p>
+<ul>
+<li>
+<code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site(devel = TRUE)</a></code> loads the package with <code><a href="https://pkgload.r-lib.org/reference/load_all.html">pkgload::load_all()</a></code> instead of installing it, which is useful while iterating.</li>
+<li>
+<code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site(workers = 4)</a></code> builds with four processes, which helps most on sites with many pages. It needs the <a href="https://mirai.r-lib.org/">mirai</a> package.</li>
+</ul>
 <p>The following is added to your site:</p>
 <ul>
 <li>

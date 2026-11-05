@@ -397,7 +397,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </header><p class="source-note">
 <small class="dont-index">Source: <a href="https://github.com/bjarkehautop/quartodown/blob/HEAD/vignettes/customizing.qmd"><code>vignettes/customizing.qmd</code></a></small>
 </p>
-<p>If you want to customize your site, you can do so by editing <code>_quartodown/_quartodown.yml</code>, which <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">quartodown::use_quartodown()</a></code> creates. The <code>_quartodown/</code> folder at the package root also holds the files that <a href="#styling-and-layout">style the site</a>. <code>_quartodown.yml</code> has nine fields, all optional:</p>
+<p>If you want to customize your site, you can do so by editing <code>_quartodown/_quartodown.yml</code>, which <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">quartodown::use_quartodown()</a></code> creates. The <code>_quartodown/</code> folder at the package root also holds the files that <a href="#styling-and-layout">style the site</a>. <code>_quartodown.yml</code> has twelve fields, all optional:</p>
 <ul>
 <li>
 <code>url:</code> is the site’s address. It defaults to the first <code>URL</code> in <code>DESCRIPTION</code> that isn’t on GitHub, GitLab or Codeberg.</li>
@@ -415,6 +415,12 @@ visitors who prefer it, before Quarto reads the stored choice.
 <code>theme:</code> picks the light and dark themes.</li>
 <li>
 <code>redirects:</code> sends visitors from old addresses to new ones.</li>
+<li>
+<code>development:</code> builds a <a href="#development-and-release-sites">separate development site</a>.</li>
+<li>
+<code>vignettes:</code> lists <a href="#files-the-vignettes-use">files the vignettes use</a>.</li>
+<li>
+<code>logo:</code> turns off <a href="#the-logo">the logo</a> by each page’s title.</li>
 <li>
 <code>quarto:</code> changes any other Quarto setting.</li>
 </ul>
@@ -506,14 +512,26 @@ visitors who prefer it, before Quarto reads the stored choice.
 </tr>
 </tbody>
 </table>
-<p>Topics that no section lists get a warning and are left off the index. The exception is <code>\keyword{internal}</code> topics, which are left out, without a page, unless named, as with roxygen’s <code>reexports</code>, or selected with <code>internal = TRUE</code>, as in <code>starts_with("dev_", internal = TRUE)</code>.</p>
-<p>Links to an internal topic without a page, from another topic’s documentation (<code>\link{helper}</code>, roxygen’s <code>[helper()]</code>) or from the navbar, get a warning. To build a page for every internal topic, set:</p>
+<p>A topic that no section lists is left off the index with a warning, but still gets a page. A topic with <code>\keyword{internal}</code> is left off without a warning, and gets no page. To change that:</p>
+<ul>
+<li>
+<strong>To hide a topic from the index without the warning</strong>, list it in a section titled <code>internal</code>, which isn’t shown.</li>
+<li>
+<strong>To show an internal topic on the index</strong>, name it in a section, as you would for roxygen’s <code>reexports</code>, or select it with <code>internal = TRUE</code>, as in <code>starts_with("dev_", internal = TRUE)</code>. This gives it a page too.</li>
+<li>
+<strong>To give an internal topic a page but keep it off the index</strong>, list it in the section titled <code>internal</code>. To do this for all of them, use <code>has_keyword("internal")</code>:</li>
+</ul>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">internal-pages</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">reference</span><span class="kw">:</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> Read and write</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">contents</span><span class="kw">:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> read_data</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> internal</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">contents</span><span class="kw">:</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> has_keyword("internal")</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>To leave a topic off the index without the warning, list it in a section titled <code>internal</code>, which isn’t shown.</p>
-<p>The format is the same as pkgdown’s <code>reference:</code> field, so an existing one can be copied over.</p>
+<p>The format is based on pkgdown’s <code>reference:</code>.</p>
 </section><section id="the-navbar" class="level2"><h2 class="anchored" data-anchor-id="the-navbar">The navbar</h2>
 <p><code>navbar:</code> lists the items on the navbar’s <code>left</code> and <code>right</code>, in order, and under <code>tools</code> the icons right of the search box. The default is:</p>
 <div class="code-copy-outer-scaffold">
@@ -696,7 +714,7 @@ Note
 <span data-code-cell="annotated-cell-9" data-code-lines="12" data-code-annotation="4">Instead of “Developed by”.</span>
 </dd>
 </dl>
-<p>The format is the same as pkgdown’s <code>authors:</code>.</p>
+<p>The format is based on pkgdown’s <code>authors:</code>.</p>
 </section><section id="the-repository" class="level2"><h2 class="anchored" data-anchor-id="the-repository">The repository</h2>
 <p>Links to the package’s source code, issues and contributors come from the first GitHub, GitLab (also self-hosted, if the host name contains <code>gitlab</code>) or Codeberg URL in <code>DESCRIPTION</code>’s <code>URL</code>, or else from its <code>BugReports</code>. For a package in a subfolder, give the folder’s URL, such as <code>https://github.com/me/repo/tree/main/mypkg</code>.</p>
 <p><code>repo:</code> changes the branch the source links point to:</p>
@@ -734,7 +752,7 @@ Note
 <span data-code-cell="annotated-cell-11" data-code-lines="6" data-code-annotation="4">Prefix of links to users.</span>
 </dd>
 </dl>
-<p>The format is the same as pkgdown’s <code>repo:</code>.</p>
+<p>The format is based on pkgdown’s <code>repo:</code>.</p>
 </section><section id="redirects" class="level2"><h2 class="anchored" data-anchor-id="redirects">Redirects</h2>
 <p>When a page moves, such as a function’s reference page after it is renamed you can use <code>redirects:</code> so links to the old address keeps working. Each entry is a pair: the old address and the new one, both relative to the site’s root:</p>
 <div class="code-copy-outer-scaffold">
@@ -945,7 +963,7 @@ Note
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section></section><section id="coming-from-pkgdown" class="level2"><h2 class="anchored" data-anchor-id="coming-from-pkgdown">Coming from pkgdown</h2>
-<p>In a package with a <code>_pkgdown.yml</code>, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">use_quartodown()</a></code> translates it into <code>_quartodown/_quartodown.yml</code>, and lists the settings it couldn’t translate. Fields of the same format are copied: <code>url:</code>, <code>reference:</code>, <code>home: sidebar:</code>, <code>home: links:</code>, <code>authors:</code>, <code>repo:</code>, <code>redirects:</code> and <code>development: mode:</code>. The rest maps as follows:</p>
+<p>In a package with a <code>_pkgdown.yml</code>, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">use_quartodown()</a></code> translates it into <code>_quartodown/_quartodown.yml</code>, and lists the settings it couldn’t translate. Fields with a similar format are copied: <code>url:</code>, <code>reference:</code>, <code>home: sidebar:</code>, <code>home: links:</code>, <code>authors:</code>, <code>repo:</code>, <code>redirects:</code> and <code>development: mode:</code>. The rest maps as follows:</p>
 <table class="caption-top table">
 <thead><tr class="header">
 <th>pkgdown</th>
