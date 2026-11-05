@@ -73,6 +73,10 @@ repository's settings on GitHub and choose to deploy from that branch.
 site](https://bjarkehautop.github.io/quartodown/vignettes/customizing.html)
 covers everything `_quartodown.yml` can change.
 
+[Gallery](https://bjarkehautop.github.io/quartodown/vignettes/articles/gallery.html)
+shows this site built with different settings, and the configuration behind each
+look.
+
 [Quarto
 features](https://bjarkehautop.github.io/quartodown/vignettes/articles/showcase.html)
 shows Quarto's authoring features, such as callouts, tabsets and footnotes, on a

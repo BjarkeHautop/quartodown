@@ -75,27 +75,13 @@ _quarto/
 └── quartodown.scss               # theme on top of Quarto's HTML
 ```
 
-The files listed under `vignettes: files:` (see [Customizing your
-site](../customizing.qmd#files-the-vignettes-use)) are copied to the same paths,
-so that the vignettes' relative paths to them resolve as in the package.
-Documents in them aren't rendered as pages.
-
 ## The man pages
 
-Each `man/*.Rd` file becomes a reference page, served at
-`reference/<topic>.html`. It is rendered with the package's Rd macros (such as
-Rdpack's `\insertRef{}`), and build-stage `\Sexpr{}` macros run with the package
-installed, as in `R CMD build`. Examples run, with their output in the same
-block as the code, prefixed with `#>`. To give a chunk's output a block of its
-own, in a vignette too, set `#| collapse: false` on it.
-
-To save Quarto starting an R process per page, all examples run beforehand in
+Examples run, with their output in the same block as the code, prefixed with
+`#>`. To save Quarto starting an R process per page, they all run beforehand in
 one R process, which resets the global environment, search path, options and the
 like between pages, as `R CMD check` does. Pages whose examples fail or produce
 HTML widgets are left for Quarto to run.
-
-Under its title, each reference page and vignette links to its source file in
-the package's [repository](../customizing.qmd#the-repository), if it has one.
 
 ## Code links and tooltips
 
@@ -106,12 +92,10 @@ or else [rdrr.io](https://rdrr.io). A package that isn't installed, as in
 repository or its CRAN page, but its functions aren't linked. Where other
 packages' sites are is cached in `tools::R_user_dir("quartodown", "cache")`, and
 looked up again when more than a week old; delete the folder to look them all up
-again. `docs/pkgdown.yml` lets other sites, quartodown's and pkgdown's, link to
-your reference pages in turn.
+again.
 
-That file needs the site's address: `url:` in `_quartodown/_quartodown.yml`, or
-else the first `URL` in `DESCRIPTION` that isn't a GitHub, GitLab or Codeberg
-repository.
+The build also writes `docs/pkgdown.yml`, so that other packages' sites, made
+with quartodown or pkgdown, can link to your pages.
 
 References to the package's own functions also get a hover tooltip with their
 usage and title. A usage longer than 12 lines is shortened. To build without
@@ -131,5 +115,5 @@ Each is built in layers:
 With the `default` light theme, `quartodown-fonts.scss` also gives the dark
 theme the same system fonts and heading sizes.
 
-Code output keeps the colors packages such as cli give it in a terminal, in
-shades that suit the light or dark theme.
+Code output keeps the colors packages such as [cli](https://cli.r-lib.org/) give
+it in a terminal, in shades that suit the light or dark theme.
