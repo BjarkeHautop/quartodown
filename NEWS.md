@@ -11,6 +11,10 @@
   a neutral near-black page and soft blue links, rather than `darkly`. Use
   `theme: dark: darkly` to keep the old look.
 
+- The theme toggle shows a moon in the light theme and a sun in the dark theme,
+  rather than a switch, and buttons and links no longer fade to their new colors
+  after the rest of the page has switched.
+
 - `build_site()` builds the site in `_quarto/_site/`, and replaces the one in
   `docs/` only when it's complete. So the previous site stays in place during a
   build, and after a failed one. `preview_site()` now serves it with nanonext

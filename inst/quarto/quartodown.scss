@@ -61,18 +61,24 @@ $quartodown-navbar-bg: mix(mix($body-bg, $primary, 95%), $body-color, 95%);
   background: #{rgba($primary, 0.1)};
 }
 
+// Quarto draws the theme toggle as a switch, which doesn't say what it
+// switches. Show a moon in the light theme and a sun in the dark one instead,
+// as Bootstrap Icons glyphs rather than SVGs, so they take the tools' color
+// and hover like the repo icon.
 .navbar .quarto-color-scheme-toggle .bi::before {
-  width: 1.25rem;
-  height: 1.25rem;
-  background-size: 1.25rem 1.25rem;
+  width: auto;
+  height: auto;
+  background-image: none !important;
+  font-size: 1.1rem;
+  vertical-align: -0.125em;
 }
 
 .navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {
-  background-image: #{escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='#{$body-color}' class='bi bi-toggle-off' viewBox='0 0 16 16'><path d='M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z'/></svg>"))} !important;
+  content: "\f497"; // bi-moon
 }
 
 .navbar .quarto-color-scheme-toggle.alternate .bi::before {
-  background-image: #{escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='#{$body-color}' class='bi bi-toggle-on' viewBox='0 0 16 16'><path d='M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z'/></svg>"))} !important;
+  content: "\f5a2"; // bi-sun
 }
 
 // Cap the full-width navbar like pkgdown's `.container`. The title is aligned

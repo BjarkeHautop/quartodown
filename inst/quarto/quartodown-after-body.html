@@ -1,3 +1,8 @@
+<style>
+.quartodown-theme-switching * {
+  transition: none !important;
+}
+</style>
 <script>
 (function () {
   function contentLeft(main) {
@@ -236,7 +241,38 @@
     float.addEventListener("mouseenter", cancelHide);
     float.addEventListener("mouseleave", scheduleHide);
   }
+  // Quarto swaps the theme stylesheets at once, but elements with a CSS
+  // transition (buttons, links) then fade to the new colors, lagging behind
+  // the page. Turn transitions off until the new stylesheet applies, which
+  // can take a frame or more: until the page background changes, or 30
+  // frames if it never does.
+  function switchThemeWithoutTransitions() {
+    var toggle = window.quartoToggleColorScheme;
+    if (typeof toggle !== "function") return;
+    window.quartoToggleColorScheme = function () {
+      var root = document.documentElement;
+      function background() {
+        return getComputedStyle(document.body).backgroundColor;
+      }
+      var before = background();
+      var frames = 0;
+      root.classList.add("quartodown-theme-switching");
+      var result = toggle.apply(this, arguments);
+      function settle() {
+        if (background() === before && ++frames < 30) {
+          requestAnimationFrame(settle);
+        } else {
+          requestAnimationFrame(function () {
+            root.classList.remove("quartodown-theme-switching");
+          });
+        }
+      }
+      requestAnimationFrame(settle);
+      return result;
+    };
+  }
   stripOutputOnCopy();
+  switchThemeWithoutTransitions();
   // The payload comes after this script, at the end of the body.
   document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();
