@@ -374,8 +374,11 @@ path to a file that isn't copied, the build warns and names the entry to add.
 quartodown writes a Quarto configuration into `_quarto/_quarto.yml` (overwritten
 on every build). The `quarto:` field is merged over it, key by key:
 
-- A list of entries, such as `website: navbar: left:`, is added to.
-- Any other value is replaced.
+- A list of items with fields, such as the links under `website: navbar: left:`,
+  is added to.
+- Any other value is replaced, including a list of names, such as a theme's
+  layers (`format: html: theme: dark:`) or `include-in-header:`. List
+  quartodown's own entries too to keep them.
 - `~` removes a setting.
 
 For example, to fold code blocks, drop the table of contents and change the

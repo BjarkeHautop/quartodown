@@ -551,6 +551,8 @@ social_cards <- function(path) {
 
 # Like utils::modifyList(), but unnamed lists (e.g. the navbar's `left:`
 # items) are appended to. Other values are replaced, and `~` (NULL) removes.
+# YAML reads a list of strings as a character vector, which is replaced, on
+# purpose: so a theme's layers or `include-in-header:` can drop quartodown's.
 merge_quarto_config <- function(x, val) {
   for (name in names(val)) {
     if (is.list(x[[name]]) && is.list(val[[name]])) {
