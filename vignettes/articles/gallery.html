@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script src="../../site_libs/quarto-contrib/glightbox/glightbox.min.js"></script><link href="../../site_libs/quarto-contrib/glightbox/glightbox.min.css" rel="stylesheet">
 <link href="../../site_libs/quarto-contrib/glightbox/lightbox.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
@@ -538,7 +538,12 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 
 
-</section></main><!-- /main --><script>
+</section></main><!-- /main --><style>
+.quartodown-theme-switching * {
+  transition: none !important;
+}
+</style>
+<script>
 (function () {
   function contentLeft(main) {
     // With margin content, <main> is a full-width grid; use the title.
@@ -776,7 +781,38 @@ visitors who prefer it, before Quarto reads the stored choice.
     float.addEventListener("mouseenter", cancelHide);
     float.addEventListener("mouseleave", scheduleHide);
   }
+  // Quarto swaps the theme stylesheets at once, but elements with a CSS
+  // transition (buttons, links) then fade to the new colors, lagging behind
+  // the page. Turn transitions off until the new stylesheet applies, which
+  // can take a frame or more: until the page background changes, or 30
+  // frames if it never does.
+  function switchThemeWithoutTransitions() {
+    var toggle = window.quartoToggleColorScheme;
+    if (typeof toggle !== "function") return;
+    window.quartoToggleColorScheme = function () {
+      var root = document.documentElement;
+      function background() {
+        return getComputedStyle(document.body).backgroundColor;
+      }
+      var before = background();
+      var frames = 0;
+      root.classList.add("quartodown-theme-switching");
+      var result = toggle.apply(this, arguments);
+      function settle() {
+        if (background() === before && ++frames < 30) {
+          requestAnimationFrame(settle);
+        } else {
+          requestAnimationFrame(function () {
+            root.classList.remove("quartodown-theme-switching");
+          });
+        }
+      }
+      requestAnimationFrame(settle);
+      return result;
+    };
+  }
   stripOutputOnCopy();
+  switchThemeWithoutTransitions();
   // The payload comes after this script, at the end of the body.
   document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();

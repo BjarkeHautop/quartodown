@@ -32,9 +32,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -348,6 +348,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li><p>Image URLs without a file extension, such as the CRAN badge from <code>usethis::use_cran_badge()</code>, no longer get <code>.png</code> added, which broke them.</p></li>
 <li><p>Code is now linked by quartodown itself instead of downlit, so code blocks keep Quarto’s highlighting, linking is more consistent, and builds work offline.</p></li>
 <li><p>The default dark theme is now a dark version of Quarto’s <code>default</code> theme, with a neutral near-black page and soft blue links, rather than <code>darkly</code>. Use <code>theme: dark: darkly</code> to keep the old look.</p></li>
+<li><p>The theme toggle shows a moon in the light theme and a sun in the dark theme, rather than a switch, and buttons and links no longer fade to their new colors after the rest of the page has switched.</p></li>
 <li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/build_site.html">build_site()</a></code> builds the site in <code>_quarto/_site/</code>, and replaces the one in <code>docs/</code> only when it’s complete. So the previous site stays in place during a build, and after a failed one. <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/preview_site.html">preview_site()</a></code> now serves it with nanonext rather than servr, so it keeps working while <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/build_site.html">build_site()</a></code> runs. An open page reloads if the new build changed it.</p></li>
 <li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/use_quartodown.html">use_quartodown()</a></code> translates an existing <code>_pkgdown.yml</code>: the navbar and <code>articles:</code> become <code>navbar:</code> items and menus, template settings become <code>theme:</code>, <code>quarto:</code> settings and files in <code>_quartodown/</code>, and redirects keep pkgdown’s addresses of the vignettes and changelog working. It lists what it couldn’t translate.</p></li>
 <li><p>Links to an internal topic without a page now give a warning.</p></li>
@@ -362,7 +363,12 @@ visitors who prefer it, before Quarto reads the stored choice.
 </ul></section><section id="quartodown-0.1.0" class="level2"><h2 class="anchored" data-anchor-id="quartodown-0.1.0">quartodown 0.1.0</h2>
 <ul>
 <li>Initial release.</li>
-</ul></section></main><!-- /main --><script>
+</ul></section></main><!-- /main --><style>
+.quartodown-theme-switching * {
+  transition: none !important;
+}
+</style>
+<script>
 (function () {
   function contentLeft(main) {
     // With margin content, <main> is a full-width grid; use the title.
@@ -600,7 +606,38 @@ visitors who prefer it, before Quarto reads the stored choice.
     float.addEventListener("mouseenter", cancelHide);
     float.addEventListener("mouseleave", scheduleHide);
   }
+  // Quarto swaps the theme stylesheets at once, but elements with a CSS
+  // transition (buttons, links) then fade to the new colors, lagging behind
+  // the page. Turn transitions off until the new stylesheet applies, which
+  // can take a frame or more: until the page background changes, or 30
+  // frames if it never does.
+  function switchThemeWithoutTransitions() {
+    var toggle = window.quartoToggleColorScheme;
+    if (typeof toggle !== "function") return;
+    window.quartoToggleColorScheme = function () {
+      var root = document.documentElement;
+      function background() {
+        return getComputedStyle(document.body).backgroundColor;
+      }
+      var before = background();
+      var frames = 0;
+      root.classList.add("quartodown-theme-switching");
+      var result = toggle.apply(this, arguments);
+      function settle() {
+        if (background() === before && ++frames < 30) {
+          requestAnimationFrame(settle);
+        } else {
+          requestAnimationFrame(function () {
+            root.classList.remove("quartodown-theme-switching");
+          });
+        }
+      }
+      requestAnimationFrame(settle);
+      return result;
+    };
+  }
   stripOutputOnCopy();
+  switchThemeWithoutTransitions();
   // The payload comes after this script, at the end of the body.
   document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();
