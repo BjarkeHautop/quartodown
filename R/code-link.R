@@ -457,7 +457,17 @@ link_inline <- function(ctx, doc) {
     if (linked && is.na(ref$own %||% NA)) {
       next
     }
-    a <- link_html(ctx, html_escape(text), ref$url, ref$own %||% NA)
+    span <- ref$span %||% c(1, nchar(text))
+    a <- paste0(
+      html_escape(substr(text, 1, span[1] - 1)),
+      link_html(
+        ctx,
+        html_escape(substr(text, span[1], span[2])),
+        ref$url,
+        ref$own %||% NA
+      ),
+      html_escape(substring(text, span[2] + 1))
+    )
     if (wrapped) {
       replace_with_html(parent, paste0("<code>", a, "</code>"))
     } else {
@@ -474,6 +484,8 @@ link_inline <- function(ctx, doc) {
 # The reference inline code `text` is, as from topic_ref(), or NULL: a call
 # like `foo()`, `pkg::foo(x)` or `?foo`, a vignette, a package's `{name}` or
 # `library(name)`, or a name of the package's own (see linkable_names()).
+# `span`, if set, is the first and last character of `text` to link: just the
+# function's name, as in code blocks (`foo` of `pkg::foo(x)`).
 inline_ref <- function(ctx, text) {
   if (grepl("^\\{[a-zA-Z][a-zA-Z0-9.]+\\}$", text)) {
     return(list(url = href_package(gsub("[{}]", "", text))))
@@ -521,7 +533,9 @@ inline_ref <- function(ctx, text) {
     (call_text %in% c("break", "next") && call_text == name)
 
   if (name %in% c("::", ":::") && length(args) == 2) {
-    return(topic_ref(ctx, as.character(args[[2]]), as.character(args[[1]])))
+    ref <- topic_ref(ctx, as.character(args[[2]]), as.character(args[[1]]))
+    ref$span <- name_span(text)
+    return(ref)
   }
   if (is.null(package) && name == "?") {
     if (
@@ -588,7 +602,23 @@ inline_ref <- function(ctx, text) {
   ) {
     return(NULL)
   }
-  topic_ref(ctx, name, package, is_fun = TRUE)
+  ref <- topic_ref(ctx, name, package, is_fun = TRUE)
+  ref$span <- name_span(text)
+  ref
+}
+
+# The first and last character of the function's name in `text`, a call
+# `pkg::foo(...)` or a name `pkg::foo`, without `pkg::`, `(...)` or spaces.
+name_span <- function(text) {
+  paren <- regexpr("(", text, fixed = TRUE)
+  end <- if (paren > 0) paren - 1 else nchar(sub("\\s+$", "", text))
+  ns <- regexpr(":::?", substr(text, 1, end))
+  start <- if (ns > 0) {
+    ns + attr(ns, "match.length")
+  } else {
+    regexpr("\\S", text)
+  }
+  c(start, end)
 }
 
 # ---- links ----

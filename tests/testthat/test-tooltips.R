@@ -433,7 +433,7 @@ test_that("postprocess_pages() links and adds tooltips to pages on disk", {
 
   postprocess_pages(dir)
   html <- paste(readLines(page), collapse = "\n")
-  expect_match(html, 'href="../reference/foo.html">foo()</a>', fixed = TRUE)
+  expect_match(html, 'href="../reference/foo.html">foo</a>()', fixed = TRUE)
   expect_match(
     html,
     '<div class="quartodown-tip-payload" hidden>',

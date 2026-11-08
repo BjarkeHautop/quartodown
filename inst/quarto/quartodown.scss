@@ -1,6 +1,20 @@
 /*-- scss:rules --*/
 // Styled after pkgdown's BS5/assets/pkgdown.scss, adapted to Quarto's DOM.
 
+// Inline code in the text color, like the plain tokens of code blocks; its
+// background marks it as code. Quarto's default is purple (#7d12ba, or the
+// dark theme's `$pre-color: inherit`); a `$code-color` set by a Bootswatch
+// theme or extra.scss is kept.
+$quartodown-code-color: if(
+  type-of($code-color) == color and $code-color != #7d12ba,
+  $code-color,
+  $body-color
+);
+
+:root {
+  --bs-code-color: #{$quartodown-code-color};
+}
+
 /* navbar ==================================================================== */
 
 // Quarto always puts `data-bs-theme="dark"` on `<nav>`, so it gets
@@ -27,7 +41,7 @@ $quartodown-navbar-bg: mix(mix($body-bg, $primary, 95%), $body-color, 95%);
   --bs-navbar-toggler-border-color: #{rgba($body-color, 0.15)} !important;
   --bs-navbar-toggler-icon-bg: #{$quartodown-navbar-toggler-icon-bg} !important;
   // Else the dark `white`: invisible code in navbar items and dropdowns.
-  --bs-code-color: #{$code-color} !important;
+  --bs-code-color: #{$quartodown-code-color} !important;
 }
 
 // Bootstrap also sets this on the icon itself, which beats the inherited value.
@@ -370,17 +384,43 @@ pre code {
 
 // Bootstrap's inline code background is a light literal in both compiles
 // (the dark `--bs-*` values need `[data-bs-theme=dark]`, which only `<nav>`
-// has), giving light text on a light box in dark mode. Derive it per theme.
-code {
+// has), giving light text on a light box in dark mode. Use the code blocks'.
+// Quarto's `p code:not(.sourceCode)` rules use the code blocks' color only
+// while `$code-bg` is Bootstrap's default, so override them too.
+code,
+p code:not(.sourceCode),
+li code:not(.sourceCode),
+td code:not(.sourceCode) {
   overflow-wrap: break-word;
-  background-color: mix($body-bg, $body-color, 92%);
+  background-color: $code-block-bg-color;
+}
+
+// Quarto's `code a:any-link` gives links in code the code's color, which in
+// inline code (in the text color) hides them. Color them as links; in code
+// blocks they keep the highlighting's colors.
+:not(pre) > code a:any-link {
+  color: var(--bs-link-color);
+}
+
+:not(pre) > code a:hover {
+  color: var(--bs-link-hover-color);
+}
+
+// Links around code (e.g. a page's `Source:` file) look the same as those
+// in it: no underline until hovered.
+a:has(> code:only-child) {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 // Plain `<pre><code>` (Rd verbatim blocks, code output) loses its background
 // to Quarto's `pre code:not(.sourceCode)` rule. Color the `<pre>` so the
 // background covers its padding.
 pre:has(> code:not(.sourceCode)) {
-  background-color: mix($body-bg, $body-color, 92%);
+  background-color: $code-block-bg-color;
 }
 
 pre > code:not(.sourceCode) {

@@ -300,9 +300,18 @@ test_that("inline code that's a reference is linked", {
     )),
     ctx = mypkg_ctx(tips = FALSE)
   )
+  # A call links just its function.
+  expect_match(
+    html,
+    "<code><a href=\"../reference/foo-topic.html\">foo</a>()</code>",
+    fixed = TRUE
+  )
+  expect_match(
+    html,
+    "<code>mypkg::<a href=\"../reference/foo-topic.html\">foo</a>(1, 2)</code>",
+    fixed = TRUE
+  )
   for (code in c(
-    "foo()",
-    "mypkg::foo(1, 2)",
     "?foo",
     "?mypkg::foo",
     "help(foo)"
@@ -334,12 +343,12 @@ test_that("inline code that's a reference is linked", {
   )
   expect_match(
     html,
-    "<code><a href=\"https://rdrr.io/r/stats/sd.html\">stats::sd()</a></code>",
+    "<code>stats::<a href=\"https://rdrr.io/r/stats/sd.html\">sd</a>()</code>",
     fixed = TRUE
   )
   expect_match(
     html,
-    "<a href=\"https://cli.r-lib.org/reference/cli_text.html\">cli::cli_text(\"x\")</a>",
+    "<code>cli::<a href=\"https://cli.r-lib.org/reference/cli_text.html\">cli_text</a>(\"x\")</code>",
     fixed = TRUE
   )
   expect_match(
@@ -395,7 +404,7 @@ test_that("a link around just the code is relinked to the package's own topic", 
   )
   expect_match(
     html,
-    "<p><code><a href=\"../reference/foo-topic.html\">foo()</a></code> <code><a href=\"../reference/foo-topic.html\">foo()</a></code> ",
+    "<p><code><a href=\"../reference/foo-topic.html\">foo</a>()</code> <code><a href=\"../reference/foo-topic.html\">foo</a>()</code> ",
     fixed = TRUE
   )
   # Not to another package's.
@@ -414,8 +423,21 @@ test_that("without tooltips, the package's own topics are only linked", {
   )
   expect_match(
     html,
-    "<code><a href=\"../reference/foo-topic.html\">foo()</a></code>",
+    "<code><a href=\"../reference/foo-topic.html\">foo</a>()</code>",
     fixed = TRUE
   )
   expect_no_match(html, "quartodown-tip", fixed = TRUE)
+})
+
+test_that("name_span() finds the function's name in inline code", {
+  span <- function(text) {
+    s <- name_span(text)
+    substr(text, s[1], s[2])
+  }
+  expect_equal(span("foo()"), "foo")
+  expect_equal(span("foo(x = 1)"), "foo")
+  expect_equal(span("pkg::foo(x)"), "foo")
+  expect_equal(span("pkg:::foo()"), "foo")
+  expect_equal(span("pkg::foo"), "foo")
+  expect_equal(span(" break "), "break")
 })
