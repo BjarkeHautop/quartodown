@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -383,7 +383,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/bjarkehautop/quartodown/blob/HEAD/R/use_quartodown.R"><code>R/use_quartodown.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site()</a></code> reads. It starts with a <code>reference:</code> field listing every function currently documented in <code>&lt;path&gt;/man/*.Rd</code> in one "All functions" section. Also adds the <code>.gitignore</code>/<code>.Rbuildignore</code> entries the build needs (see Details) if they’re not already there.</p>
+<p>Writes <code>_quartodown/_quartodown.yml</code>, the configuration file <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site</a>()</code> reads. It starts with a <code>reference:</code> field listing every function currently documented in <code>&lt;path&gt;/man/*.Rd</code> in one "All functions" section. Also adds the <code>.gitignore</code>/<code>.Rbuildignore</code> entries the build needs (see Details) if they’re not already there.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_quartodown.html">use_quartodown</a></span>(<span class="at">path =</span> <span class="st">"."</span>)</span></code></pre></div>
@@ -400,7 +400,7 @@ Path to the target package root. Defaults to the current directory.
 </tr></tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
 <p>In a package with a pkgdown configuration (<code>_pkgdown.yml</code>, also in <code>pkgdown/</code>), it’s translated instead, with any files it needs, such as <code>_quartodown/extra.scss</code>, and the settings that couldn’t be translated are listed. See "Coming from pkgdown" in <code><a href="../vignettes/customizing.html">vignette("customizing", package = "quartodown")</a></code>.</p>
 <p>An existing <code>_quartodown.yml</code>, or file in <code>_quartodown/</code>, is never overwritten.</p>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_quartodown.html">use_quartodown()</a></code> adds the following lines to <code>.gitignore</code> and <code>.Rbuildignore</code> (only the ones not already present in each file):</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_quartodown.html">use_quartodown</a>()</code> adds the following lines to <code>.gitignore</code> and <code>.Rbuildignore</code> (only the ones not already present in each file):</p>
 <div class="sourceCode">
 <pre># .gitignore
 _quarto/*
@@ -412,7 +412,7 @@ _quarto/*
 ^_quartodown$
 </pre>
 </div>
-<p><code>_quarto/</code> is the Quarto project <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site()</a></code> generates and renders into <code>docs/</code>. Its <code>_freeze/</code> directory holds the results of code run with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site(freeze = TRUE)</a></code>, which can be committed so later builds, e.g. on CI, reuse them (they aren’t rerun when only the package’s code or its dependencies change, so delete it to refresh them). <code>_quartodown/</code> holds the site’s configuration and any files it uses, such as <code>extra.scss</code>.</p>
+<p><code>_quarto/</code> is the Quarto project <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site</a>()</code> generates and renders into <code>docs/</code>. Its <code>_freeze/</code> directory holds the results of code run with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./build_site.html">build_site</a>(freeze = TRUE)</code>, which can be committed so later builds, e.g. on CI, reuse them (they aren’t rerun when only the package’s code or its dependencies change, so delete it to refresh them). <code>_quartodown/</code> holds the site’s configuration and any files it uses, such as <code>extra.scss</code>.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p>Invisibly, the path to <code>_quartodown/_quartodown.yml</code>.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
@@ -425,9 +425,9 @@ _quarto/*
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"DESCRIPTION"</span>)</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_quartodown.html">use_quartodown</a></span>(pkg)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Wrote <span class='fansi-color-004'>/tmp/RtmpfwV7Cw/examplepkg18ae160764d4/_quartodown/_quartodown.yml</span> (edit this to group your functions).</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `_quarto/*` and `!_quarto/_freeze/` to <span class='fansi-color-004'>/tmp/RtmpfwV7Cw/examplepkg18ae160764d4/.gitignore</span>.</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `^docs$`, `^_quarto$`, and `^_quartodown$` to <span class='fansi-color-004'>/tmp/RtmpfwV7Cw/examplepkg18ae160764d4/.Rbuildignore</span>.</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Wrote <span class='fansi-color-004'>/tmp/RtmpUdrW96/examplepkg189a27fec01d/_quartodown/_quartodown.yml</span> (edit this to group your functions).</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `_quarto/*` and `!_quarto/_freeze/` to <span class='fansi-color-004'>/tmp/RtmpUdrW96/examplepkg189a27fec01d/.gitignore</span>.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `^docs$`, `^_quarto$`, and `^_quartodown$` to <span class='fansi-color-004'>/tmp/RtmpUdrW96/examplepkg189a27fec01d/.Rbuildignore</span>.</span></span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Next steps:</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1. Edit <span class='fansi-color-004'>_quartodown/_quartodown.yml</span> to group your functions the way you want.</span></span>

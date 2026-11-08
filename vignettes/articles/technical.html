@@ -32,9 +32,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -347,7 +347,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </p>
 <p>quartodown generates a <a href="https://quarto.org/">Quarto</a> website project from the package sources, so the man pages, vignettes and generated pages are all Quarto pages, and every Quarto feature works.</p>
 <section id="how-a-build-works" class="level2"><h2 class="anchored" data-anchor-id="how-a-build-works">How a build works</h2>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">quartodown::build_site()</a></code> runs in three stages:</p>
+<p><code>quartodown::<a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site</a>()</code> runs in three stages:</p>
 <ol type="1">
 <li>
 <strong>Before rendering</strong>, it installs the package into a temporary library, writes a Quarto project into <code>_quarto/</code> and runs the reference pages’ examples against that package.</li>
@@ -358,10 +358,10 @@ visitors who prefer it, before Quarto reads the stored choice.
 </ol>
 <p>Until that last step, <code>docs/</code> still has the previous site, also if the build fails.</p>
 <p>With <a href="../customizing.html#development-and-release-sites"><code>development: mode: devel</code></a>, the site goes in <code>docs/dev/</code> instead, and a build into <code>docs/</code> leaves <code>dev/</code> as it is.</p>
-<p>In an interactive session it then serves the site with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/preview_site.html">preview_site()</a></code>. The server keeps running for the rest of the session, so you can keep reading the previous site during a rebuild, and after it an open page that changed reloads.</p>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(devel = TRUE)</a></code> skips the install and loads the package from source with <code><a href="https://pkgload.r-lib.org/reference/load_all.html">pkgload::load_all()</a></code> instead. It is faster, but code that starts other R processes (for example with callr or parallel) won’t find the package, and build-stage <code>\Sexpr{}</code> macros in the man pages don’t run.</p>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site()</a></code>’s <code>workers</code> argument sets the number of processes to build with. More than one needs the <a href="https://mirai.r-lib.org/">mirai</a> package.</p>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(freeze = TRUE)</a></code> reuses the results of code from an earlier build, kept in <code>_quarto/_freeze/</code>, for pages whose source hasn’t changed (Quarto’s <a href="https://quarto.org/docs/projects/code-execution.html#freeze">freeze</a>). Committing <code>_quarto/_freeze/</code> lets builds on CI reuse them too.</p>
+<p>In an interactive session it then serves the site with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../../reference/preview_site.html">preview_site</a>()</code>. The server keeps running for the rest of the session, so you can keep reading the previous site during a rebuild, and after it an open page that changed reloads.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site</a>(devel = TRUE)</code> skips the install and loads the package from source with <code>pkgload::<a href="https://pkgload.r-lib.org/reference/load_all.html">load_all</a>()</code> instead. It is faster, but code that starts other R processes (for example with callr or parallel) won’t find the package, and build-stage <code>\Sexpr{}</code> macros in the man pages don’t run.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site</a>()</code>’s <code>workers</code> argument sets the number of processes to build with. More than one needs the <a href="https://mirai.r-lib.org/">mirai</a> package.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site</a>(freeze = TRUE)</code> reuses the results of code from an earlier build, kept in <code>_quarto/_freeze/</code>, for pages whose source hasn’t changed (Quarto’s <a href="https://quarto.org/docs/projects/code-execution.html#freeze">freeze</a>). Committing <code>_quarto/_freeze/</code> lets builds on CI reuse them too.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -376,7 +376,7 @@ Warning
 </div>
 </div>
 <p>Throughout the build, the environment variable <code>IN_QUARTODOWN</code> is <code>"true"</code>, so the package’s code can tell it is running for the site, and <code>IN_QUARTODOWN_PKG</code> is the package’s name.</p>
-<p><code>_quarto/</code> is rewritten on every build, and gitignored by <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../../reference/use_quartodown.html">quartodown::use_quartodown()</a></code>. To change the site, edit <code>_quartodown/</code> instead (see <a href="../customizing.html">Customizing your site</a>).</p>
+<p><code>_quarto/</code> is rewritten on every build, and gitignored by <code>quartodown::<a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../../reference/use_quartodown.html">use_quartodown</a>()</code>. To change the site, edit <code>_quartodown/</code> instead (see <a href="../customizing.html">Customizing your site</a>).</p>
 <pre class="text"><code>_quarto/
 ├── _quarto.yml                   # Quarto configuration (navbar, footer, theme)
 ├── index.qmd                     # home page
@@ -392,9 +392,9 @@ Warning
 </section><section id="the-man-pages" class="level2"><h2 class="anchored" data-anchor-id="the-man-pages">The man pages</h2>
 <p>Examples run, with their output in the same block as the code, prefixed with <code>#&gt;</code>. To save Quarto starting an R process per page, they all run beforehand in one R process, which resets the global environment, search path, options and the like between pages, as <code>R CMD check</code> does. Pages whose examples fail or produce HTML widgets are left for Quarto to run.</p>
 </section><section id="code-links-and-tooltips" class="level2"><h2 class="anchored" data-anchor-id="code-links-and-tooltips">Code links and tooltips</h2>
-<p>Function calls in R code, and inline code like <code><a href="https://rdrr.io/r/base/mean.html">mean()</a></code> or <code><a href="https://rdrr.io/r/base/mean.html">?mean</a></code>, link to their documentation: the package’s own pages, another installed package’s site, or else <a href="https://rdrr.io">rdrr.io</a>. A package that isn’t installed, as in <code><a href="https://rdrr.io/r/base/library.html">library(pkg)</a></code>, links to its site from its <code>DESCRIPTION</code> on CRAN, or else its repository or its CRAN page, but its functions aren’t linked. Where other packages’ sites are is cached in <code><a href="https://rdrr.io/r/tools/userdir.html">tools::R_user_dir("quartodown", "cache")</a></code>, and looked up again when more than a week old; delete the folder to look them all up again.</p>
+<p>Function calls in R code, and inline code like <code><a href="https://rdrr.io/r/base/mean.html">mean</a>()</code> or <code><a href="https://rdrr.io/r/base/mean.html">?mean</a></code>, link to their documentation: the package’s own pages, another installed package’s site, or else <a href="https://rdrr.io">rdrr.io</a>. A package that isn’t installed, as in <code><a href="https://rdrr.io/r/base/library.html">library(pkg)</a></code>, links to its site from its <code>DESCRIPTION</code> on CRAN, or else its repository or its CRAN page, but its functions aren’t linked. Where other packages’ sites are is cached in <code>tools::<a href="https://rdrr.io/r/tools/userdir.html">R_user_dir</a>("quartodown", "cache")</code>, and looked up again when more than a week old; delete the folder to look them all up again.</p>
 <p>The build also writes <code>docs/pkgdown.yml</code>, so that other packages’ sites, made with quartodown or pkgdown, can link to your pages.</p>
-<p>References to the package’s own functions also get a hover tooltip with their usage and title. A usage longer than 12 lines is shortened. To build without tooltips, use <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site(tooltips = FALSE)</a></code>.</p>
+<p>References to the package’s own functions also get a hover tooltip with their usage and title. A usage longer than 12 lines is shortened. To build without tooltips, use <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site</a>(tooltips = FALSE)</code>.</p>
 </section><section id="the-theme" class="level2"><h2 class="anchored" data-anchor-id="the-theme">The theme</h2>
 <p>The site has a light and a dark theme, and follows the browser’s preference. Each is built in layers:</p>
 <ol type="1">

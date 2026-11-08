@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -453,17 +453,17 @@ Number of processes to build the site with. More than 1 needs the <a href="https
 <code>preview</code>
 </td>
 <td>
-Logical. Open the built site in a web browser with <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./preview_site.html">preview_site()</a></code>? By default, only in interactive sessions.
+Logical. Open the built site in a web browser with <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./preview_site.html">preview_site</a>()</code>? By default, only in interactive sessions.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
-<p>The site is built in a scratch folder, <code>_quarto/_site/</code>, and replaces the one in <code>docs/</code> only once it is complete. So the previous site stays there, and viewable with <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./preview_site.html">preview_site()</a></code>, while the build runs and if it fails.</p>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site()</a></code> assembles a Quarto website project in <code>_quarto/</code> from the package sources and <code>_quartodown/_quartodown.yml</code>, then renders it. It uses <code>README.md</code> (or, without one, <code>DESCRIPTION</code>), <code>man/</code>, the vignettes (including those in subfolders), <code>NEWS.md</code>, <code>LICENSE</code>/<code>LICENSE.md</code>, and <code>CODE_OF_CONDUCT.md</code>, <code>CONTRIBUTING.md</code> and <code>SUPPORT.md</code> (at the top level or in <code>.github/</code>). See <code><a href="../vignettes/quartodown.html">vignette("quartodown")</a></code> for what the site contains.</p>
-<p>While it builds, the environment variable <code>IN_QUARTODOWN</code> is <code>"true"</code>, so the package’s examples and vignettes can check <code><a href="https://rdrr.io/r/base/identical.html">identical(Sys.getenv("IN_QUARTODOWN"), "true")</a></code>. <code>IN_QUARTODOWN_PKG</code> is the name of the package whose site it is, which code shared between packages can check.</p>
+<p>The site is built in a scratch folder, <code>_quarto/_site/</code>, and replaces the one in <code>docs/</code> only once it is complete. So the previous site stays there, and viewable with <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./preview_site.html">preview_site</a>()</code>, while the build runs and if it fails.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site</a>()</code> assembles a Quarto website project in <code>_quarto/</code> from the package sources and <code>_quartodown/_quartodown.yml</code>, then renders it. It uses <code>README.md</code> (or, without one, <code>DESCRIPTION</code>), <code>man/</code>, the vignettes (including those in subfolders), <code>NEWS.md</code>, <code>LICENSE</code>/<code>LICENSE.md</code>, and <code>CODE_OF_CONDUCT.md</code>, <code>CONTRIBUTING.md</code> and <code>SUPPORT.md</code> (at the top level or in <code>.github/</code>). See <code><a href="../vignettes/quartodown.html">vignette("quartodown")</a></code> for what the site contains.</p>
+<p>While it builds, the environment variable <code>IN_QUARTODOWN</code> is <code>"true"</code>, so the package’s examples and vignettes can check <code><a href="https://rdrr.io/r/base/identical.html">identical</a>(Sys.getenv("IN_QUARTODOWN"), "true")</code>. <code>IN_QUARTODOWN_PKG</code> is the name of the package whose site it is, which code shared between packages can check.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p>Invisibly, the path to the built site.</p>
 </section><section id="configuration" class="level2"><h2 class="anchored" data-anchor-id="configuration">Configuration</h2>
-<p><code>_quartodown/_quartodown.yml</code> is optional; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./use_quartodown.html">use_quartodown()</a></code> creates one. It can contain:</p>
+<p><code>_quartodown/_quartodown.yml</code> is optional; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./use_quartodown.html">use_quartodown</a>()</code> creates one. It can contain:</p>
 <ul>
 <li>
 <p><code>url</code>: the site’s address. It defaults to the first <code>URL</code> in <code>DESCRIPTION</code> that isn’t a source repository.</p>

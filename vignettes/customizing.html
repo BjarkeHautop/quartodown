@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -397,7 +397,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </header><p class="source-note">
 <small class="dont-index">Source: <a href="https://github.com/bjarkehautop/quartodown/blob/HEAD/vignettes/customizing.qmd"><code>vignettes/customizing.qmd</code></a></small>
 </p>
-<p>If you want to customize your site, you can do so by editing <code>_quartodown/_quartodown.yml</code>, which <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">quartodown::use_quartodown()</a></code> creates. The <code>_quartodown/</code> folder at the package root also holds the files that <a href="#styling-and-layout">style the site</a>. <code>_quartodown.yml</code> has twelve fields, all optional:</p>
+<p>If you want to customize your site, you can do so by editing <code>_quartodown/_quartodown.yml</code>, which <code>quartodown::<a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">use_quartodown</a>()</code> creates. The <code>_quartodown/</code> folder at the package root also holds the files that <a href="#styling-and-layout">style the site</a>. <code>_quartodown.yml</code> has twelve fields, all optional:</p>
 <ul>
 <li>
 <code>url:</code> is the site’s address. It defaults to the first <code>URL</code> in <code>DESCRIPTION</code> that isn’t on GitHub, GitLab or Codeberg.</li>
@@ -502,7 +502,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </td>
 </tr>
 <tr class="odd">
-<td><code><a href="https://rdrr.io/r/base/c.html">c(...)</a></code></td>
+<td><code><a href="https://rdrr.io/r/base/c.html">c</a>(...)</code></td>
 <td>selected by any of the selectors given</td>
 </tr>
 <tr class="even">
@@ -615,7 +615,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </dd>
 </dl>
 <p>Vignettes can live in any subfolder of <code>vignettes/</code>. Files and folders whose name starts with <code>_</code> or <code>.</code> are skipped, as Quarto does.</p>
-<p>Every vignette is built, even one the navbar doesn’t link to. Such a vignette can only be reached through links from other pages, so <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site()</a></code> warns about it, unless the navbar has <code>articles</code>, which lists every vignette nothing else links.</p>
+<p>Every vignette is built, even one the navbar doesn’t link to. Such a vignette can only be reached through links from other pages, so <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_site.html">build_site</a>()</code> warns about it, unless the navbar has <code>articles</code>, which lists every vignette nothing else links.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -810,7 +810,7 @@ Note
 </div>
 <p>With <code>mode: auto</code>, a package not yet on CRAN keeps the <code>.quartodown-devel</code> content.</p>
 </section><section id="files-the-vignettes-use" class="level2"><h2 class="anchored" data-anchor-id="files-the-vignettes-use">Files the vignettes use</h2>
-<p>The vignettes are built from a copy of <code>vignettes/</code> in <code>_quarto/vignettes/</code>, so a relative path out of it, such as <code><a href="https://rdrr.io/r/utils/read.table.html">read.csv("../data-raw/example.csv")</a></code>, can’t find the file. List such files and folders under <code>vignettes: files:</code>, and they are copied too, to the same paths:</p>
+<p>The vignettes are built from a copy of <code>vignettes/</code> in <code>_quarto/vignettes/</code>, so a relative path out of it, such as <code><a href="https://rdrr.io/r/utils/read.table.html">read.csv</a>("../data-raw/example.csv")</code>, can’t find the file. List such files and folders under <code>vignettes: files:</code>, and they are copied too, to the same paths:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb10"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">vignettes</span><span class="kw">:</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">files</span><span class="kw">:</span></span>
@@ -963,7 +963,7 @@ Note
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section></section><section id="coming-from-pkgdown" class="level2"><h2 class="anchored" data-anchor-id="coming-from-pkgdown">Coming from pkgdown</h2>
-<p>In a package with a <code>_pkgdown.yml</code>, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">use_quartodown()</a></code> translates it into <code>_quartodown/_quartodown.yml</code>, and lists the settings it couldn’t translate. Fields with a similar format are copied: <code>url:</code>, <code>reference:</code>, <code>home: sidebar:</code>, <code>home: links:</code>, <code>authors:</code>, <code>repo:</code>, <code>redirects:</code> and <code>development: mode:</code>. The rest maps as follows:</p>
+<p>In a package with a <code>_pkgdown.yml</code>, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">use_quartodown</a>()</code> translates it into <code>_quartodown/_quartodown.yml</code>, and lists the settings it couldn’t translate. Fields with a similar format are copied: <code>url:</code>, <code>reference:</code>, <code>home: sidebar:</code>, <code>home: links:</code>, <code>authors:</code>, <code>repo:</code>, <code>redirects:</code> and <code>development: mode:</code>. The rest maps as follows:</p>
 <table class="caption-top table">
 <thead><tr class="header">
 <th>pkgdown</th>
@@ -1048,7 +1048,7 @@ Note
 </tbody>
 </table>
 <p>Vignettes are published under <code>vignettes/</code> rather than <code>articles/</code>, and the changelog is <code>NEWS.html</code> rather than <code>news/index.html</code>, so the translation adds <code>redirects:</code> from pkgdown’s addresses.</p>
-<p>A separate home page (an <code>index.md</code> used instead of the README) isn’t picked up automatically: set it with <a href="#the-home-page"><code>home: file:</code></a>. Code that checks <code>IN_PKGDOWN</code> (or <code>pkgdown::in_pkgdown()</code>) should check <code><a href="https://rdrr.io/r/base/identical.html">identical(Sys.getenv("IN_QUARTODOWN"), "true")</a></code> instead.</p>
+<p>A separate home page (an <code>index.md</code> used instead of the README) isn’t picked up automatically: set it with <a href="#the-home-page"><code>home: file:</code></a>. Code that checks <code>IN_PKGDOWN</code> (or <code>pkgdown::in_pkgdown()</code>) should check <code><a href="https://rdrr.io/r/base/identical.html">identical</a>(Sys.getenv("IN_QUARTODOWN"), "true")</code> instead.</p>
 
 
 </section></main><!-- /main --><style>
