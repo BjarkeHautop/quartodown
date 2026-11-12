@@ -33,8 +33,9 @@ server keeps running for the rest of the session, so you can keep reading the
 previous site during a rebuild, and after it an open page that changed reloads.
 
 `build_site(devel = TRUE)` skips the install and loads the package from source
-with `pkgload::load_all()` instead. It is faster, but code that starts other R
-processes (for example with callr or parallel) won't find the package, and
+with `pkgload::load_all()` instead (compiled code is compiled once, before the
+build, rather than by each R process). It is faster, but code that starts other
+R processes (for example with callr or parallel) won't find the package, and
 build-stage `\Sexpr{}` macros in the man pages don't run.
 
 `build_site()`'s `workers` argument sets the number of processes to build with.

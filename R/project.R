@@ -789,6 +789,10 @@ install_envvars <- function(path, scratch) {
   )
 }
 
+# Compiled code is compiled here, once, and the profile loads it without
+# compiling: load_all() compiles a stale DLL in place, in src/, which the
+# processes it runs in, started together with `workers > 1`, would all do at
+# once, breaking each other's builds.
 load_all_envvars <- function(path, scratch) {
   if (!requireNamespace("pkgload", quietly = TRUE)) {
     cli::cli_abort(c(
@@ -796,10 +800,24 @@ load_all_envvars <- function(path, scratch) {
       "i" = "Install it with {.code install.packages(\"pkgload\")}."
     ))
   }
+  if (pkgbuild::needs_compile(path)) {
+    pkg <- pkg_name(path)
+    cli::cli_progress_step(
+      "Compiling {.pkg {pkg}}",
+      msg_done = "Compiled {.pkg {pkg}}"
+    )
+    tryCatch(
+      pkgbuild::compile_dll(path, quiet = TRUE),
+      error = function(e) {
+        cli::cli_abort("Compiling {.pkg {pkg}} failed.", parent = e)
+      }
+    )
+    cli::cli_progress_done()
+  }
   profile_envvars(
     scratch,
     sprintf(
-      "suppressMessages(pkgload::load_all(%s, export_all = FALSE, helpers = FALSE, quiet = TRUE))",
+      "suppressMessages(pkgload::load_all(%s, compile = FALSE, export_all = FALSE, helpers = FALSE, quiet = TRUE))",
       deparse(normalizePath(path))
     )
   )

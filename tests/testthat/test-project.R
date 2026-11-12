@@ -645,6 +645,61 @@ test_that("load_all_envvars() writes a profile that loads the package from sourc
   profile <- readLines(envvars[["R_PROFILE_USER"]])
   expect_match(profile, "pkgload::load_all(", fixed = TRUE, all = FALSE)
   expect_match(profile, deparse(normalizePath(dir)), fixed = TRUE, all = FALSE)
+  expect_match(profile, "compile = FALSE", fixed = TRUE, all = FALSE)
+})
+
+test_that("load_all_envvars() compiles once, so concurrent processes can load", {
+  skip_on_cran()
+  skip_if_not(pkgbuild::has_build_tools())
+  dir <- new_pkg()
+  dir.create(file.path(dir, "R"))
+  dir.create(file.path(dir, "src"))
+  # R CMD INSTALL, which compiles it, needs a maintainer's email.
+  writeLines(
+    c(
+      "Package: examplepkg",
+      "Version: 1.0.0",
+      "Maintainer: Jane Doe <jane@example.com>"
+    ),
+    file.path(dir, "DESCRIPTION")
+  )
+  write(
+    "useDynLib(examplepkg, .registration = TRUE)\nexport(add)",
+    file.path(dir, "NAMESPACE")
+  )
+  writeLines(
+    "add <- function(a, b) .Call(C_add, a, b)",
+    file.path(dir, "R", "add.R")
+  )
+  writeLines(
+    c(
+      "#include <R.h>",
+      "#include <Rinternals.h>",
+      "#include <R_ext/Rdynload.h>",
+      "SEXP add(SEXP a, SEXP b) { return ScalarReal(asReal(a) + asReal(b)); }",
+      "static const R_CallMethodDef m[] = {{\"C_add\", (DL_FUNC) &add, 2}, {NULL, NULL, 0}};",
+      "void R_init_examplepkg(DllInfo *d) { R_registerRoutines(d, NULL, m, NULL, NULL); }"
+    ),
+    file.path(dir, "src", "add.c")
+  )
+  envvars <- suppressMessages(load_all_envvars(dir, withr::local_tempdir()))
+  expect_false(pkgbuild::needs_compile(dir))
+
+  procs <- lapply(1:4, function(i) {
+    processx::process$new(
+      file.path(R.home("bin"), "Rscript"),
+      c("-e", "cat(add(1, 2))"),
+      env = c("current", envvars),
+      wd = dir,
+      stdout = "|",
+      stderr = "2>&1"
+    )
+  })
+  for (p in procs) {
+    p$wait()
+  }
+  out <- vapply(procs, function(p) p$read_all_output(), character(1))
+  expect_identical(out, rep("3", 4))
 })
 
 test_that("local_envvars() restores set and unset variables on exit", {
