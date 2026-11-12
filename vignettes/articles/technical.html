@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="generator" content="quarto-1.11.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Technical details – quartodown 0.1.0.9000</title>
@@ -32,9 +31,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-895821ad15f059b9418e27e3b3cc8812.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -392,7 +391,7 @@ Warning
 </section><section id="the-man-pages" class="level2"><h2 class="anchored" data-anchor-id="the-man-pages">The man pages</h2>
 <p>Examples run, with their output in the same block as the code, prefixed with <code>#&gt;</code>. To save Quarto starting an R process per page, they all run beforehand in one R process, which resets the global environment, search path, options and the like between pages, as <code>R CMD check</code> does. Pages whose examples fail or produce HTML widgets are left for Quarto to run.</p>
 </section><section id="code-links-and-tooltips" class="level2"><h2 class="anchored" data-anchor-id="code-links-and-tooltips">Code links and tooltips</h2>
-<p>Function calls in R code, and inline code like <code><a href="https://rdrr.io/r/base/mean.html">mean</a>()</code> or <code><a href="https://rdrr.io/r/base/mean.html">?mean</a></code>, link to their documentation: the package’s own pages, another installed package’s site, or else <a href="https://rdrr.io">rdrr.io</a>. A package that isn’t installed, as in <code><a href="https://rdrr.io/r/base/library.html">library(pkg)</a></code>, links to its site from its <code>DESCRIPTION</code> on CRAN, or else its repository or its CRAN page, but its functions aren’t linked. Where other packages’ sites are is cached in <code>tools::<a href="https://rdrr.io/r/tools/userdir.html">R_user_dir</a>("quartodown", "cache")</code>, and looked up again when more than a week old; delete the folder to look them all up again.</p>
+<p>Function calls in R code, and inline code like <code>foo()</code> or <code>?foo</code>, link to their documentation: the package’s own pages or another installed package’s site. A package that isn’t installed, as in <code>library(pkg)</code>, links to its site from its <code>DESCRIPTION</code> on CRAN, or else its repository, but its functions aren’t linked. Where other packages’ sites are is cached in <code>tools::R_user_dir("quartodown", "cache")</code>, and looked up again when more than a week old; delete the folder to look them all up again. Functions from packages without a site, including base R, aren’t linked unless you set <a href="../customizing.html#links-to-other-packages"><code>links: external: all</code></a>, which links them to <a href="https://rdrr.io">rdrr.io</a> (and a package without any URL to its CRAN page). With <code>none</code>, only the package’s own pages are linked.</p>
 <p>The build also writes <code>docs/pkgdown.yml</code>, so that other packages’ sites, made with quartodown or pkgdown, can link to your pages.</p>
 <p>References to the package’s own functions also get a hover tooltip with their usage and title. A usage longer than 12 lines is shortened. To build without tooltips, use <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../../reference/build_site.html">build_site</a>(tooltips = FALSE)</code>.</p>
 </section><section id="the-theme" class="level2"><h2 class="anchored" data-anchor-id="the-theme">The theme</h2>

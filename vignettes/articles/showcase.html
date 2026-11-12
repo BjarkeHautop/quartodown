@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="generator" content="quarto-1.11.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Quarto features – quartodown 0.1.0.9000</title>
@@ -67,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-895821ad15f059b9418e27e3b3cc8812.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -493,7 +492,7 @@ Source
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span>(mtcars<span class="sc">$</span>mpg)</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mtcars<span class="sc">$</span>mpg)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   10.40   15.43   19.20   20.09   22.80   33.90</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
@@ -503,7 +502,7 @@ Source
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span>(mtcars<span class="sc">$</span>mpg, <span class="at">main =</span> <span class="cn">NULL</span>, <span class="at">xlab =</span> <span class="st">"Miles per gallon"</span>, <span class="at">col =</span> <span class="st">"steelblue"</span>)</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(mtcars<span class="sc">$</span>mpg, <span class="at">main =</span> <span class="cn">NULL</span>, <span class="at">xlab =</span> <span class="st">"Miles per gallon"</span>, <span class="at">col =</span> <span class="st">"steelblue"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="cell-output-display">
@@ -517,7 +516,7 @@ Source
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html">aggregate</a></span>(mpg <span class="sc">~</span> cyl, <span class="at">data =</span> mtcars, <span class="at">FUN =</span> mean)</span>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">aggregate</span>(mpg <span class="sc">~</span> cyl, <span class="at">data =</span> mtcars, <span class="at">FUN =</span> mean)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   cyl      mpg</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1   4 26.66364</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2   6 19.74286</span></span>
@@ -604,7 +603,7 @@ Source
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
-<p>In code, functions from other packages are linked to their own documentation, like <code><a href="https://rdrr.io/r/base/summary.html">summary</a>()</code> in the tabset above.</p>
+<p>In code, functions from other packages are linked to their own documentation, like <code>summary()</code> in the tabset above.</p>
 </section><section id="footnotes-and-margin-content" class="level2 page-columns page-full"><h2 class="anchored" data-anchor-id="footnotes-and-margin-content">Footnotes and margin content</h2>
 <p>Footnotes are written with <code>[^name]</code>.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> Quarto shows them at the end of the page, and as a popup when you hover over the reference.</p>
 <details><summary>
@@ -633,7 +632,7 @@ Source
 <p>Code output, such as plots, gets a caption and a label you can reference: see <a href="#fig-pressure" class="quarto-xref">Figure 1</a>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span>(pressure, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"steelblue"</span>)</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pressure, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">pch =</span> <span class="dv">19</span>, <span class="at">col =</span> <span class="st">"steelblue"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="cell-output-display">
@@ -650,7 +649,7 @@ Figure 1: Vapor pressure of mercury as a function of temperature.
 <p>Tables can be cross-referenced in the same way, as in <a href="#tbl-cars" class="quarto-xref">Table 1</a>.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span>(<span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span>(mtcars[, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]))</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(mtcars[, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div id="tbl-cars" class="cell quarto-float quarto-figure quarto-figure-center anchored">
@@ -763,7 +762,7 @@ Source
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>cli<span class="sc">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_alert.html">cli_alert_success</a></span>(<span class="st">"Found {.val {3}} vignettes."</span>)</span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Found <span class='fansi-color-004'>3</span> vignettes.</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>cli<span class="sc">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_abort.html">cli_abort</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>cli<span class="sc">::</span><span class="fu"><a href="https://cli.r-lib.org/reference/cli_abort.html">cli_abort</a></span>(<span class="fu">c</span>(</span>
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Can't find {.file _quartodown.yml}."</span>,</span>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"i"</span> <span class="ot">=</span> <span class="st">"Create one with {.fn quartodown::use_quartodown}."</span></span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>))</span>
@@ -776,7 +775,7 @@ Source
 <p>and tibbles:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>tibble<span class="sc">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span>(<span class="at">x =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="sc">-</span><span class="fl">1.5</span>, <span class="cn">NA</span>, <span class="dv">3</span>), <span class="at">y =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"a"</span>, <span class="cn">NA</span>, <span class="st">"c"</span>))</span>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>tibble<span class="sc">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html">tibble</a></span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.5</span>, <span class="cn">NA</span>, <span class="dv">3</span>), <span class="at">y =</span> <span class="fu">c</span>(<span class="st">"a"</span>, <span class="cn">NA</span>, <span class="st">"c"</span>))</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-246'># A tibble: 3 × 2</span></span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;       x y    </span></span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   <span class='fansi-color-246' style='font-style: italic;'>&lt;dbl&gt;</span> <span class='fansi-color-246' style='font-style: italic;'>&lt;chr&gt;</span></span></span>

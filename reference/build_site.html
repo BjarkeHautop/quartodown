@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="generator" content="quarto-1.11.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Build the package website – quartodown 0.1.0.9000</title>
@@ -67,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-895821ad15f059b9418e27e3b3cc8812.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -394,7 +393,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">quiet =</span> <span class="cn">TRUE</span>,</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">devel =</span> <span class="cn">FALSE</span>,</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">workers =</span> <span class="dv">1</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">preview =</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html">interactive</a></span>()</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">preview =</span> <span class="fu">interactive</span>()</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
@@ -459,7 +458,7 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
 </tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
 <p>The site is built in a scratch folder, <code>_quarto/_site/</code>, and replaces the one in <code>docs/</code> only once it is complete. So the previous site stays there, and viewable with <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./preview_site.html">preview_site</a>()</code>, while the build runs and if it fails.</p>
 <p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./build_site.html">build_site</a>()</code> assembles a Quarto website project in <code>_quarto/</code> from the package sources and <code>_quartodown/_quartodown.yml</code>, then renders it. It uses <code>README.md</code> (or, without one, <code>DESCRIPTION</code>), <code>man/</code>, the vignettes (including those in subfolders), <code>NEWS.md</code>, <code>LICENSE</code>/<code>LICENSE.md</code>, and <code>CODE_OF_CONDUCT.md</code>, <code>CONTRIBUTING.md</code> and <code>SUPPORT.md</code> (at the top level or in <code>.github/</code>). See <code><a href="../vignettes/quartodown.html">vignette("quartodown")</a></code> for what the site contains.</p>
-<p>While it builds, the environment variable <code>IN_QUARTODOWN</code> is <code>"true"</code>, so the package’s examples and vignettes can check <code><a href="https://rdrr.io/r/base/identical.html">identical</a>(Sys.getenv("IN_QUARTODOWN"), "true")</code>. <code>IN_QUARTODOWN_PKG</code> is the name of the package whose site it is, which code shared between packages can check.</p>
+<p>While it builds, the environment variable <code>IN_QUARTODOWN</code> is <code>"true"</code>, so the package’s examples and vignettes can check <code>identical(Sys.getenv("IN_QUARTODOWN"), "true")</code>. <code>IN_QUARTODOWN_PKG</code> is the name of the package whose site it is, which code shared between packages can check.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p>Invisibly, the path to the built site.</p>
 </section><section id="configuration" class="level2"><h2 class="anchored" data-anchor-id="configuration">Configuration</h2>
@@ -497,6 +496,9 @@ Logical. Open the built site in a web browser with <code><a class="quartodown-ti
 </li>
 <li>
 <p><code>logo</code>: <code>false</code> to leave the logo, <code>man/figures/logo.svg</code> or <code>.png</code> (and in light mode <code>logo-light</code>, if it exists), off the pages’ titles.</p>
+</li>
+<li>
+<p><code>links</code>: <code>external</code>, what references to other packages, in code and in Rd links, link to: <code>sites</code> (the default; only the packages’ own sites), <code>all</code> (also rdrr.io and CRAN) or <code>none</code> (nothing outside the package).</p>
 </li>
 <li>
 <p><code>quarto</code>: settings merged over the generated Quarto configuration.</p>

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="generator" content="quarto-1.11.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Set up a package to use quartodown – quartodown 0.1.0.9000</title>
@@ -67,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-895821ad15f059b9418e27e3b3cc8812.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -418,21 +417,21 @@ _quarto/*
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pkg <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html">tempfile</a></span>(<span class="st">"examplepkg"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/files2.html">dir.create</a></span>(pkg)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/write.html">write</a></span>(</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pkg <span class="ot">&lt;-</span> <span class="fu">tempfile</span>(<span class="st">"examplepkg"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir.create</span>(pkg)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">write</span>(</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Package: examplepkg</span><span class="sc">\n</span><span class="st">Version: 0.0.0.9000"</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"DESCRIPTION"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">file.path</span>(pkg, <span class="st">"DESCRIPTION"</span>)</span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_quartodown.html">use_quartodown</a></span>(pkg)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Wrote <span class='fansi-color-004'>/tmp/RtmpUdrW96/examplepkg189a27fec01d/_quartodown/_quartodown.yml</span> (edit this to group your functions).</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `_quarto/*` and `!_quarto/_freeze/` to <span class='fansi-color-004'>/tmp/RtmpUdrW96/examplepkg189a27fec01d/.gitignore</span>.</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `^docs$`, `^_quarto$`, and `^_quartodown$` to <span class='fansi-color-004'>/tmp/RtmpUdrW96/examplepkg189a27fec01d/.Rbuildignore</span>.</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Wrote <span class='fansi-color-004'>/tmp/Rtmp562Jy5/examplepkg19a69f4f5d8/_quartodown/_quartodown.yml</span> (edit this to group your functions).</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `_quarto/*` and `!_quarto/_freeze/` to <span class='fansi-color-004'>/tmp/Rtmp562Jy5/examplepkg19a69f4f5d8/.gitignore</span>.</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; <span class='fansi-color-002'>✔</span> Added `^docs$`, `^_quarto$`, and `^_quartodown$` to <span class='fansi-color-004'>/tmp/Rtmp562Jy5/examplepkg19a69f4f5d8/.Rbuildignore</span>.</span></span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Next steps:</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1. Edit <span class='fansi-color-004'>_quartodown/_quartodown.yml</span> to group your functions the way you want.</span></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2. Build and preview the site with `quartodown::build_site()`.</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"_quartodown"</span>, <span class="st">"_quartodown.yml"</span>))</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">readLines</span>(<span class="fu">file.path</span>(pkg, <span class="st">"_quartodown"</span>, <span class="st">"_quartodown.yml"</span>))</span>
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "# Configuration for quartodown::build_site(). See"                    </span></span>
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [2] "# vignette(\"customizing\", package = \"quartodown\") for all fields."</span></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3] ""                                                                     </span></span>
@@ -440,7 +439,7 @@ _quarto/*
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [5] "  - title: All functions"                                             </span></span>
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [6] "    contents:"                                                        </span></span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [7] "      []"</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/unlink.html">unlink</a></span>(pkg, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="fu">unlink</span>(pkg, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
