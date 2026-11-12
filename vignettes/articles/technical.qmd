@@ -84,14 +84,17 @@ HTML widgets are left for Quarto to run.
 
 ## Code links and tooltips
 
-Function calls in R code, and inline code like `mean()` or `?mean`, link to
-their documentation: the package's own pages, another installed package's site,
-or else [rdrr.io](https://rdrr.io). A package that isn't installed, as in
-`library(pkg)`, links to its site from its `DESCRIPTION` on CRAN, or else its
-repository or its CRAN page, but its functions aren't linked. Where other
-packages' sites are is cached in `tools::R_user_dir("quartodown", "cache")`, and
-looked up again when more than a week old; delete the folder to look them all up
-again.
+Function calls in R code, and inline code like `foo()` or `?foo`, link to their
+documentation: the package's own pages or another installed package's site. A
+package that isn't installed, as in `library(pkg)`, links to its site from its
+`DESCRIPTION` on CRAN, or else its repository, but its functions aren't linked.
+Where other packages' sites are is cached in
+`tools::R_user_dir("quartodown", "cache")`, and looked up again when more than a
+week old; delete the folder to look them all up again. Functions from packages
+without a site, including base R, aren't linked unless you set
+[`links: external: all`](../customizing.qmd#links-to-other-packages), which
+links them to [rdrr.io](https://rdrr.io) (and a package without any URL to its
+CRAN page). With `none`, only the package's own pages are linked.
 
 The build also writes `docs/pkgdown.yml`, so that other packages' sites, made
 with quartodown or pkgdown, can link to your pages.

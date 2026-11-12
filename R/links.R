@@ -14,7 +14,9 @@
 # (`topic_path`) and to the site's root (`root`), and the packages the page
 # attaches, which grow as its code is linked (see attach_packages()). With
 # `tips`, links to the package's own topics get a tooltip from `index` (see
-# build_topic_index()); the page's are kept in `tip_entries`.
+# build_topic_index()); the page's are kept in `tip_entries`. `external` says
+# what else is linked (see link_scope()): `"all"`, `"sites"` (only other
+# packages' own sites) or `"none"` (only the package's own pages).
 link_context <- function(
   pkg = NULL,
   topics = character(),
@@ -23,7 +25,8 @@ link_context <- function(
   topic_path = "reference/",
   root = "",
   index = list(),
-  tips = FALSE
+  tips = FALSE,
+  external = "sites"
 ) {
   ctx <- new.env(parent = emptyenv())
   ctx$pkg <- pkg
@@ -34,6 +37,7 @@ link_context <- function(
   ctx$root <- root
   ctx$index <- index
   ctx$tips <- tips
+  ctx$external <- external
   ctx$attached <- character()
   ctx$tip_ids <- character()
   ctx$tip_entries <- list()
@@ -110,30 +114,37 @@ href_topic <- function(ctx, topic, package = NULL, is_fun = FALSE) {
   own <- is.null(package) || identical(package, ctx$pkg)
   if (own && topic %in% names(ctx$topics)) {
     rdname <- ctx$topics[[topic]]
-    if (rdname == "reexports" && is_installed(ctx$pkg %||% "")) {
-      url <- href_reexport(topic, ctx$pkg)
+    if (
+      rdname == "reexports" &&
+        ctx$external != "none" &&
+        is_installed(ctx$pkg %||% "")
+    ) {
+      url <- href_reexport(topic, ctx$pkg, ctx$external)
       if (!is.na(url)) {
         return(url)
       }
     }
     return(paste0(ctx$topic_path, rdname, ".html"))
   }
+  if (own && !is.null(package) || ctx$external == "none") {
+    return(NA_character_)
+  }
   if (!is.null(package)) {
-    return(if (own) NA_character_ else href_topic_in(topic, package))
+    return(href_topic_in(topic, package, ctx$external))
   }
   for (package in c(ctx$attached, default_packages)) {
     if (!is_installed(package) || (is_fun && !is_exported(topic, package))) {
       next
     }
     if (!is.null(find_rdname(package, topic))) {
-      return(href_topic_in(topic, package))
+      return(href_topic_in(topic, package, ctx$external))
     }
   }
   NA_character_
 }
 
 # The URL of `topic` in the installed package `package`, or NA.
-href_topic_in <- function(topic, package) {
+href_topic_in <- function(topic, package, external = "sites") {
   if (!is_installed(package)) {
     return(NA_character_)
   }
@@ -142,9 +153,10 @@ href_topic_in <- function(topic, package) {
     return(NA_character_)
   }
   if (is_reexported(topic, package)) {
-    return(href_reexport(topic, package))
+    return(href_reexport(topic, package, external))
   }
-  paste0(package_reference_url(package), "/", rdname, ".html")
+  base <- package_reference_url(package, external)
+  if (is.na(base)) NA_character_ else paste0(base, "/", rdname, ".html")
 }
 
 # The Rd file documenting `topic` in the installed package `package`, or
@@ -173,7 +185,7 @@ is_reexported <- function(name, package) {
 }
 
 # A topic `package` re-exports links to the package it comes from.
-href_reexport <- function(topic, package) {
+href_reexport <- function(topic, package, external = "sites") {
   ns <- asNamespace(package)
   obj <- get0(topic, envir = ns)
   if (is.null(obj)) {
@@ -192,7 +204,7 @@ href_reexport <- function(topic, package) {
   if (length(from) == 0 || identical(unname(from), package)) {
     return(NA_character_)
   }
-  href_topic_in(topic, unname(from))
+  href_topic_in(topic, unname(from), external)
 }
 
 # ---- articles ---------------------------------------------------------------
@@ -207,10 +219,11 @@ href_article <- function(ctx, article, package = NULL) {
   if (own && article %in% names(ctx$articles)) {
     return(paste0(ctx$root, ctx$articles[[article]]))
   }
+  if (own && !is.null(package) || ctx$external == "none") {
+    return(NA_character_)
+  }
   if (is.null(package)) {
     package <- find_vignette_package(ctx, article)
-  } else if (own) {
-    return(NA_character_)
   }
   if (is.null(package) || !is_installed(package)) {
     return(NA_character_)
@@ -222,6 +235,8 @@ href_article <- function(ctx, article, package = NULL) {
   site <- package_site(package)
   if (!is.null(site$article)) {
     paste0(site$article, "/", path)
+  } else if (ctx$external == "sites") {
+    NA_character_
   } else if (is_bioc_package(package)) {
     paste0(
       "https://bioconductor.org/packages/release/bioc/vignettes/",
@@ -270,12 +285,20 @@ is_bioc_package <- function(package) {
 
 # ---- packages ---------------------------------------------------------------
 
-# The URL of the package `package`'s home page, or NA.
-href_package <- function(package) {
+# The URL of the package `package`'s home page, or NA. With `external`
+# `"sites"`, not its CRAN page.
+href_package <- function(package, external = "sites") {
+  if (external == "none") {
+    return(NA_character_)
+  }
   urls <- home_urls(package)
   if (length(urls) > 0) {
     urls[[1]]
-  } else if (!is_installed(package) && !is.null(cran_description(package))) {
+  } else if (
+    external == "all" &&
+      !is_installed(package) &&
+      !is.null(cran_description(package))
+  ) {
     paste0("https://cran.r-project.org/package=", package)
   } else {
     NA_character_
@@ -295,16 +318,23 @@ home_urls <- function(package) {
 }
 
 # The base URL of the package `package`'s reference pages: its site's, or else
-# rdrr.io's; NA if it's neither installed nor on CRAN.
-package_reference_url <- function(package) {
+# (unless `external` is `"sites"`) rdrr.io's; NA if it's neither installed nor
+# on CRAN.
+package_reference_url <- function(package, external = "sites") {
   if (package %in% base_packages) {
+    if (external != "all") {
+      return(NA_character_)
+    }
     return(paste0("https://rdrr.io/r/", package))
   }
   site <- package_site(package)$reference
   if (!is.null(site)) {
     return(site)
   }
-  if (!is_installed(package) && is.null(cran_description(package))) {
+  if (
+    external != "all" ||
+      !is_installed(package) && is.null(cran_description(package))
+  ) {
     return(NA_character_)
   }
   paste0("https://rdrr.io/pkg/", package, "/man")
@@ -440,7 +470,7 @@ note_failed_download <- function(url) {
   }
   cli::cli_warn(c(
     "Couldn't download other packages' details, last from {.url {url}}.",
-    "i" = "Their functions not looked up before link to {.url https://rdrr.io} instead of their sites, and packages that aren't installed aren't linked, until a build with a network connection."
+    "i" = "Their functions not looked up before aren't linked to their sites, and packages that aren't installed aren't linked, until a build with a network connection."
   ))
 }
 

@@ -10,7 +10,7 @@ vignette: >
 If you want to customize your site, you can do so by editing
 `_quartodown/_quartodown.yml`, which `quartodown::use_quartodown()` creates. The
 `_quartodown/` folder at the package root also holds the files that [style the
-site](#styling-and-layout). `_quartodown.yml` has twelve fields, all optional:
+site](#styling-and-layout). `_quartodown.yml` has thirteen fields, all optional:
 
 - `url:` is the site's address. It defaults to the first `URL` in `DESCRIPTION`
   that isn't on GitHub, GitLab or Codeberg.
@@ -26,6 +26,7 @@ site](#styling-and-layout). `_quartodown.yml` has twelve fields, all optional:
   site](#development-and-release-sites).
 - `vignettes:` lists [files the vignettes use](#files-the-vignettes-use).
 - `logo:` turns off [the logo](#the-logo) by each page's title.
+- `links:` limits [links to other packages](#links-to-other-packages).
 - `quarto:` changes any other Quarto setting.
 
 ## The reference index
@@ -353,6 +354,25 @@ Install the development version with `pak::pak("me/mypkg")`.
 With `mode: auto`, a package not yet on CRAN keeps the `.quartodown-devel`
 content.
 
+## Links to other packages
+
+When your code or documentation (`\link[pkg]{topic}`) refers to a function, help
+topic or vignette from another package, it links to that package's pkgdown or
+quartodown site. If the package has no such site, as is the case for base R, it
+isn't linked. `links: external:` changes that:
+
+```yaml
+links:
+  external: all
+```
+
+- `sites` (the default): only to packages' own sites.
+- `all`: packages without a site, including base R, also link to
+  [rdrr.io](https://rdrr.io) for help topics and to CRAN or Bioconductor for
+  vignettes.
+- `none`: nothing outside the package; only its own functions and vignettes are
+  linked.
+
 ## Files the vignettes use
 
 The vignettes are built from a copy of `vignettes/` in `_quarto/vignettes/`, so
@@ -548,24 +568,24 @@ Fields with a similar format are copied: `url:`, `reference:`, `home: sidebar:`,
 `home: links:`, `authors:`, `repo:`, `redirects:` and `development: mode:`. The
 rest maps as follows:
 
-  | pkgdown                              | quartodown                                                                      |
-  | ---                                  | ---                                                                             |
-  | `navbar:`                            | [`navbar:`](#the-navbar), with links to quartodown's pages                      |
-  | `articles:`                          | an "Articles" navbar menu, a section each                                       |
-  | `title:`                             | `quarto: website: navbar: title:`                                               |
-  | `home: description:`                 | `quarto: website: description:`                                                 |
-  | `lang:`                              | `quarto: lang:`                                                                 |
-  | `template: bootswatch:`              | [`theme: light:`](#styling-and-layout)                                          |
-  | `template: bslib:`                   | Sass variables in `_quartodown/extra.scss`                                      |
-  | `pkgdown/extra.scss`, `extra.css`    | `_quartodown/extra.scss`, `extra.css`                                           |
-  | `template: opengraph:`               | `quarto: website: open-graph:` and `twitter-card:`                              |
-  | `template: includes:`                | files in `_quartodown/`, set as `quarto: format: html: include-in-header:` etc. |
-  | `template: math-rendering:`          | `quarto: format: html: html-math-method:`                                       |
-  | `template: params: ganalytics:`      | `quarto: website: google-analytics:`                                            |
-  | `template: light-switch:`            | always on: the site has a light and a dark theme                                |
-  | `toc: depth:`                        | `quarto: format: html: toc-depth:`                                              |
-  | `figures:`                           | `quarto: format: html: fig-width:`, `fig-height:`, `fig-dpi:`                   |
-  | `footer:`                            | not translated: `authors: footer:`, or `quarto: website: page-footer:`          |
+  | pkgdown                           | quartodown                                                                      |
+  | ---                               | ---                                                                             |
+  | `navbar:`                         | [`navbar:`](#the-navbar), with links to quartodown's pages                      |
+  | `articles:`                       | an "Articles" navbar menu, a section each                                       |
+  | `title:`                          | `quarto: website: navbar: title:`                                               |
+  | `home: description:`              | `quarto: website: description:`                                                 |
+  | `lang:`                           | `quarto: lang:`                                                                 |
+  | `template: bootswatch:`           | [`theme: light:`](#styling-and-layout)                                          |
+  | `template: bslib:`                | Sass variables in `_quartodown/extra.scss`                                      |
+  | `pkgdown/extra.scss`, `extra.css` | `_quartodown/extra.scss`, `extra.css`                                           |
+  | `template: opengraph:`            | `quarto: website: open-graph:` and `twitter-card:`                              |
+  | `template: includes:`             | files in `_quartodown/`, set as `quarto: format: html: include-in-header:` etc. |
+  | `template: math-rendering:`       | `quarto: format: html: html-math-method:`                                       |
+  | `template: params: ganalytics:`   | `quarto: website: google-analytics:`                                            |
+  | `template: light-switch:`         | always on: the site has a light and a dark theme                                |
+  | `toc: depth:`                     | `quarto: format: html: toc-depth:`                                              |
+  | `figures:`                        | `quarto: format: html: fig-width:`, `fig-height:`, `fig-dpi:`                   |
+  | `footer:`                         | not translated: `authors: footer:`, or `quarto: website: page-footer:`          |
 
 Vignettes are published under `vignettes/` rather than `articles/`, and the
 changelog is `NEWS.html` rather than `news/index.html`, so the translation adds

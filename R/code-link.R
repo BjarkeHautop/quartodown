@@ -34,7 +34,8 @@ postprocess_pages <- function(
     articles = site_articles(path),
     drop = drop,
     logo = logo,
-    tooltips = tooltips
+    tooltips = tooltips,
+    external = link_scope(config)
   )
   strip_search_ansi(docs)
   invisible()
@@ -49,7 +50,8 @@ postprocess_page <- function(
   names = character(),
   articles = character(),
   logo = NULL,
-  tooltips = TRUE
+  tooltips = TRUE,
+  external = "sites"
 ) {
   html <- paste(read_utf8(f), collapse = "\n")
   # 404.html is served at any URL, so a relative link would break.
@@ -64,7 +66,8 @@ postprocess_page <- function(
     topic_path = reference_href_prefix(f, docs),
     root = paste0(fs::path_rel(docs, start = dirname(f)), "/"),
     index = index,
-    tips = tooltips
+    tips = tooltips,
+    external = external
   )
   html <- link_code_html(protect_ansi(html), drop = drop, ctx = ctx)
   html <- paste(ansi_to_html(split_lines(html)), collapse = "\n")
@@ -302,7 +305,7 @@ code_refs <- function(ctx, text) {
             token[[i + 2]] %in% c("SYMBOL", "STR_CONST")
         ) {
           package <- gsub("[\"'`]", "", name[[i + 2]])
-          add(i + 2, list(url = href_package(package)))
+          add(i + 2, list(url = href_package(package, ctx$external)))
         }
       }
     } else if (token[[i]] == "SPECIAL") {
@@ -488,7 +491,7 @@ link_inline <- function(ctx, doc) {
 # function's name, as in code blocks (`foo` of `pkg::foo(x)`).
 inline_ref <- function(ctx, text) {
   if (grepl("^\\{[a-zA-Z][a-zA-Z0-9.]+\\}$", text)) {
-    return(list(url = href_package(gsub("[{}]", "", text))))
+    return(list(url = href_package(gsub("[{}]", "", text), ctx$external)))
   }
   exprs <- safe_parse(gsub("\t", " ", text, fixed = TRUE))
   if (length(exprs) != 1) {
@@ -565,7 +568,7 @@ inline_ref <- function(ctx, text) {
       is.null(names(expr)) &&
       literal(args[[1]])
   ) {
-    url <- href_package(as.character(args[[1]]))
+    url <- href_package(as.character(args[[1]]), ctx$external)
     return(
       if (!is.na(url)) list(url = url) else topic_ref(ctx, name, is_fun = TRUE)
     )
@@ -593,7 +596,13 @@ inline_ref <- function(ctx, text) {
       return(topic_ref(ctx, as.character(call$topic), pkg))
     }
     if (is.null(call$topic) && literal(call$package)) {
-      return(list(url = package_reference_url(as.character(call$package))))
+      package <- as.character(call$package)
+      url <- if (identical(package, ctx$pkg)) {
+        paste0(ctx$topic_path, "index.html")
+      } else if (ctx$external != "none") {
+        package_reference_url(package, ctx$external)
+      }
+      return(if (!is.null(url)) list(url = url))
     }
     return(NULL)
   }

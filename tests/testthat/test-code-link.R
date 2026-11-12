@@ -109,7 +109,8 @@ mypkg_ctx <- function(tips = TRUE, topic_path = "../reference/") {
     topic_path = topic_path,
     root = "../",
     index = index,
-    tips = tips
+    tips = tips,
+    external = "all"
   )
 }
 
@@ -125,7 +126,7 @@ test_that("code blocks keep Quarto's markup and text, with calls linked", {
     "<span class=\"fu\">sd</span>(x, <span class=\"at\">na.rm =</span> y)\n",
     "<span class=\"fu\">not_a_function_anywhere</span>()"
   )
-  html <- link_code_html(block_page(code))
+  html <- link_code_html(block_page(code), ctx = link_context(external = "all"))
 
   expect_identical(code_text(html), code_text(block_page(code)))
   expect_match(
@@ -161,10 +162,13 @@ test_that("code blocks keep Quarto's markup and text, with calls linked", {
 
 test_that("%op% operators are linked, other operators not", {
   local_sites()
-  html <- link_code_html(block_page(paste0(
-    "x <span class=\"sc\">%in%</span> y <span class=\"sc\">%not_an_op_anywhere%</span> z ",
-    "<span class=\"sc\">+</span> <span class=\"dv\">1</span>"
-  )))
+  html <- link_code_html(
+    block_page(paste0(
+      "x <span class=\"sc\">%in%</span> y <span class=\"sc\">%not_an_op_anywhere%</span> z ",
+      "<span class=\"sc\">+</span> <span class=\"dv\">1</span>"
+    )),
+    ctx = link_context(external = "all")
+  )
   expect_match(
     html,
     "<span class=\"sc\"><a href=\"https://rdrr.io/r/base/match.html\">%in%</a></span>",
@@ -180,7 +184,7 @@ test_that("%op% operators are linked, other operators not", {
 
 test_that("library() attaches a package for the calls after it, and links it", {
   local_sites()
-  ctx <- link_context()
+  ctx <- link_context(external = "all")
   html <- link_code_html(
     block_page(paste0(
       "<span class=\"fu\">library</span>(cli, <span class=\"at\">quietly =</span> <span class=\"cn\">TRUE</span>)\n",
@@ -207,7 +211,7 @@ test_that("annotated blocks are linked, their markers left out of the code", {
     "<span id=\"c-2\" class=\"code-annotation-target\"><a href=\"#c-2\"></a><span class=\"fu\">mean</span>(x)</span>",
     "</code></pre></body></html>"
   )
-  out <- link_code_html(html)
+  out <- link_code_html(html, ctx = link_context(external = "all"))
   expect_match(out, "stats/sd.html\">sd</a>", fixed = TRUE)
   expect_match(out, "base/mean.html\">mean</a>", fixed = TRUE)
   expect_match(

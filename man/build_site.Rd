@@ -110,6 +110,10 @@ vignettes use by a relative path, such as \verb{man/rmd/} for a child document
 \code{../man/rmd/shared.Rmd}, copied with them.
 \item \code{logo}: \code{false} to leave the logo, \code{man/figures/logo.svg} or \code{.png}
 (and in light mode \code{logo-light}, if it exists), off the pages' titles.
+\item \code{links}: \code{external}, what references to other packages, in code and
+in Rd links, link to: \code{sites} (the default; only the packages' own
+sites), \code{all} (also rdrr.io and CRAN) or \code{none} (nothing outside the
+package).
 \item \code{quarto}: settings merged over the generated Quarto configuration.
 }
 

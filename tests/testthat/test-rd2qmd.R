@@ -179,13 +179,30 @@ test_that("rd_to_qmd() links \\link{}s to the topic's page", {
     "\\link{not_a_topic}.",
     "}"
   ))
-  qmd <- rd_to_qmd(rd, "examplepkg", pages = c(bar = "bar-page"))
+  qmd <- rd_to_qmd(
+    rd,
+    "examplepkg",
+    pages = c(bar = "bar-page"),
+    external = "all"
+  )
   expect_identical(
     qmd_section(qmd, "Description"),
     c(
       "[`bar`](bar-page.html), <a href=\"bar-page.html\">the bar</a>, [`median()`](https://rdrr.io/r/stats/median.html),",
       "not_a_topic."
     )
+  )
+
+  # With `links: external: none`, only the package's own.
+  qmd <- rd_to_qmd(
+    rd,
+    "examplepkg",
+    pages = c(bar = "bar-page"),
+    external = "none"
+  )
+  expect_identical(
+    qmd_section(qmd, "Description")[[1]],
+    "[`bar`](bar-page.html), <a href=\"bar-page.html\">the bar</a>, `median()`,"
   )
 })
 

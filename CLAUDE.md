@@ -171,15 +171,18 @@ quartodown::build_site() # also previews it when interactive
    (through the `pkgdown.yml` at its root, cached for a week in
    `tools::R_user_dir()`, `cached_download()`) or else rdrr.io. A package that
    isn't installed links only itself, from its `DESCRIPTION` on CRAN
-   (`cran_description()`). Links to the package's own topics get a tooltip
-   ([R/tooltips.R](R/tooltips.R)), whose contents go in a hidden
-   `.quartodown-tip-payload`, with signatures highlighted with Pandoc's classes
-   (`usage_html()`); the tooltip's style and script are in `quartodown.scss` and
-   `quartodown-after-body.html`. xml2 drops the ESC of ANSI codes, so
-   `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps it for a private-use
-   character, and `ansi_to_html()` afterwards converts them with
-   `fansi::sgr_to_html()` (not `cli::ansi_html()`, which loses colors of nested
-   styles); `strip_search_ansi()` strips them from `search.json`. Then
+   (`cran_description()`). `_quartodown.yml`'s `links: external:`
+   (`link_scope()`, kept as `ctx$external`, and passed to `rd_to_qmd()` for Rd
+   `\link`s) narrows this: `sites` (the default) drops the rdrr.io/CRAN
+   fallbacks, `all` keeps them, `none` links own pages only. Links to the
+   package's own topics get a tooltip ([R/tooltips.R](R/tooltips.R)), whose
+   contents go in a hidden `.quartodown-tip-payload`, with signatures
+   highlighted with Pandoc's classes (`usage_html()`); the tooltip's style and
+   script are in `quartodown.scss` and `quartodown-after-body.html`. xml2 drops
+   the ESC of ANSI codes, so `protect_ansi()` ([R/ansi.R](R/ansi.R)) first swaps
+   it for a private-use character, and `ansi_to_html()` afterwards converts them
+   with `fansi::sgr_to_html()` (not `cli::ansi_html()`, which loses colors of
+   nested styles); `strip_search_ansi()` strips them from `search.json`. Then
    `write_redirects()` ([R/redirects.R](R/redirects.R)) writes redirect pages
    for `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:`
    needs front matter, which generated pages lack). Then `publish_site()`

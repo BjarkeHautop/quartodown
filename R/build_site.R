@@ -61,6 +61,10 @@
 #'   `../man/rmd/shared.Rmd`, copied with them.
 #' * `logo`: `false` to leave the logo, `man/figures/logo.svg` or `.png`
 #'   (and in light mode `logo-light`, if it exists), off the pages' titles.
+#' * `links`: `external`, what references to other packages, in code and
+#'   in Rd links, link to: `sites` (the default; only the packages' own
+#'   sites), `all` (also rdrr.io and CRAN) or `none` (nothing outside the
+#'   package).
 #' * `quarto`: settings merged over the generated Quarto configuration.
 #'
 #' `_quartodown/extra.scss` and `_quartodown/extra.css`, if they exist, style
@@ -241,6 +245,7 @@ read_config <- function(path) {
       "development",
       "vignettes",
       "logo",
+      "links",
       "quarto"
     )
   )
@@ -278,6 +283,10 @@ read_config <- function(path) {
       paste("authors:", where)
     )
   }
+  if (is.list(config$links)) {
+    warn_unknown_fields(names(config$links), "external", "links")
+  }
+  link_scope(config)
   if (!is.null(config$logo) && !isTRUE(config$logo) && !isFALSE(config$logo)) {
     config_abort("logo", "must be {.code true} or {.code false}.")
   }
@@ -319,6 +328,35 @@ config_warn <- function(field, message, ..., .envir = parent.frame()) {
 config_message <- function(field, message) {
   message[[1]] <- paste0("_quartodown.yml `", field, ":` ", message[[1]])
   message
+}
+
+# What _quartodown.yml's `links: external:` lets references to other packages
+# link to: "sites" (the default; only their pkgdown or quartodown sites), "all"
+# (also rdrr.io, CRAN or Bioconductor) or "none" (only the package's own
+# pages).
+# `true` and `false` are "all" and "none".
+link_scope <- function(config) {
+  links <- config$links
+  if (is.null(links)) {
+    return("sites")
+  }
+  if (!is.list(links) || is.null(names(links))) {
+    config_abort("links", "must be a map, such as {.code external: none}.")
+  }
+  external <- links$external %||% "sites"
+  if (isTRUE(external)) {
+    return("all")
+  }
+  if (isFALSE(external)) {
+    return("none")
+  }
+  if (!is_string(external) || !external %in% c("all", "sites", "none")) {
+    config_abort(
+      "links: external",
+      "must be {.code all}, {.code sites} or {.code none}."
+    )
+  }
+  external
 }
 
 # Warns about fields of _quartodown.yml (or of its `parent:`) that quartodown

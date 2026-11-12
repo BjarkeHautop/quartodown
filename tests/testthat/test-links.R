@@ -15,7 +15,7 @@ test_that("the package's own topics link to its reference pages", {
 
 test_that("base R's topics link to rdrr.io", {
   local_sites()
-  ctx <- link_context()
+  ctx <- link_context(external = "all")
   expect_equal(
     href_topic(ctx, "median", is_fun = TRUE),
     "https://rdrr.io/r/stats/median.html"
@@ -35,7 +35,7 @@ test_that("base R's topics link to rdrr.io", {
 
 test_that("other packages' topics link to their pkgdown site, or else rdrr.io", {
   fetched <- local_sites(cli_site)
-  ctx <- link_context()
+  ctx <- link_context(external = "all")
   expect_equal(
     href_topic(ctx, "cli_alert", "cli"),
     "https://cli.r-lib.org/reference/cli_alert.html"
@@ -79,7 +79,7 @@ test_that("a package that isn't installed links to its home page on CRAN's detai
   )
   expect_equal(href_package("notapkg"), "https://a.org")
   expect_equal(
-    href_package("nourl"),
+    href_package("nourl", "all"),
     "https://cran.r-project.org/package=nourl"
   )
   expect_equal(href_package("notoncran"), NA_character_)
@@ -105,7 +105,7 @@ test_that("help(package = ) of a package that isn't installed finds its site", {
       nosite = c(Package = "nosite")
     )
   )
-  ctx <- link_context()
+  ctx <- link_context(external = "all")
   expect_no_warning(url <- inline_ref(ctx, "help(package = \"hassite\")")$url)
   expect_equal(url, "https://a.org/ref")
   expect_equal(
@@ -118,6 +118,72 @@ test_that("help(package = ) of a package that isn't installed finds its site", {
   )
 })
 
+test_that("links: external: sites links other packages only to their sites", {
+  local_sites(
+    cli_site,
+    cran = list(nosite = c(Package = "nosite"))
+  )
+  ctx <- link_context(pkg = "mypkg", external = "sites")
+  expect_equal(
+    href_topic(ctx, "cli_alert", "cli"),
+    "https://cli.r-lib.org/reference/cli_alert.html"
+  )
+  expect_equal(
+    href_article(ctx, "progress", "cli"),
+    "https://cli.r-lib.org/articles/progress.html"
+  )
+  # Not to rdrr.io or CRAN.
+  expect_equal(href_topic(ctx, "median", is_fun = TRUE), NA_character_)
+  expect_equal(href_topic(ctx, "path", "fs"), NA_character_)
+  expect_equal(href_article(ctx, "grid", "grid"), NA_character_)
+  expect_equal(href_package("cli", "sites"), "https://cli.r-lib.org")
+  expect_equal(href_package("nosite", "sites"), NA_character_)
+  expect_equal(
+    inline_ref(ctx, "help(package = \"nosite\")")$url,
+    NA_character_
+  )
+})
+
+test_that("links: external: none links only the package's own pages, offline", {
+  fetched <- local_sites(cli_site)
+  ctx <- link_context(
+    pkg = "mypkg",
+    topics = c(foo = "foo"),
+    articles = c(intro = "vignettes/intro.html"),
+    topic_path = "../reference/",
+    root = "../",
+    external = "none"
+  )
+  attach_packages(ctx, "cli")
+  expect_equal(href_topic(ctx, "foo"), "../reference/foo.html")
+  expect_equal(href_article(ctx, "intro"), "../vignettes/intro.html")
+  expect_equal(href_topic(ctx, "cli_alert", "cli"), NA_character_)
+  expect_equal(href_topic(ctx, "cli_alert", is_fun = TRUE), NA_character_)
+  expect_equal(href_topic(ctx, "median", is_fun = TRUE), NA_character_)
+  expect_equal(href_article(ctx, "progress"), NA_character_)
+  expect_equal(href_package("cli", "none"), NA_character_)
+  expect_equal(inline_ref(ctx, "library(cli)")$url, NA_character_)
+  expect_null(inline_ref(ctx, "help(package = \"cli\")"))
+  expect_equal(
+    inline_ref(ctx, "help(package = \"mypkg\")")$url,
+    "../reference/index.html"
+  )
+  expect_length(fetched$urls, 0)
+})
+
+test_that("link_scope() reads links: external:", {
+  expect_equal(link_scope(list()), "sites")
+  expect_equal(link_scope(list(links = list(external = "all"))), "all")
+  expect_equal(link_scope(list(links = list(external = "sites"))), "sites")
+  expect_equal(link_scope(list(links = list(external = FALSE))), "none")
+  expect_equal(link_scope(list(links = list(external = TRUE))), "all")
+  expect_error(
+    link_scope(list(links = list(external = "some"))),
+    "links: external"
+  )
+  expect_error(link_scope(list(links = "none")), "links")
+})
+
 test_that("a package that isn't installed isn't linked without a network", {
   local_sites()
   local_mocked_bindings(
@@ -125,7 +191,10 @@ test_that("a package that isn't installed isn't linked without a network", {
   )
   expect_equal(href_package("a"), NA_character_)
   expect_equal(href_package("b"), NA_character_)
-  expect_warning(expect_equal(href_package("c"), NA_character_), "rdrr.io")
+  expect_warning(
+    expect_equal(href_package("c"), NA_character_),
+    "Couldn't download"
+  )
   expect_true(network_down())
 })
 
@@ -174,7 +243,7 @@ test_that("vignettes link to the package's own articles, or another's site", {
 test_that("a vignette without a site links to CRAN", {
   local_sites()
   expect_equal(
-    href_article(link_context(), "grid", "grid"),
+    href_article(link_context(external = "all"), "grid", "grid"),
     "https://cran.rstudio.com/web/packages/grid/vignettes/grid.pdf"
   )
 })
@@ -264,7 +333,7 @@ test_that("after three failed downloads in a row, nothing more is downloaded", {
   })
   expect_null(pkgdown_yml("https://a.org"))
   expect_null(pkgdown_yml("https://b.org"))
-  expect_warning(pkgdown_yml("https://c.org"), "rdrr.io")
+  expect_warning(pkgdown_yml("https://c.org"), "Couldn't download")
   expect_null(pkgdown_yml("https://d.org"))
   expect_equal(calls, 3)
 

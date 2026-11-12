@@ -13,6 +13,7 @@ write_man_pages <- function(path, config = list(), topics = rd_topics(path)) {
   pkg <- pkg_name(path)
   pages <- topic_pages(topics)
   source <- pkg_repo(path, config)$source
+  external <- link_scope(config)
   map_workers(
     topics,
     write_man_page,
@@ -20,16 +21,25 @@ write_man_pages <- function(path, config = list(), topics = rd_topics(path)) {
     out_dir = out_dir,
     pkg = pkg,
     pages = pages,
-    source = source
+    source = source,
+    external = external
   )
   invisible()
 }
 
-write_man_page <- function(topic, path, out_dir, pkg, pages, source) {
+write_man_page <- function(
+  topic,
+  path,
+  out_dir,
+  pkg,
+  pages,
+  source,
+  external = "sites"
+) {
   rd_file <- file.path(path, "man", paste0(topic$basename, ".Rd"))
   note <- source_note(rd_source_files(rd_file), source)
   lines <- tryCatch(
-    rd_to_qmd(topic$rd, pkg, pages, note),
+    rd_to_qmd(topic$rd, pkg, pages, note, external),
     error = function(e) {
       cli::cli_abort("Failed to convert {.file {rd_file}}.", parent = e)
     }
@@ -57,10 +67,17 @@ rd_source_files <- function(rd_file) {
 
 # The lines of the reference/*.qmd page for the parsed Rd `rd`. `pages` maps
 # the package's topics to their pages, see topic_pages(). `note` (HTML, see
-# source_note()) goes under the title.
-rd_to_qmd <- function(rd, pkg, pages = character(), note = NULL) {
-  html <- rd_html(link_rd(rd, pkg, pages))
-  html <- link_help_hrefs(html, pkg, pages)
+# source_note()) goes under the title. `external` says which links to other
+# packages are made, see link_scope().
+rd_to_qmd <- function(
+  rd,
+  pkg,
+  pages = character(),
+  note = NULL,
+  external = "sites"
+) {
+  html <- rd_html(link_rd(rd, pkg, pages, external))
+  html <- link_help_hrefs(html, pkg, pages, external)
 
   title_end <- grep("</h2>", html, fixed = TRUE)[1]
   title <- paste(html[seq_len(title_end)], collapse = " ")
@@ -152,7 +169,7 @@ topic_pages <- function(topics) {
 
 # The URL of `topic` in `package` (NULL for any package) from a reference
 # page of the package `pkg`, or NA.
-topic_url <- function(topic, package, pkg, pages) {
+topic_url <- function(topic, package, pkg, pages, external = "sites") {
   if (
     (is.null(package) || identical(package, pkg)) && topic %in% names(pages)
   ) {
@@ -161,14 +178,17 @@ topic_url <- function(topic, package, pkg, pages) {
   if (identical(package, pkg)) {
     return(NA_character_)
   }
-  tryCatch(href_topic(link_context(), topic, package), error = function(e) NA)
+  tryCatch(
+    href_topic(link_context(external = external), topic, package),
+    error = function(e) NA
+  )
 }
 
 # `rd` with every `\link{}` it can resolve made an `\href{}`.
-link_rd <- function(rd, pkg, pages) {
+link_rd <- function(rd, pkg, pages, external = "sites") {
   tag <- attr(rd, "Rd_tag")
   if (identical(tag, "\\link")) {
-    url <- rd_link_url(rd, pkg, pages)
+    url <- rd_link_url(rd, pkg, pages, external)
     if (is.na(url)) {
       return(rd)
     }
@@ -180,14 +200,14 @@ link_rd <- function(rd, pkg, pages) {
     ))
   }
   if (is.list(rd)) {
-    rd[] <- lapply(rd, link_rd, pkg = pkg, pages = pages)
+    rd[] <- lapply(rd, link_rd, pkg = pkg, pages = pages, external = external)
   }
   rd
 }
 
-rd_link_url <- function(link, pkg, pages) {
+rd_link_url <- function(link, pkg, pages, external = "sites") {
   target <- rd_link_target(link)
-  topic_url(target$topic, target$package, pkg, pages)
+  topic_url(target$topic, target$package, pkg, pages, external)
 }
 
 # The `topic` and `package` (NULL if not given) of `\link{topic}`,
@@ -221,10 +241,10 @@ rd_link_targets <- function(rd) {
 
 # roxygen links an R6 class's inherited methods with raw HTML, to R's help
 # system: `href='../../<package>/html/<topic>.html#<method>'`.
-link_help_hrefs <- function(html, pkg, pages) {
+link_help_hrefs <- function(html, pkg, pages, external = "sites") {
   pattern <- "href=(['\"])\\.\\./\\.\\./([^/'\"]+)/html/([^/'\"#]+)\\.html(#[^'\"]*)?\\1"
   gsub_fn(html, pattern, function(href, groups) {
-    url <- topic_url(groups[[3]], groups[[2]], pkg, pages)
+    url <- topic_url(groups[[3]], groups[[2]], pkg, pages, external)
     anchor <- if (is.na(groups[[4]])) "" else groups[[4]]
     if (is.na(url)) href else sprintf("href=\"%s%s\"", url, anchor)
   })
