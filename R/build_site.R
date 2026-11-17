@@ -463,6 +463,9 @@ quarto_config <- function(
       html = list(
         theme = quarto_theme(path, config),
         toc = TRUE,
+        # Bare URLs become links, as on GitHub and in R Markdown (whose
+        # default reader this is), for the README, NEWS and vignettes alike.
+        from = "markdown+autolink_bare_uris",
         # Else Pandoc adds `.png` to image URLs without an extension, breaking
         # badges such as https://www.r-pkg.org/badges/version/<pkg>.
         `default-image-extension` = "",

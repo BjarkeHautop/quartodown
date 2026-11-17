@@ -526,6 +526,7 @@ test_that("quarto_config() links GitHub and merges `quarto:` overrides", {
   )
   expect_true(settings$format$html$toc)
   expect_identical(settings$format$html$`default-image-extension`, "")
+  expect_identical(settings$format$html$from, "markdown+autolink_bare_uris")
 })
 
 test_that("`quarto:` adds navbar entries and `~` removes a setting", {
