@@ -11,6 +11,9 @@
   a neutral near-black page and soft blue links, rather than `darkly`. Use
   `theme: dark: darkly` to keep the old look.
 
+- In the default dark theme, dividers in navbar menus (`text: "---"`) and the
+  menus' borders are visible; they were black on the near-black page.
+
 - The theme toggle shows a moon in the light theme and a sun in the dark theme,
   rather than a switch, and buttons and links no longer fade to their new colors
   after the rest of the page has switched.
