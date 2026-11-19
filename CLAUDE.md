@@ -82,7 +82,8 @@ quartodown::build_site() # also previews it when interactive
      for a package in a subfolder; and `_quartodown.yml`'s pkgdown-style
      `repo:`). Examples are rebuilt from `tools::Rd2ex()` markers into run /
      `\dontrun` (plain block) / `\dontshow` (hidden chunk) blocks, with
-     `@examplesIf` evaluated at build time.
+     `@examplesIf` conditions as the chunks' `eval=` (evaluated by knitr, with
+     the package attached).
    - `_quarto.yml`: fully resolved Quarto config (navbar, footer, theme). User
      overrides from `_quartodown.yml`'s `quarto:` key are applied by
      `merge_quarto_config()` (unnamed lists append, other values replace, `~`

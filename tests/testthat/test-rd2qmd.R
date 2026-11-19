@@ -338,40 +338,61 @@ test_that("example_blocks() renders examples that are all \\dontrun{} without R"
   expect_identical(blocks, c("```r", "a()", "b()", "```", ""))
 })
 
-test_that("example_blocks() runs @examplesIf examples only if the condition holds", {
-  examples_if <- function(cond) {
+test_that("example_blocks() makes the @examplesIf condition the chunks' eval option", {
+  blocks <- example_blocks(
     example_rd(
-      sprintf(
-        "\\dontshow{if (%s) withAutoprint(\\{ # examplesIf}",
-        cond
-      ),
+      "\\dontshow{if (ready()) withAutoprint(\\{ # examplesIf}",
       "f()",
+      "\\dontshow{g()}",
+      "\\dontrun{h()}",
       "\\dontshow{\\}) # examplesIf}",
-      "g()"
-    )
-  }
-
-  blocks <- example_blocks(examples_if("TRUE"), "examplepkg")
+      "i()"
+    ),
+    "examplepkg"
+  )
   expect_false(any(grepl("examplesIf", blocks)))
   expect_identical(
     blocks[nzchar(blocks)][-(1:3)],
     c(
-      "```{r, include=FALSE}",
-      "invisible(TRUE)",
+      "```{r, eval=ready(), collapse=TRUE, comment=\"#>\"}",
+      "f()",
+      "```",
+      "```{r, eval=ready(), include=FALSE}",
+      "g()",
+      "```",
+      "```r",
+      "h()",
       "```",
       example_chunk_header,
-      "f()",
-      "g()",
+      "i()",
       "```"
     )
   )
+})
 
-  blocks <- example_blocks(examples_if("1 == 2"), "examplepkg")
-  expect_false(any(grepl("examplesIf", blocks)))
-  expect_identical(
-    blocks[nzchar(blocks)][-(1:3)],
-    c("```r", "f()", "```", example_chunk_header, "g()", "```")
-  )
+test_that("@examplesIf conditions are evaluated where knitr has attached the package", {
+  skip_if_not_installed("knitr")
+  # tools isn't attached by default, so `file_ext` is found only after the
+  # chunk attaching the package.
+  knit <- function(cond) {
+    blocks <- example_blocks(
+      example_rd(
+        sprintf("\\dontshow{if (%s) withAutoprint(\\{ # examplesIf}", cond),
+        "1 + 1",
+        "\\dontshow{\\}) # examplesIf}"
+      ),
+      "tools"
+    )
+    file <- withr::local_tempfile(lines = blocks, fileext = ".Rmd")
+    out <- withr::local_tempfile(fileext = ".md")
+    processx::run(
+      file.path(R.home("bin"), "Rscript"),
+      c("-e", sprintf("knitr::knit('%s', '%s', quiet = TRUE)", file, out))
+    )
+    read_utf8(out)
+  }
+  expect_true("#> [1] 2" %in% knit("is.function(file_ext)"))
+  expect_false(any(grepl("#>", knit("!is.function(file_ext)"))))
 })
 
 test_that("write_man_pages() writes a page per Rd file, except unlisted internal ones", {

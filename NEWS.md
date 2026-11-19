@@ -1,5 +1,9 @@
 # quartodown (development version)
 
+- `@examplesIf` conditions are evaluated in the examples' R session, with the
+  package attached, so they can call the package's own functions. They were
+  evaluated where the package isn't loaded, so such examples were never run.
+
 - Image URLs without a file extension, such as the CRAN badge from
   `usethis::use_cran_badge()`, no longer get `.png` added, which broke them.
 
