@@ -387,7 +387,14 @@ test_that("@examplesIf conditions are evaluated where knitr has attached the pac
     out <- withr::local_tempfile(fileext = ".md")
     processx::run(
       file.path(R.home("bin"), "Rscript"),
-      c("-e", sprintf("knitr::knit('%s', '%s', quiet = TRUE)", file, out))
+      c(
+        "-e",
+        sprintf(
+          "knitr::knit(%s, %s, quiet = TRUE)",
+          deparse(file),
+          deparse(out)
+        )
+      )
     )
     read_utf8(out)
   }
