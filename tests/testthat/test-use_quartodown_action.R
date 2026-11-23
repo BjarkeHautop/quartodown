@@ -34,3 +34,20 @@ test_that("use_quartodown_action() only overwrites with overwrite = TRUE", {
   use_quartodown_action(dir, overwrite = TRUE)
   expect_false(identical(readLines(dest), "custom"))
 })
+
+test_that("the template uses the same actions as the package's own workflow", {
+  # Dependabot only updates .github/workflows/, so this catches a template left
+  # behind. .github/ isn't in the built package, so this runs only from source.
+  own <- test_path("..", "..", ".github", "workflows", "quartodown.yaml")
+  skip_if_not(file.exists(own))
+  uses <- function(file) {
+    steps <- yaml::yaml.load_file(file)$jobs$quartodown$steps
+    unlist(lapply(steps, function(step) step$uses))
+  }
+  template <- system.file(
+    "templates",
+    "quartodown.yaml",
+    package = "quartodown"
+  )
+  expect_identical(uses(template), uses(own))
+})
