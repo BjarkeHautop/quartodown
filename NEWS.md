@@ -1,7 +1,33 @@
 # quartodown (development version)
 
-- Image URLs without a file extension, such as the CRAN badge from
-  `usethis::use_cran_badge()`, no longer get `.png` added, which broke them.
+## New features
+
+- `use_quartodown()` translates an existing `_pkgdown.yml`: the navbar and
+  `articles:` become `navbar:` items and menus, template settings become
+  `theme:`, `quarto:` settings and files in `_quartodown/`, and redirects keep
+  pkgdown's addresses of the vignettes and changelog working. It lists what it
+  couldn't translate.
+
+- New `development: mode:` setting in `_quartodown.yml`, as in pkgdown: with
+  `devel` (or `auto` and a `.9000` version), the site for the development
+  version is built into `docs/dev/`, next to the released version's. A switch
+  next to the navbar's title goes between them. `auto` keeps a package that
+  isn't on CRAN yet in `docs/`, as unreleased. Content marked
+  `.quartodown-devel` or `.quartodown-release` is shown on only that site.
+
+- New `workers` argument to `build_site()`, to build the site with several
+  processes. `use_quartodown_action()`'s workflow uses 4.
+
+- The reference index shows lifecycle badges, and `reference:` takes pkgdown's
+  `has_lifecycle()` selector. A section titled `internal` is hidden, as in
+  pkgdown.
+
+- The package's logo, `man/figures/logo.svg` or `.png` (`.svg` if both exist),
+  now shows right of the title of every page, not just the home page, with
+  `logo-light.svg` or `.png` in light mode if it exists. `logo: false` in
+  `_quartodown.yml` turns it off.
+
+## Minor improvements
 
 - Code is now linked by quartodown itself instead of downlit, so code blocks
   keep Quarto's highlighting, linking is more consistent, and builds work
@@ -21,36 +47,9 @@
   rather than servr, so it keeps working while `build_site()` runs. An open page
   reloads if the new build changed it.
 
-- `use_quartodown()` translates an existing `_pkgdown.yml`: the navbar and
-  `articles:` become `navbar:` items and menus, template settings become
-  `theme:`, `quarto:` settings and files in `_quartodown/`, and redirects keep
-  pkgdown's addresses of the vignettes and changelog working. It lists what it
-  couldn't translate.
-
-- Links to an internal topic without a page now give a warning.
-
-- The reference index shows lifecycle badges, and `reference:` takes pkgdown's
-  `has_lifecycle()` selector. A section titled `internal` is hidden, as in
-  pkgdown.
-
-- New `development: mode:` setting in `_quartodown.yml`, as in pkgdown: with
-  `devel` (or `auto` and a `.9000` version), the site for the development
-  version is built into `docs/dev/`, next to the released version's. A switch
-  next to the navbar's title goes between them. `auto` keeps a package that
-  isn't on CRAN yet in `docs/`, as unreleased. Content marked
-  `.quartodown-devel` or `.quartodown-release` is shown on only that site.
-
-- New `workers` argument to `build_site()`, to build the site with several
-  processes. `use_quartodown_action()`'s workflow uses 4.
-
 - The reference pages' examples now run before rendering, all in one R process,
   rather than Quarto starting one for each page, which made most of the build's
   time for packages with many examples.
-
-- The package's logo, `man/figures/logo.svg` or `.png` (`.svg` if both exist),
-  now shows right of the title of every page, not just the home page, with
-  `logo-light.svg` or `.png` in light mode if it exists. `logo: false` in
-  `_quartodown.yml` turns it off.
 
 - `build_site()` reports its progress in a few steps (installing the package,
   writing the Quarto project, rendering, linking code), each with the time it
@@ -60,6 +59,17 @@
 
 - The changelog page is now titled "Changelog", with its versions' headings a
   level down, and links its source, `NEWS.md`.
+
+- The pages made from `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SUPPORT.md` and
+  `LICENSE.md` now have a "Source:" link under their title, like the other pages
+  made from package files.
+
+- Links to an internal topic without a page now give a warning.
+
+## Bug fixes
+
+- Image URLs without a file extension, such as the CRAN badge from
+  `usethis::use_cran_badge()`, no longer get `.png` added, which broke them.
 
 - The search box's magnifying glass and clear button are now readable in dark
   mode.

@@ -314,19 +314,21 @@ import_markdown_files <- function(path, config = list()) {
   read_md <- function(file) github_markdown_to_quarto(read_utf8(file))
   write <- function(lines, name) write_utf8(lines, file.path(out, name))
 
+  repo <- pkg_repo(path, config)
   news <- file.path(path, "NEWS.md")
   if (file.exists(news)) {
-    repo <- pkg_repo(path, config)
     write(news_page(link_news(read_md(news), repo), repo$source), "NEWS.md")
   }
   for (name in community_files) {
     src <- community_file_source(path, name)
     if (!is.null(src)) {
-      write(link_community_files(read_md(file.path(path, src)), path), name)
+      lines <- link_community_files(read_md(file.path(path, src)), path)
+      write(add_source_note(lines, src, repo$source), name)
     }
   }
   if (file.exists(file.path(path, "LICENSE.md"))) {
-    write(read_md(file.path(path, "LICENSE.md")), "LICENSE.md")
+    lines <- read_md(file.path(path, "LICENSE.md"))
+    write(add_source_note(lines, "LICENSE.md", repo$source), "LICENSE.md")
   }
   if (file.exists(file.path(path, "LICENSE"))) {
     write(
@@ -393,6 +395,22 @@ github_markdown_to_quarto <- function(
     }
   }
   out
+}
+
+# `lines` of a Markdown page made from `file` with a source_note() under its
+# title: after a leading `#` heading, which is the page's heading when the
+# front matter has no `title`, else after the front matter.
+add_source_note <- function(lines, file, source = NA_character_) {
+  note <- c(source_note(file, source, class = "source-note"), "")
+  parts <- split_front_matter(lines)
+  titled <- any(grepl("^title\\s*:", parts$front_matter))
+  body <- parts$body
+  first <- which(nzchar(trimws(body)))[1]
+  if (!titled && !is.na(first) && grepl("^#\\s", body[first])) {
+    heading <- seq_len(first)
+    return(c(parts$front_matter, body[heading], "", note, body[-heading]))
+  }
+  insert_after_front_matter(lines, note)
 }
 
 # NEWS.md as the "Changelog" page, with a source_note() under the title. Its

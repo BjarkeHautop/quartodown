@@ -44,17 +44,58 @@ test_that("import_markdown_files() imports NEWS, the license and community files
       "CONTRIBUTING.md"
     )
   )
+  note <- function(file) source_note(file, class = "source-note")
   expect_identical(
     readLines(file.path(project, "CONTRIBUTING.md")),
-    "See the [code of conduct](CODE_OF_CONDUCT.md)."
+    c(
+      note("CONTRIBUTING.md"),
+      "",
+      "See the [code of conduct](CODE_OF_CONDUCT.md)."
+    )
   )
+  # The source is where the file is, in .github/.
   expect_identical(
     readLines(file.path(project, "CODE_OF_CONDUCT.md")),
-    "Be nice."
+    c(note(".github/CODE_OF_CONDUCT.md"), "", "Be nice.")
+  )
+  expect_identical(
+    readLines(file.path(project, "LICENSE.md")),
+    c("# MIT License", "", note("LICENSE.md"), "")
   )
   expect_identical(
     readLines(file.path(project, "LICENSE-text.md")),
     c("---", "title: License", "---", "", "```", "YEAR: 2026", "```")
+  )
+})
+
+test_that("add_source_note() puts the source note under the page's title", {
+  note <- source_note("X.md", "https://x.org/", class = "source-note")
+  # Under a leading `#` heading, the page's heading.
+  expect_identical(
+    add_source_note(c("", "# Title", "", "Text"), "X.md", "https://x.org/"),
+    c("", "# Title", "", note, "", "", "Text")
+  )
+  expect_identical(
+    add_source_note(
+      c("---", "toc: true", "---", "# Title", "Text"),
+      "X.md",
+      "https://x.org/"
+    ),
+    c("---", "toc: true", "---", "# Title", "", note, "", "Text")
+  )
+  # After front matter with a title, where the `#` heading is a section's.
+  expect_identical(
+    add_source_note(
+      c("---", "title: T", "---", "# Section"),
+      "X.md",
+      "https://x.org/"
+    ),
+    c("---", "title: T", "---", "", note, "", "# Section")
+  )
+  # At the top without a heading; `##` isn't the page's heading.
+  expect_identical(
+    add_source_note(c("## Section", "Text"), "X.md", "https://x.org/"),
+    c(note, "", "## Section", "Text")
   )
 })
 
