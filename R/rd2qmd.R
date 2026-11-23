@@ -375,6 +375,24 @@ code_span <- function(code) {
 
 example_chunk_header <- "```{r, collapse=TRUE, comment=\"#>\"}"
 
+# The header of a chunk of `type` code. An `@examplesIf` condition becomes its
+# `eval` option, which knitr evaluates in the examples' session, where the
+# package is attached.
+example_header <- function(type, cond = NULL) {
+  if (type == "dontrun") {
+    return("```r")
+  }
+  options <- if (type == "run") {
+    "collapse=TRUE, comment=\"#>\""
+  } else {
+    "include=FALSE"
+  }
+  if (!is.null(cond)) {
+    options <- paste0("eval=", cond, ", ", options)
+  }
+  sprintf("```{r, %s}", options)
+}
+
 example_blocks <- function(rd, pkg) {
   segments <- example_segments(rd)
   types <- vapply(segments, `[[`, character(1), "type")
@@ -383,13 +401,7 @@ example_blocks <- function(rd, pkg) {
     if (length(code) == 0) {
       return(character())
     }
-    header <- switch(
-      s$type,
-      run = example_chunk_header,
-      dontrun = "```r",
-      hidden = "```{r, include=FALSE}"
-    )
-    c(header, code, "```", "")
+    c(example_header(s$type, s$cond), code, "```", "")
   })
   if (any(types %in% c("run", "hidden"))) {
     attach <- c("```{r, include=FALSE}", sprintf("library(%s)", pkg), "```", "")
@@ -498,7 +510,9 @@ example_segments <- function(rd) {
 
 # roxygen writes `@examplesIf cond` as a \dontshow{} `if (cond) ...({` before
 # the examples and a \dontshow{} `})` after them. The wrappers are dropped,
-# and the examples between them aren't run unless `cond` is TRUE.
+# and the code between them gets `cond` as its `cond`, so it runs only if
+# `cond` is TRUE in the examples' session. It isn't evaluated here, as it may
+# need the package, which this session doesn't load.
 examples_if_open <- paste0(
   "^if \\((.*)\\) ",
   # The second is what older roxygen versions write.
@@ -509,34 +523,21 @@ examples_if_close <- "^\\}\\) # examplesIf$"
 
 resolve_examples_if <- function(segments) {
   out <- list()
-  run <- TRUE
+  cond <- NULL
   for (s in segments) {
     code <- trim_blank_lines(s$code)
     if (s$type == "hidden" && length(code) == 1) {
       if (grepl(examples_if_open, code)) {
         cond <- sub(examples_if_open, "\\1", code)
-        run <- isTRUE(tryCatch(
-          eval(str2lang(cond), new.env(parent = globalenv())),
-          error = function(e) FALSE
-        ))
-        # Rerun the condition in the examples' session too, for its side
-        # effects, e.g. `require("broom")` attaching broom.
-        if (run) {
-          s$code <- sprintf("invisible(%s)", cond)
-          out[[length(out) + 1L]] <- s
-        }
         next
       }
       if (grepl(examples_if_close, code)) {
-        run <- TRUE
+        cond <- NULL
         next
       }
     }
-    if (!run) {
-      if (s$type == "hidden") {
-        next
-      }
-      s$type <- "dontrun"
+    if (s$type != "dontrun") {
+      s$cond <- cond
     }
     out[[length(out) + 1L]] <- s
   }
@@ -547,10 +548,10 @@ merge_segments <- function(segments) {
   out <- list()
   for (s in segments) {
     n <- length(out)
-    if (n > 0 && out[[n]]$type == s$type) {
+    if (n > 0 && out[[n]]$type == s$type && identical(out[[n]]$cond, s$cond)) {
       out[[n]]$code <- c(out[[n]]$code, s$code)
     } else {
-      out[[n + 1L]] <- list(type = s$type, code = s$code)
+      out[[n + 1L]] <- list(type = s$type, code = s$code, cond = s$cond)
     }
   }
   out

@@ -49,6 +49,10 @@ $dropdown-color: $body-color;
 $dropdown-link-color: $body-color;
 $dropdown-link-hover-color: #eeeeee;
 $dropdown-link-hover-bg: $gray-600;
+// Bootstrap's translucent black, invisible on the dark page: dividers between
+// menu items (`text: "---"`) and the menu's border.
+$dropdown-border-color: rgba(255, 255, 255, 0.175);
+$dropdown-divider-bg: $dropdown-border-color;
 $nav-tabs-link-active-color: $body-color;
 $nav-tabs-link-hover-border-color: #505050;
 $pagination-disabled-bg: #181818;

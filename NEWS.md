@@ -37,6 +37,9 @@
   a neutral near-black page and soft blue links, rather than `darkly`. Use
   `theme: dark: darkly` to keep the old look.
 
+- In the default dark theme, dividers in navbar menus (`text: "---"`) and the
+  menus' borders are visible; they were black on the near-black page.
+
 - The theme toggle shows a moon in the light theme and a sun in the dark theme,
   rather than a switch, and buttons and links no longer fade to their new colors
   after the rest of the page has switched.
@@ -67,6 +70,10 @@
 - Links to an internal topic without a page now give a warning.
 
 ## Bug fixes
+
+- `@examplesIf` conditions are evaluated in the examples' R session, with the
+  package attached, so they can call the package's own functions. They were
+  evaluated where the package isn't loaded, so such examples were never run.
 
 - Image URLs without a file extension, such as the CRAN badge from
   `usethis::use_cran_badge()`, no longer get `.png` added, which broke them.
