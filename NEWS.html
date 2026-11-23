@@ -319,7 +319,14 @@ visitors who prefer it, before Quarto reads the stored choice.
         <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#quartodown-development-version" id="toc-quartodown-development-version" class="nav-link active" data-scroll-target="#quartodown-development-version">quartodown (development version)</a></li>
+<li>
+<a href="#quartodown-development-version" id="toc-quartodown-development-version" class="nav-link active" data-scroll-target="#quartodown-development-version">quartodown (development version)</a>
+  <ul class="collapse">
+<li><a href="#new-features" id="toc-new-features" class="nav-link" data-scroll-target="#new-features">New features</a></li>
+  <li><a href="#minor-improvements" id="toc-minor-improvements" class="nav-link" data-scroll-target="#minor-improvements">Minor improvements</a></li>
+  <li><a href="#bug-fixes" id="toc-bug-fixes" class="nav-link" data-scroll-target="#bug-fixes">Bug fixes</a></li>
+  </ul>
+</li>
   <li><a href="#quartodown-0.1.0" id="toc-quartodown-0.1.0" class="nav-link" data-scroll-target="#quartodown-0.1.0">quartodown 0.1.0</a></li>
   </ul></nav>
 </div>
@@ -343,25 +350,31 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/bjarkehautop/quartodown/blob/HEAD/NEWS.md"><code>NEWS.md</code></a></small>
 </p>
 <section id="quartodown-development-version" class="level2"><h2 class="anchored" data-anchor-id="quartodown-development-version">quartodown (development version)</h2>
+<section id="new-features" class="level3"><h3 class="anchored" data-anchor-id="new-features">New features</h3>
 <ul>
-<li><p><code>@examplesIf</code> conditions are evaluated in the examples’ R session, with the package attached, so they can call the package’s own functions. They were evaluated where the package isn’t loaded, so such examples were never run.</p></li>
-<li><p>Image URLs without a file extension, such as the CRAN badge from <code>usethis::use_cran_badge()</code>, no longer get <code>.png</code> added, which broke them.</p></li>
+<li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/use_quartodown.html">use_quartodown</a>()</code> translates an existing <code>_pkgdown.yml</code>: the navbar and <code>articles:</code> become <code>navbar:</code> items and menus, template settings become <code>theme:</code>, <code>quarto:</code> settings and files in <code>_quartodown/</code>, and redirects keep pkgdown’s addresses of the vignettes and changelog working. It lists what it couldn’t translate.</p></li>
+<li><p>New <code>development: mode:</code> setting in <code>_quartodown.yml</code>, as in pkgdown: with <code>devel</code> (or <code>auto</code> and a <code>.9000</code> version), the site for the development version is built into <code>docs/dev/</code>, next to the released version’s. A switch next to the navbar’s title goes between them. <code>auto</code> keeps a package that isn’t on CRAN yet in <code>docs/</code>, as unreleased. Content marked <code>.quartodown-devel</code> or <code>.quartodown-release</code> is shown on only that site.</p></li>
+<li><p>New <code>workers</code> argument to <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/build_site.html">build_site</a>()</code>, to build the site with several processes. <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/use_quartodown_action.html">use_quartodown_action</a>()</code>’s workflow uses 4.</p></li>
+<li><p>The reference index shows lifecycle badges, and <code>reference:</code> takes pkgdown’s <code>has_lifecycle()</code> selector. A section titled <code>internal</code> is hidden, as in pkgdown.</p></li>
+<li><p>The package’s logo, <code>man/figures/logo.svg</code> or <code>.png</code> (<code>.svg</code> if both exist), now shows right of the title of every page, not just the home page, with <code>logo-light.svg</code> or <code>.png</code> in light mode if it exists. <code>logo: false</code> in <code>_quartodown.yml</code> turns it off.</p></li>
+</ul></section><section id="minor-improvements" class="level3"><h3 class="anchored" data-anchor-id="minor-improvements">Minor improvements</h3>
+<ul>
 <li><p>Code is now linked by quartodown itself instead of downlit, so code blocks keep Quarto’s highlighting, linking is more consistent, and builds work offline.</p></li>
 <li><p>The default dark theme is now a dark version of Quarto’s <code>default</code> theme, with a neutral near-black page and soft blue links, rather than <code>darkly</code>. Use <code>theme: dark: darkly</code> to keep the old look.</p></li>
 <li><p>In the default dark theme, dividers in navbar menus (<code>text: "---"</code>) and the menus’ borders are visible; they were black on the near-black page.</p></li>
 <li><p>The theme toggle shows a moon in the light theme and a sun in the dark theme, rather than a switch, and buttons and links no longer fade to their new colors after the rest of the page has switched.</p></li>
-<li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/build_site.html">build_site</a>()</code> builds the site in <code>_quarto/_site/</code>, and replaces the one in <code>docs/</code> only when it’s complete. So the previous site stays in place during a build, and after a failed one. <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/preview_site.html">preview_site</a>()</code> now serves it with nanonext rather than servr, so it keeps working while <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/build_site.html">build_site</a>()</code> runs. An open page reloads if the new build changed it.</p></li>
-<li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/use_quartodown.html">use_quartodown</a>()</code> translates an existing <code>_pkgdown.yml</code>: the navbar and <code>articles:</code> become <code>navbar:</code> items and menus, template settings become <code>theme:</code>, <code>quarto:</code> settings and files in <code>_quartodown/</code>, and redirects keep pkgdown’s addresses of the vignettes and changelog working. It lists what it couldn’t translate.</p></li>
-<li><p>Links to an internal topic without a page now give a warning.</p></li>
-<li><p>The reference index shows lifecycle badges, and <code>reference:</code> takes pkgdown’s <code>has_lifecycle()</code> selector. A section titled <code>internal</code> is hidden, as in pkgdown.</p></li>
-<li><p>New <code>development: mode:</code> setting in <code>_quartodown.yml</code>, as in pkgdown: with <code>devel</code> (or <code>auto</code> and a <code>.9000</code> version), the site for the development version is built into <code>docs/dev/</code>, next to the released version’s. A switch next to the navbar’s title goes between them. <code>auto</code> keeps a package that isn’t on CRAN yet in <code>docs/</code>, as unreleased. Content marked <code>.quartodown-devel</code> or <code>.quartodown-release</code> is shown on only that site.</p></li>
-<li><p>New <code>workers</code> argument to <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/build_site.html">build_site</a>()</code>, to build the site with several processes. <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="reference/use_quartodown_action.html">use_quartodown_action</a>()</code>’s workflow uses 4.</p></li>
+<li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/build_site.html">build_site</a>()</code> builds the site in <code>_quarto/_site/</code>, and replaces the one in <code>docs/</code> only when it’s complete. So the previous site stays in place during a build, and after a failed one. <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="reference/preview_site.html">preview_site</a>()</code> now serves it with nanonext rather than servr, so it keeps working while <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/build_site.html">build_site</a>()</code> runs. An open page reloads if the new build changed it.</p></li>
 <li><p>The reference pages’ examples now run before rendering, all in one R process, rather than Quarto starting one for each page, which made most of the build’s time for packages with many examples.</p></li>
-<li><p>The package’s logo, <code>man/figures/logo.svg</code> or <code>.png</code> (<code>.svg</code> if both exist), now shows right of the title of every page, not just the home page, with <code>logo-light.svg</code> or <code>.png</code> in light mode if it exists. <code>logo: false</code> in <code>_quartodown.yml</code> turns it off.</p></li>
-<li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/build_site.html">build_site</a>()</code> reports its progress in a few steps (installing the package, writing the Quarto project, rendering, linking code), each with the time it took, and where it built the site. When a page fails to render with <code>quiet = TRUE</code>, Quarto’s error is now shown rather than a suggestion to rerun with <code>quiet = FALSE</code>.</p></li>
+<li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/build_site.html">build_site</a>()</code> reports its progress in a few steps (installing the package, writing the Quarto project, rendering, linking code), each with the time it took, and where it built the site. When a page fails to render with <code>quiet = TRUE</code>, Quarto’s error is now shown rather than a suggestion to rerun with <code>quiet = FALSE</code>.</p></li>
 <li><p>The changelog page is now titled “Changelog”, with its versions’ headings a level down, and links its source, <code>NEWS.md</code>.</p></li>
+<li><p>The pages made from <code>CODE_OF_CONDUCT.md</code>, <code>CONTRIBUTING.md</code>, <code>SUPPORT.md</code> and <code>LICENSE.md</code> now have a “Source:” link under their title, like the other pages made from package files.</p></li>
+<li><p>Links to an internal topic without a page now give a warning.</p></li>
+</ul></section><section id="bug-fixes" class="level3"><h3 class="anchored" data-anchor-id="bug-fixes">Bug fixes</h3>
+<ul>
+<li><p><code>@examplesIf</code> conditions are evaluated in the examples’ R session, with the package attached, so they can call the package’s own functions. They were evaluated where the package isn’t loaded, so such examples were never run.</p></li>
+<li><p>Image URLs without a file extension, such as the CRAN badge from <code>usethis::use_cran_badge()</code>, no longer get <code>.png</code> added, which broke them.</p></li>
 <li><p>The search box’s magnifying glass and clear button are now readable in dark mode.</p></li>
-</ul></section><section id="quartodown-0.1.0" class="level2"><h2 class="anchored" data-anchor-id="quartodown-0.1.0">quartodown 0.1.0</h2>
+</ul></section></section><section id="quartodown-0.1.0" class="level2"><h2 class="anchored" data-anchor-id="quartodown-0.1.0">quartodown 0.1.0</h2>
 <ul>
 <li>Initial release.</li>
 </ul></section></main><!-- /main --><style>
@@ -1185,6 +1198,9 @@ visitors who prefer it, before Quarto reads the stored choice.
   </div>
 </footer><div class="quartodown-tip-payload" hidden>
 <div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">use_quartodown</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Set up a package to use quartodown</span>
+</div>
+<div data-for="t2">
 <code class="quartodown-tip-sig"><span class="fu">build_site</span>(
   <span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>,
   <span class="at">tooltips</span> <span class="at">=</span> <span class="cn">TRUE</span>,
@@ -1195,14 +1211,11 @@ visitors who prefer it, before Quarto reads the stored choice.
   <span class="at">preview</span> <span class="at">=</span> <span class="fu">interactive</span>()
 )</code><span class="quartodown-tip-brief">Build the package website</span>
 </div>
-<div data-for="t2">
-<code class="quartodown-tip-sig"><span class="fu">preview_site</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Preview the built site</span>
-</div>
 <div data-for="t3">
-<code class="quartodown-tip-sig"><span class="fu">use_quartodown</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Set up a package to use quartodown</span>
+<code class="quartodown-tip-sig"><span class="fu">use_quartodown_action</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">overwrite</span> <span class="at">=</span> <span class="cn">FALSE</span>)</code><span class="quartodown-tip-brief">Set up a GitHub Actions workflow that publishes the site</span>
 </div>
 <div data-for="t4">
-<code class="quartodown-tip-sig"><span class="fu">use_quartodown_action</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">overwrite</span> <span class="at">=</span> <span class="cn">FALSE</span>)</code><span class="quartodown-tip-brief">Set up a GitHub Actions workflow that publishes the site</span>
+<code class="quartodown-tip-sig"><span class="fu">preview_site</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Preview the built site</span>
 </div>
 </div>
 </body>
