@@ -37,8 +37,8 @@ write(
   file.path(pkg, "DESCRIPTION")
 )
 use_quartodown_action(pkg)
-#> ✔ Wrote /tmp/RtmpAP52uK/examplepkg18f77e8a6eb0/.github/workflows/quartodown.yaml.
-#> ✔ Added `^\.github$` to /tmp/RtmpAP52uK/examplepkg18f77e8a6eb0/.Rbuildignore.
+#> ✔ Wrote /tmp/RtmpEu8cje/examplepkg18783e48a08e/.github/workflows/quartodown.yaml.
+#> ✔ Added `^\.github$` to /tmp/RtmpEu8cje/examplepkg18783e48a08e/.Rbuildignore.
 #> 
 #> Next steps:
 #> 1. Commit and push the workflow.
