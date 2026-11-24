@@ -375,7 +375,9 @@ build_sidebar_markdown <- function(
 
   body <- unlist(lapply(sections, function(s) c(s, "")))
   body <- body[-length(body)] # drop trailing blank line
-  c("::: {.column-margin}", body, ":::")
+  # Left out of the page's Markdown copy for LLMs (see R/llms.R); Quarto
+  # removes the outer div from the HTML.
+  c(":::: {.llms-hidden-content}", "::: {.column-margin}", body, ":::", "::::")
 }
 
 # ---- footer ------------------------------------------------------------------

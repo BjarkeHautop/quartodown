@@ -188,10 +188,12 @@ quartodown::build_site() # also previews it when interactive
    pages Quarto writes with `website: llms-txt:` (set by `quarto_config()` when
    `quarto_has_llms_txt()`, Quarto ≥ 1.9), drops the second image of light/dark
    pairs, and writes `llms.txt` itself (Quarto's is unordered, and one per
-   shard), in sections from the vignettes and reference blocks. Then
-   `write_redirects()` ([R/redirects.R](R/redirects.R)) writes redirect pages
-   for `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:`
-   needs front matter, which generated pages lack). Then `publish_site()`
+   shard): the home page's text (its sidebar is in an `.llms-hidden-content`
+   div, which Quarto leaves out), then links to the vignettes, the reference
+   topics grouped as on the index, and the other pages. Then `write_redirects()`
+   ([R/redirects.R](R/redirects.R)) writes redirect pages for
+   `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:` needs
+   front matter, which generated pages lack). Then `publish_site()`
    ([R/project.R](R/project.R)) moves the finished site to `site_dir()`
    (`docs/`, or `docs/dev/` when `dev_mode()`, from `_quartodown.yml`'s
    pkgdown-style `development: mode:` or `QUARTODOWN_DEV_MODE`, is `devel`,

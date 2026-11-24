@@ -578,8 +578,11 @@ test_that("build_website_readme() moves badges into the sidebar and keeps the bo
     home[1:5],
     c("::::: {.quartodown-home}", "# examplepkg", "", "Some text.", ":::::")
   )
-  expect_identical(home[7], "::: {.column-margin}")
-  expect_identical(home[length(home)], ":::")
+  expect_identical(
+    home[7:8],
+    c(":::: {.llms-hidden-content}", "::: {.column-margin}")
+  )
+  expect_identical(home[length(home) - 0:1], c("::::", ":::"))
   expect_false(any(grepl("badges:", home, fixed = TRUE)))
   dev_status <- which(home == "#### Dev status")
   expect_identical(

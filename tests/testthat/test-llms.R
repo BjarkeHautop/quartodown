@@ -7,7 +7,7 @@ local_llms_pages <- function(dir, pages, lines = "# Page") {
   }
 }
 
-test_that("llms.txt lists the home page, articles, reference and the rest", {
+test_that("llms.txt has the home page, then links to articles, reference and the rest", {
   dir <- new_pkg_with_man()
   writeLines(
     c(
@@ -20,6 +20,7 @@ test_that("llms.txt lists the home page, articles, reference and the rest", {
   )
   write_rd(dir, "foo", title = "Foo things")
   write_rd(dir, "bar", title = "Bar things")
+  write_rd(dir, "baz", title = "Baz things")
   write_rd(dir, "hidden", keyword = "internal")
   dir.create(file.path(dir, "vignettes", "articles"), recursive = TRUE)
   write_vignette(dir, "examplepkg.qmd", "Get going")
@@ -27,20 +28,41 @@ test_that("llms.txt lists the home page, articles, reference and the rest", {
   local_llms_pages(
     dir,
     c(
-      "index.llms.md",
       "404.llms.md",
       "reference/index.llms.md",
       "reference/foo.llms.md",
       "reference/bar.llms.md",
+      "reference/baz.llms.md",
       "vignettes/examplepkg.llms.md",
       "vignettes/articles/advanced.llms.md"
+    )
+  )
+  local_llms_pages(
+    dir,
+    "index.llms.md",
+    c(
+      "# examplepkg ![logo](logo.png)",
+      "",
+      "Intro.",
+      "",
+      "## Use",
+      "",
+      "```r",
+      "# a comment",
+      "```",
+      ""
     )
   )
   local_llms_pages(dir, "NEWS.llms.md", "# Changelog ![logo](logo.png)")
   config <- reference_config(c(
     "reference:",
-    "  - title: All",
-    "    contents: [foo, bar]"
+    "  - title: Main",
+    "    desc: The main ones.",
+    "    contents: [foo, bar]",
+    "  - subtitle: More",
+    "    contents: baz",
+    "  - title: internal",
+    "    contents: hidden"
   ))
   settings <- list(
     website = list(
@@ -57,12 +79,15 @@ test_that("llms.txt lists the home page, articles, reference and the rest", {
       "",
       "> Does Things",
       "",
-      "Does many things.",
+      "## Home",
       "",
-      "## Docs",
+      "Intro.",
       "",
-      "- [Home](https://example.com/index.llms.md)",
-      "- [Function reference](https://example.com/reference/index.llms.md)",
+      "### Use",
+      "",
+      "```r",
+      "# a comment",
+      "```",
       "",
       "## Articles",
       "",
@@ -71,8 +96,16 @@ test_that("llms.txt lists the home page, articles, reference and the rest", {
       "",
       "## Reference",
       "",
+      "### Main",
+      "",
+      "The main ones.",
+      "",
       "- [`foo()`](https://example.com/reference/foo.llms.md): Foo things",
       "- [`bar()`](https://example.com/reference/bar.llms.md): Bar things",
+      "",
+      "#### More",
+      "",
+      "- [`baz()`](https://example.com/reference/baz.llms.md): Baz things",
       "",
       "## Optional",
       "",
@@ -81,13 +114,25 @@ test_that("llms.txt lists the home page, articles, reference and the rest", {
   )
 })
 
-test_that("llms.txt links relatively without a site URL", {
+test_that("llms.txt has DESCRIPTION's Description without a home page", {
   dir <- new_pkg()
-  local_llms_pages(dir, "index.llms.md")
+  writeLines(
+    c("Package: examplepkg", "Description: Does things."),
+    file.path(dir, "DESCRIPTION")
+  )
+  local_llms_pages(dir, "NEWS.llms.md", "# Changelog")
   write_llms_txt(dir, docs = file.path(dir, "docs"))
-  expect_contains(
+  expect_identical(
     readLines(file.path(dir, "docs", "llms.txt")),
-    "- [Home](index.llms.md)"
+    c(
+      "# examplepkg",
+      "",
+      "Does things.",
+      "",
+      "## Optional",
+      "",
+      "- [Changelog](NEWS.llms.md)"
+    )
   )
 })
 
