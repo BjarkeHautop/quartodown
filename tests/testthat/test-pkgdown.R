@@ -230,3 +230,11 @@ test_that("use_quartodown() translates _pkgdown.yml, keeping existing files", {
   )
   expect_true(file.exists(file.path(dir, "_quartodown", "in-header.html")))
 })
+
+test_that("translate_pkgdown() turns off llms.txt with `llm-docs: false`", {
+  dir <- new_pkg()
+  writeLines("llm-docs: false", file.path(dir, "_pkgdown.yml"))
+  translation <- translate_pkgdown(dir, "_pkgdown.yml")
+  expect_false(translation$config$quarto$website$`llms-txt`)
+  expect_length(translation$skipped, 0)
+})

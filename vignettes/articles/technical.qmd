@@ -17,8 +17,9 @@ pages, and every Quarto feature works.
    running the vignettes against that package.
 3. **After rendering**, it links code to its documentation, adds hover tooltips,
    puts the [logo](../customizing.qmd#the-logo) by each page's title and writes
-   the [redirect](../customizing.qmd#redirects) pages. Finally, the finished
-   site replaces the one in `docs/`.
+   [`llms.txt`](../customizing.qmd#docs-for-llms) and the
+   [redirect](../customizing.qmd#redirects) pages. Finally, the finished site
+   replaces the one in `docs/`.
 
 Until that last step, `docs/` still has the previous site, also if the build
 fails.

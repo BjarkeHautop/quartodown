@@ -184,6 +184,11 @@ quartodown::build_site() # also previews it when interactive
    it for a private-use character, and `ansi_to_html()` afterwards converts them
    with `fansi::sgr_to_html()` (not `cli::ansi_html()`, which loses colors of
    nested styles); `strip_search_ansi()` strips them from `search.json`. Then
+   `write_llms_txt()` ([R/llms.R](R/llms.R)) strips them from the `.llms.md`
+   pages Quarto writes with `website: llms-txt:` (set by `quarto_config()` when
+   `quarto_has_llms_txt()`, Quarto ≥ 1.9), drops the second image of light/dark
+   pairs, and writes `llms.txt` itself (Quarto's is unordered, and one per
+   shard), in sections from the vignettes and reference blocks. Then
    `write_redirects()` ([R/redirects.R](R/redirects.R)) writes redirect pages
    for `_quartodown.yml`'s `redirects:` (pkgdown's format; Quarto's `aliases:`
    needs front matter, which generated pages lack). Then `publish_site()`

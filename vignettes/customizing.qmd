@@ -560,6 +560,19 @@ quarto:
         - _quartodown/analytics.html
 ```
 
+## Docs for LLMs
+
+With Quarto 1.9 or later, the site has an [`llms.txt`](https://llmstxt.org/) and
+a Markdown copy of each page
+([`.llms.md`](https://quarto.org/docs/websites/website-llms.html)). To turn them
+off:
+
+```yaml
+quarto:
+  website:
+    llms-txt: false
+```
+
 ## Coming from pkgdown
 
 In a package with a `_pkgdown.yml`, `use_quartodown()` translates it into
@@ -585,6 +598,7 @@ rest maps as follows:
   | `template: light-switch:`         | always on: the site has a light and a dark theme                                |
   | `toc: depth:`                     | `quarto: format: html: toc-depth:`                                              |
   | `figures:`                        | `quarto: format: html: fig-width:`, `fig-height:`, `fig-dpi:`                   |
+  | `llm-docs: false`                 | [`quarto: website: llms-txt: false`](#docs-for-llms)                            |
   | `footer:`                         | not translated: `authors: footer:`, or `quarto: website: page-footer:`          |
 
 Vignettes are published under `vignettes/` rather than `articles/`, and the

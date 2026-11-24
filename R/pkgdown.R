@@ -177,6 +177,10 @@ translate_pkgdown <- function(path, file) {
     skip("news", "the changelog is NEWS.md as one page")
   }
 
+  if (isFALSE(pkgdown$`llm-docs`)) {
+    quarto$website$`llms-txt` <- FALSE
+  }
+
   handled <- c(
     "url",
     "authors",
@@ -193,7 +197,8 @@ translate_pkgdown <- function(path, file) {
     "toc",
     "figures",
     "footer",
-    "news"
+    "news",
+    "llm-docs"
   )
   for (field in setdiff(names(pkgdown), handled)) {
     skip(field, if (field == "destination") "the site is built into docs/")

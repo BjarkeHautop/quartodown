@@ -183,6 +183,7 @@ build_site <- function(
   built <- build_dir(path)
   write_pkgdown_yml(path, settings$website$`site-url`, config, docs = built)
   postprocess_pages(path, config, topics, tooltips = tooltips, docs = built)
+  write_llms_txt(path, config, settings, topics, docs = built)
   write_redirects(path, config, docs = built)
   cli::cli_progress_done()
   publish_site(path, config)
@@ -492,6 +493,10 @@ quarto_config <- function(
     }
   }
   settings$website <- c(settings$website, social_cards(path))
+  # A Markdown copy of each page and an llms.txt, see write_llms_txt().
+  if (quarto_has_llms_txt()) {
+    settings$website$`llms-txt` <- TRUE
+  }
   logo <- logo_file(path)
   if (!is.null(logo)) {
     settings$website$favicon <- logo

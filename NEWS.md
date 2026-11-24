@@ -15,6 +15,9 @@
   isn't on CRAN yet in `docs/`, as unreleased. Content marked
   `.quartodown-devel` or `.quartodown-release` is shown on only that site.
 
+- With Quarto 1.9 or later, the site has an `llms.txt` and a Markdown copy of
+  each page.
+
 - New `workers` argument to `build_site()`, to build the site with several
   processes. `use_quartodown_action()`'s workflow uses 4.
 
