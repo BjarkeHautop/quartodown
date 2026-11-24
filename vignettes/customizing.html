@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-a491920b819315d71cc37a87f41fc149.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-c95f020296228d9422c2b057e21f3454.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -375,6 +375,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li><a href="#the-logo" id="toc-the-logo" class="nav-link" data-scroll-target="#the-logo">The logo</a></li>
   </ul>
 </li>
+  <li><a href="#docs-for-llms" id="toc-docs-for-llms" class="nav-link" data-scroll-target="#docs-for-llms">Docs for LLMs</a></li>
   <li><a href="#coming-from-pkgdown" id="toc-coming-from-pkgdown" class="nav-link" data-scroll-target="#coming-from-pkgdown">Coming from pkgdown</a></li>
   </ul></nav>
 </div>
@@ -429,7 +430,17 @@ visitors who prefer it, before Quarto reads the stored choice.
 <section id="the-reference-index" class="level2"><h2 class="anchored" data-anchor-id="the-reference-index">The reference index</h2>
 <p>Without <code>reference:</code>, the index lists every function in one section. To group them, list the sections:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="annotated-cell-1"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">reference</span><span class="kw">:</span></span>
+<div class="sourceCode" id="annotated-cell-1" data-llms-code-original="reference:
+  - title: Read and write              # &lt;1&gt;
+    desc: Functions for getting data in and out.  # &lt;2&gt;
+    contents:
+      - read_data                      # &lt;3&gt;
+      - starts_with(&quot;write_&quot;)          # &lt;4&gt;
+  - title: Helpers
+    subtitle: Low-level                # &lt;5&gt;
+    contents:
+      - has_concept(&quot;helpers&quot;)
+      - -internal_helper               # &lt;6&gt;"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-1-1"><a href="#annotated-cell-1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">reference</span><span class="kw">:</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="1">1</button><span id="annotated-cell-1-2" class="code-annotation-target"><a href="#annotated-cell-1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">title</span><span class="kw">:</span><span class="at"> Read and write</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-1" data-target-annotation="2">2</button><span id="annotated-cell-1-3" class="code-annotation-target"><a href="#annotated-cell-1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">desc</span><span class="kw">:</span><span class="at"> Functions for getting data in and out.</span></span>
 <span id="annotated-cell-1-4"><a href="#annotated-cell-1-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">contents</span><span class="kw">:</span></span>
@@ -576,7 +587,29 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>Any other item is a vignette, given as its path relative to <code>vignettes/</code> without extension and linked with its title, or a <a href="https://quarto.org/docs/websites/website-navigation.html#top-navigation">Quarto navbar item</a>. <code>tools</code> takes only icons: <code>repo</code> or a <a href="https://quarto.org/docs/websites/website-navigation.html#navbar-tools">Quarto tool</a>. Inside a Quarto item’s <code>menu:</code>, vignettes are given the same way, and a folder ending in <code>/</code> lists every vignette in it.</p>
 <p>For example, with the vignettes in a folder for each menu:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="annotated-cell-4"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">navbar</span><span class="kw">:</span></span>
+<div class="sourceCode" id="annotated-cell-4" data-llms-code-original="navbar:
+  left:
+    - reference
+    - news
+    - text: Get started
+      menu:
+        - get-started/installation   # &lt;1&gt;
+        - get-started/first-steps
+    - text: User guide
+      menu: user-guide/              # &lt;2&gt;
+    - text: Developers
+      menu:
+        - dev/internals
+        - text: Contributing         # &lt;3&gt;
+          href: CONTRIBUTING.md
+  right:
+    - text: Blog
+      href: https://example.com/blog
+  tools:
+    - repo
+    - icon: mastodon
+      text: Mastodon
+      href: https://fosstodon.org/@me"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-4-1"><a href="#annotated-cell-4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">navbar</span><span class="kw">:</span></span>
 <span id="annotated-cell-4-2"><a href="#annotated-cell-4-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">left</span><span class="kw">:</span></span>
 <span id="annotated-cell-4-3"><a href="#annotated-cell-4-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> reference</span></span>
 <span id="annotated-cell-4-4"><a href="#annotated-cell-4-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> news</span></span>
@@ -649,7 +682,16 @@ Note
 <p>It can be Markdown (<code>.md</code>) or a Quarto document (<code>.qmd</code>), whose code runs when the site is built, as in a vignette. Write links and image paths in it relative to the package root, as in the README.</p>
 <p>Next to the page, a sidebar shows the package’s links, license, community files, citation, authors and badges. <code>sidebar:</code> can reorder its sections, drop some, or add your own, and <code>links:</code> adds to its links:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="annotated-cell-7"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-7-1"><a href="#annotated-cell-7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">home</span><span class="kw">:</span></span>
+<div class="sourceCode" id="annotated-cell-7" data-llms-code-original="home:
+  links:
+    - text: Blog
+      href: https://example.com/blog
+  sidebar:
+    structure: [links, funding, license, authors]   # &lt;1&gt;
+    components:
+      funding:                                       # &lt;2&gt;
+        title: Funding
+        text: Supported by [a grant](https://example.com)."><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-7-1"><a href="#annotated-cell-7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">home</span><span class="kw">:</span></span>
 <span id="annotated-cell-7-2"><a href="#annotated-cell-7-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">links</span><span class="kw">:</span></span>
 <span id="annotated-cell-7-3"><a href="#annotated-cell-7-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="kw">-</span><span class="at"> </span><span class="fu">text</span><span class="kw">:</span><span class="at"> Blog</span></span>
 <span id="annotated-cell-7-4"><a href="#annotated-cell-7-4" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">href</span><span class="kw">:</span><span class="at"> https://example.com/blog</span></span>
@@ -683,7 +725,18 @@ Note
 </section><section id="authors" class="level2"><h2 class="anchored" data-anchor-id="authors">Authors</h2>
 <p>The home page’s sidebar and the footer list the authors with the roles <code>aut</code>, <code>cre</code> and <code>fnd</code> from <code>DESCRIPTION</code>’s <code>Authors@R</code>, and the authors page lists everyone. <code>authors:</code> can link a person’s name, or replace it with HTML such as a logo, and change who is shown:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="annotated-cell-9"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">authors</span><span class="kw">:</span></span>
+<div class="sourceCode" id="annotated-cell-9" data-llms-code-original="authors:
+  Jane Doe:                                # &lt;1&gt;
+    href: https://jane.example.com
+  Acme Inc:
+    href: https://acme.example.com
+    html: &lt;img src=&quot;https://acme.example.com/logo.png&quot; alt=&quot;Acme&quot; height=&quot;24&quot;&gt;
+  sidebar:
+    roles: [aut, cre]                      # &lt;2&gt;
+    after: Thanks to all [contributors](authors.html).  # &lt;3&gt;
+  footer:
+    roles: [cre]
+    text: Maintained by                    # &lt;4&gt;"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-9-1"><a href="#annotated-cell-9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">authors</span><span class="kw">:</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-9" data-target-annotation="1">1</button><span id="annotated-cell-9-2" class="code-annotation-target"><a href="#annotated-cell-9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">Jane Doe</span><span class="kw">:</span></span>
 <span id="annotated-cell-9-3"><a href="#annotated-cell-9-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">href</span><span class="kw">:</span><span class="at"> https://jane.example.com</span></span>
 <span id="annotated-cell-9-4"><a href="#annotated-cell-9-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">Acme Inc</span><span class="kw">:</span></span>
@@ -727,7 +780,12 @@ Note
 </div>
 <p>or sets the links directly, such as for another host:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="annotated-cell-11"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-11-1"><a href="#annotated-cell-11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">repo</span><span class="kw">:</span></span>
+<div class="sourceCode" id="annotated-cell-11" data-llms-code-original="repo:
+  url:
+    home: https://git.sr.ht/~me/mypkg                    # &lt;1&gt;
+    source: https://git.sr.ht/~me/mypkg/tree/main/item/  # &lt;2&gt;
+    issue: https://todo.sr.ht/~me/mypkg/                 # &lt;3&gt;
+    user: https://sr.ht/~                                # &lt;4&gt;"><pre class="sourceCode yaml code-annotation-code code-with-copy code-annotated"><code class="sourceCode yaml"><span id="annotated-cell-11-1"><a href="#annotated-cell-11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">repo</span><span class="kw">:</span></span>
 <span id="annotated-cell-11-2"><a href="#annotated-cell-11-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">url</span><span class="kw">:</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-11" data-target-annotation="1">1</button><span id="annotated-cell-11-3" class="code-annotation-target"><a href="#annotated-cell-11-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">home</span><span class="kw">:</span><span class="at"> https://git.sr.ht/~me/mypkg</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-11" data-target-annotation="2">2</button><span id="annotated-cell-11-4" class="code-annotation-target"><a href="#annotated-cell-11-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">source</span><span class="kw">:</span><span class="at"> https://git.sr.ht/~me/mypkg/tree/main/item/</span></span>
@@ -912,7 +970,14 @@ Note
 <code>scss:rules</code> holds CSS rules, which can use those variables.</li>
 </ul>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="annotated-cell-20"><pre class="sourceCode scss code-annotation-code code-with-copy code-annotated"><code class="sourceCode scss"><span id="annotated-cell-20-1"><a href="#annotated-cell-20-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*-- scss:defaults --*/</span></span>
+<div class="sourceCode" id="annotated-cell-20" data-llms-code-original="/*-- scss:defaults --*/
+$primary: #2c7a7b;                       // &lt;1&gt;
+$font-family-sans-serif: &quot;Inter&quot;, sans-serif;
+
+/*-- scss:rules --*/
+.navbar {
+  border-bottom: 1px solid $border-color; // &lt;2&gt;
+}"><pre class="sourceCode scss code-annotation-code code-with-copy code-annotated"><code class="sourceCode scss"><span id="annotated-cell-20-1"><a href="#annotated-cell-20-1" aria-hidden="true" tabindex="-1"></a><span class="co">/*-- scss:defaults --*/</span></span>
 <button class="code-annotation-anchor" data-target-cell="annotated-cell-20" data-target-annotation="1">1</button><span id="annotated-cell-20-2" class="code-annotation-target"><a href="#annotated-cell-20-2" aria-hidden="true" tabindex="-1"></a><span class="va">$primary</span>: <span class="cn">#2c7a7b</span><span class="op">;</span></span>
 <span id="annotated-cell-20-3"><a href="#annotated-cell-20-3" aria-hidden="true" tabindex="-1"></a><span class="va">$font-family-sans-serif</span>: <span class="st">"Inter"</span><span class="op">,</span> <span class="dv">sans-serif</span><span class="op">;</span></span>
 <span id="annotated-cell-20-4"><a href="#annotated-cell-20-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -978,7 +1043,15 @@ Note
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="kw">-</span><span class="at"> _quartodown/analytics.html</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-</section></section><section id="coming-from-pkgdown" class="level2"><h2 class="anchored" data-anchor-id="coming-from-pkgdown">Coming from pkgdown</h2>
+</section></section><section id="docs-for-llms" class="level2"><h2 class="anchored" data-anchor-id="docs-for-llms">Docs for LLMs</h2>
+<p>With Quarto 1.9 or later, the site has an <a href="https://llmstxt.org/"><code>llms.txt</code></a> and a Markdown copy of each page (<a href="https://quarto.org/docs/websites/website-llms.html"><code>.llms.md</code></a>). To turn them off:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb21"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">quarto</span><span class="kw">:</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">website</span><span class="kw">:</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">llms-txt</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+</section><section id="coming-from-pkgdown" class="level2"><h2 class="anchored" data-anchor-id="coming-from-pkgdown">Coming from pkgdown</h2>
 <p>In a package with a <code>_pkgdown.yml</code>, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_quartodown.html">use_quartodown</a>()</code> translates it into <code>_quartodown/_quartodown.yml</code>, and lists the settings it couldn’t translate. Fields with a similar format are copied: <code>url:</code>, <code>reference:</code>, <code>home: sidebar:</code>, <code>home: links:</code>, <code>authors:</code>, <code>repo:</code>, <code>redirects:</code> and <code>development: mode:</code>. The rest maps as follows:</p>
 <table class="caption-top table">
 <thead><tr class="header">
@@ -1057,6 +1130,10 @@ Note
 </td>
 </tr>
 <tr class="even">
+<td><code>llm-docs: false</code></td>
+<td><a href="#docs-for-llms"><code>quarto: website: llms-txt: false</code></a></td>
+</tr>
+<tr class="odd">
 <td><code>footer:</code></td>
 <td>not translated: <code>authors: footer:</code>, or <code>quarto: website: page-footer:</code>
 </td>

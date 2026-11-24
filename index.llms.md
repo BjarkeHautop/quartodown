@@ -1,0 +1,90 @@
+# quartodown ![quartodown logo](man/figures/logo-light.png)
+
+quartodown is an R package that turns your package’s README, help pages and vignettes into a website, rendered entirely by [Quarto](https://quarto.org/).
+
+## Why quartodown?
+
+Every page, help pages included, is a Quarto page, so you get:
+
+- every Quarto feature, from callouts and tabsets to code annotations and cross-references, on every page;
+- Quarto’s themes, extensions and settings.
+
+On top of that, quartodown adds:
+
+- the package website layout R users know from pkgdown: a home page sidebar, a grouped function reference, articles and a changelog;
+- function links with hover tooltips.
+
+## Installation
+
+Install the stable version from CRAN:
+
+``` r
+install.packages("quartodown")
+```
+
+or the development version from GitHub:
+
+``` r
+pak::pak("BjarkeHautop/quartodown")
+```
+
+quartodown also needs [Quarto](https://quarto.org/docs/get-started/) installed.
+
+## Usage
+
+[Browse the site](https://bjarkehautop.github.io/quartodown/) to see how it looks! [Quarto features](https://bjarkehautop.github.io/quartodown/vignettes/articles/showcase.html) shows callouts, tabsets, footnotes and more on a quartodown site. If you like what you see, and want to use it for your own package, run:
+
+``` r
+quartodown::use_quartodown()
+```
+
+This writes `_quartodown/_quartodown.yml`, with a `reference:` field that lists your package’s current functions in one section; edit it to group them however you’d like. It also gitignores the files the build generates.
+
+If your package already has a pkgdown site, most of `_pkgdown.yml` can be copied over as is; see [Coming from pkgdown](https://bjarkehautop.github.io/quartodown/vignettes/customizing.html#coming-from-pkgdown).
+
+Then build the site:
+
+``` r
+quartodown::build_site()
+```
+
+In an interactive session, this also opens the site in your browser.
+
+To publish it on GitHub Pages, run `quartodown::use_quartodown_action()`. It writes a GitHub Actions workflow that builds the site on every push and deploys it to the `gh-pages` branch.
+
+See [Customizing](https://bjarkehautop.github.io/quartodown/vignettes/customizing.html) for everything `_quartodown.yml` can configure.
+
+## Packages using quartodown
+
+- [jlbind](https://bjarkehautop.github.io/jlbind/)
+
+Using quartodown for your package? Feel free to open a pull request adding it to this list.
+
+#### Links
+
+[View on CRAN](https://cloud.r-project.org/package=quartodown)
+
+[Browse source code](https://github.com/bjarkehautop/quartodown)
+
+[Report a bug](https://github.com/bjarkehautop/quartodown/issues)
+
+#### License
+
+[Full license](LICENSE.llms.md)
+
+[MIT](https://opensource.org/licenses/mit-license.php) + file [LICENSE](LICENSE-text.llms.md)
+
+#### Citation
+
+[Citing quartodown](authors.llms.md#citation)
+
+#### Developers
+
+Bjarke Hautop Kristensen\
+Author, maintainer, copyright holder
+
+[More about authors…](authors.llms.md)
+
+#### Dev status
+
+[![](https://www.r-pkg.org/badges/version/quartodown)](https://CRAN.R-project.org/package=quartodown) [![](https://github.com/bjarkehautop/quartodown/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bjarkehautop/quartodown/actions/workflows/R-CMD-check.yaml) [![](https://codecov.io/gh/bjarkehautop/quartodown/graph/badge.svg)](https://app.codecov.io/gh/bjarkehautop/quartodown)

@@ -1,0 +1,72 @@
+# Technical details
+
+Source: [`vignettes/articles/technical.qmd`](https://github.com/bjarkehautop/quartodown/blob/HEAD/vignettes/articles/technical.qmd)
+
+quartodown generates a [Quarto](https://quarto.org/) website project from the package sources, so the man pages, vignettes and generated pages are all Quarto pages, and every Quarto feature works.
+
+## How a build works
+
+`quartodown::build_site()` runs in three stages:
+
+1.  **Before rendering**, it installs the package into a temporary library, writes a Quarto project into `_quarto/` and runs the reference pages’ examples against that package.
+2.  **During rendering**, Quarto renders `_quarto/` into `_quarto/_site/`, running the vignettes against that package.
+3.  **After rendering**, it links code to its documentation, adds hover tooltips, puts the [logo](../customizing.qmd#the-logo) by each page’s title and writes [`llms.txt`](../customizing.qmd#docs-for-llms) and the [redirect](../customizing.qmd#redirects) pages. Finally, the finished site replaces the one in `docs/`.
+
+Until that last step, `docs/` still has the previous site, also if the build fails.
+
+With [`development: mode: devel`](../customizing.qmd#development-and-release-sites), the site goes in `docs/dev/` instead, and a build into `docs/` leaves `dev/` as it is.
+
+In an interactive session it then serves the site with `preview_site()`. The server keeps running for the rest of the session, so you can keep reading the previous site during a rebuild, and after it an open page that changed reloads.
+
+`build_site(devel = TRUE)` skips the install and loads the package from source with `pkgload::load_all()` instead (compiled code is compiled once, before the build, rather than by each R process). It is faster, but code that starts other R processes (for example with callr or parallel) won’t find the package, and build-stage `\Sexpr{}` macros in the man pages don’t run.
+
+`build_site()`’s `workers` argument sets the number of processes to build with. More than one needs the [mirai](https://mirai.r-lib.org/) package.
+
+`build_site(freeze = TRUE)` reuses the results of code from an earlier build, kept in `_quarto/_freeze/`, for pages whose source hasn’t changed (Quarto’s [freeze](https://quarto.org/docs/projects/code-execution.html#freeze)). Committing `_quarto/_freeze/` lets builds on CI reuse them too.
+
+> **WARNING:**
+>
+> Freeze only checks each page’s own source, not your package’s code or the packages it uses. After changing a function or updating a dependency, the pages running that code keep their old output until you delete `_quarto/_freeze/`.
+
+Throughout the build, the environment variable `IN_QUARTODOWN` is `"true"`, so the package’s code can tell it is running for the site, and `IN_QUARTODOWN_PKG` is the package’s name.
+
+`_quarto/` is rewritten on every build, and gitignored by `quartodown::use_quartodown()`. To change the site, edit `_quartodown/` instead (see [Customizing your site](../customizing.qmd)).
+
+``` text
+_quarto/
+├── _quarto.yml                   # Quarto configuration (navbar, footer, theme)
+├── index.qmd                     # home page
+├── reference/
+│   ├── index.qmd                 # function reference index
+│   └── <topic>.qmd               # a page per man/*.Rd
+├── authors.qmd                   # authors and citation page
+├── vignettes/                    # the vignettes, as they are
+├── man/figures/                  # images for the README and man pages
+├── NEWS.md                       # changelog, titled, with issues and users linked
+├── _quartodown/                  # the package's _quartodown/, as it is
+└── quartodown.scss               # theme on top of Quarto's HTML
+```
+
+## The man pages
+
+Examples run, with their output in the same block as the code, prefixed with `#>`. To save Quarto starting an R process per page, they all run beforehand in one R process, which resets the global environment, search path, options and the like between pages, as `R CMD check` does. Pages whose examples fail or produce HTML widgets are left for Quarto to run.
+
+## Code links and tooltips
+
+Function calls in R code, and inline code like `foo()` or `?foo`, link to their documentation: the package’s own pages or another installed package’s site. A package that isn’t installed, as in `library(pkg)`, links to its site from its `DESCRIPTION` on CRAN, or else its repository, but its functions aren’t linked. Where other packages’ sites are is cached in `tools::R_user_dir("quartodown", "cache")`, and looked up again when more than a week old; delete the folder to look them all up again. Functions from packages without a site, including base R, aren’t linked unless you set [`links: external: all`](../customizing.qmd#links-to-other-packages), which links them to [rdrr.io](https://rdrr.io) (and a package without any URL to its CRAN page). With `none`, only the package’s own pages are linked.
+
+The build also writes `docs/pkgdown.yml`, so that other packages’ sites, made with quartodown or pkgdown, can link to your pages.
+
+References to the package’s own functions also get a hover tooltip with their usage and title. A usage longer than 12 lines is shortened. To build without tooltips, use `build_site(tooltips = FALSE)`.
+
+## The theme
+
+The site has a light and a dark theme, and follows the browser’s preference. Each is built in layers:
+
+1.  the Quarto theme: `default` in light mode and `default` with `quartodown-dark.scss`, its colors for a dark page, in dark mode, unless [`theme:`](../customizing.qmd#styling-and-layout) picks others,
+2.  `quartodown.scss`, quartodown’s own styling,
+3.  `_quartodown/extra.scss`, if the package has one.
+
+With the `default` light theme, `quartodown-fonts.scss` also gives the dark theme the same system fonts and heading sizes.
+
+Code output keeps the colors packages such as [cli](https://cli.r-lib.org/) give it in a terminal, in shades that suit the light or dark theme.

@@ -1,0 +1,53 @@
+# Changelog
+
+Source: [`NEWS.md`](https://github.com/bjarkehautop/quartodown/blob/HEAD/NEWS.md)
+
+## quartodown (development version)
+
+### New features
+
+- `use_quartodown()` translates an existing `_pkgdown.yml`: the navbar and `articles:` become `navbar:` items and menus, template settings become `theme:`, `quarto:` settings and files in `_quartodown/`, and redirects keep pkgdown’s addresses of the vignettes and changelog working. It lists what it couldn’t translate.
+
+- New `development: mode:` setting in `_quartodown.yml`, as in pkgdown: with `devel` (or `auto` and a `.9000` version), the site for the development version is built into `docs/dev/`, next to the released version’s. A switch next to the navbar’s title goes between them. `auto` keeps a package that isn’t on CRAN yet in `docs/`, as unreleased. Content marked `.quartodown-devel` or `.quartodown-release` is shown on only that site.
+
+- With Quarto 1.9 or later, the site has an `llms.txt` and a Markdown copy of each page.
+
+- New `workers` argument to `build_site()`, to build the site with several processes. `use_quartodown_action()`’s workflow uses 4.
+
+- The reference index shows lifecycle badges, and `reference:` takes pkgdown’s `has_lifecycle()` selector. A section titled `internal` is hidden, as in pkgdown.
+
+- The package’s logo, `man/figures/logo.svg` or `.png` (`.svg` if both exist), now shows right of the title of every page, not just the home page, with `logo-light.svg` or `.png` in light mode if it exists. `logo: false` in `_quartodown.yml` turns it off.
+
+### Minor improvements
+
+- Code is now linked by quartodown itself instead of downlit, so code blocks keep Quarto’s highlighting, linking is more consistent, and builds work offline.
+
+- The default dark theme is now a dark version of Quarto’s `default` theme, with a neutral near-black page and soft blue links, rather than `darkly`. Use `theme: dark: darkly` to keep the old look.
+
+- In the default dark theme, dividers in navbar menus (`text: "---"`) and the menus’ borders are visible; they were black on the near-black page.
+
+- The theme toggle shows a moon in the light theme and a sun in the dark theme, rather than a switch, and buttons and links no longer fade to their new colors after the rest of the page has switched.
+
+- `build_site()` builds the site in `_quarto/_site/`, and replaces the one in `docs/` only when it’s complete. So the previous site stays in place during a build, and after a failed one. `preview_site()` now serves it with nanonext rather than servr, so it keeps working while `build_site()` runs. An open page reloads if the new build changed it.
+
+- The reference pages’ examples now run before rendering, all in one R process, rather than Quarto starting one for each page, which made most of the build’s time for packages with many examples.
+
+- `build_site()` reports its progress in a few steps (installing the package, writing the Quarto project, rendering, linking code), each with the time it took, and where it built the site. When a page fails to render with `quiet = TRUE`, Quarto’s error is now shown rather than a suggestion to rerun with `quiet = FALSE`.
+
+- The changelog page is now titled “Changelog”, with its versions’ headings a level down, and links its source, `NEWS.md`.
+
+- The pages made from `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SUPPORT.md` and `LICENSE.md` now have a “Source:” link under their title, like the other pages made from package files.
+
+- Links to an internal topic without a page now give a warning.
+
+### Bug fixes
+
+- `@examplesIf` conditions are evaluated in the examples’ R session, with the package attached, so they can call the package’s own functions. They were evaluated where the package isn’t loaded, so such examples were never run.
+
+- Image URLs without a file extension, such as the CRAN badge from `usethis::use_cran_badge()`, no longer get `.png` added, which broke them.
+
+- The search box’s magnifying glass and clear button are now readable in dark mode.
+
+## quartodown 0.1.0
+
+- Initial release.

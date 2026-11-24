@@ -31,9 +31,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-a491920b819315d71cc37a87f41fc149.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-c95f020296228d9422c2b057e21f3454.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -354,6 +354,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <ul>
 <li><p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/use_quartodown.html">use_quartodown</a>()</code> translates an existing <code>_pkgdown.yml</code>: the navbar and <code>articles:</code> become <code>navbar:</code> items and menus, template settings become <code>theme:</code>, <code>quarto:</code> settings and files in <code>_quartodown/</code>, and redirects keep pkgdown’s addresses of the vignettes and changelog working. It lists what it couldn’t translate.</p></li>
 <li><p>New <code>development: mode:</code> setting in <code>_quartodown.yml</code>, as in pkgdown: with <code>devel</code> (or <code>auto</code> and a <code>.9000</code> version), the site for the development version is built into <code>docs/dev/</code>, next to the released version’s. A switch next to the navbar’s title goes between them. <code>auto</code> keeps a package that isn’t on CRAN yet in <code>docs/</code>, as unreleased. Content marked <code>.quartodown-devel</code> or <code>.quartodown-release</code> is shown on only that site.</p></li>
+<li><p>With Quarto 1.9 or later, the site has an <code>llms.txt</code> and a Markdown copy of each page.</p></li>
 <li><p>New <code>workers</code> argument to <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/build_site.html">build_site</a>()</code>, to build the site with several processes. <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/use_quartodown_action.html">use_quartodown_action</a>()</code>’s workflow uses 4.</p></li>
 <li><p>The reference index shows lifecycle badges, and <code>reference:</code> takes pkgdown’s <code>has_lifecycle()</code> selector. A section titled <code>internal</code> is hidden, as in pkgdown.</p></li>
 <li><p>The package’s logo, <code>man/figures/logo.svg</code> or <code>.png</code> (<code>.svg</code> if both exist), now shows right of the title of every page, not just the home page, with <code>logo-light.svg</code> or <code>.png</code> in light mode if it exists. <code>logo: false</code> in <code>_quartodown.yml</code> turns it off.</p></li>

@@ -1,0 +1,32 @@
+# quartodown
+
+> Package Websites Built Entirely with 'Quarto'
+
+Builds package websites with 'Quarto'. The whole site, help pages and vignettes included, is rendered by 'Quarto', so every 'Quarto' feature works, from callouts to code annotations. Functions mentioned in code link to their help pages, with hover tooltips.
+
+## Docs
+
+- [Home](https://bjarkehautop.github.io/quartodown/index.llms.md)
+- [Function reference](https://bjarkehautop.github.io/quartodown/reference/index.llms.md)
+
+## Articles
+
+- [Get started with quartodown](https://bjarkehautop.github.io/quartodown/vignettes/quartodown.llms.md)
+- [Customizing your site](https://bjarkehautop.github.io/quartodown/vignettes/customizing.llms.md)
+- [Gallery](https://bjarkehautop.github.io/quartodown/vignettes/articles/gallery.llms.md)
+- [Quarto features](https://bjarkehautop.github.io/quartodown/vignettes/articles/showcase.llms.md)
+- [Technical details](https://bjarkehautop.github.io/quartodown/vignettes/articles/technical.llms.md)
+
+## Reference
+
+- [`build_site()`](https://bjarkehautop.github.io/quartodown/reference/build_site.llms.md): Build the package website
+- [`preview_site()`](https://bjarkehautop.github.io/quartodown/reference/preview_site.llms.md): Preview the built site
+- [`use_quartodown()`](https://bjarkehautop.github.io/quartodown/reference/use_quartodown.llms.md): Set up a package to use quartodown
+- [`use_quartodown_action()`](https://bjarkehautop.github.io/quartodown/reference/use_quartodown_action.llms.md): Set up a GitHub Actions workflow that publishes the site
+
+## Optional
+
+- [Authors and Citation](https://bjarkehautop.github.io/quartodown/authors.llms.md)
+- [License](https://bjarkehautop.github.io/quartodown/LICENSE-text.llms.md)
+- [MIT License](https://bjarkehautop.github.io/quartodown/LICENSE.llms.md)
+- [Changelog](https://bjarkehautop.github.io/quartodown/NEWS.llms.md)

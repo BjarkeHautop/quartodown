@@ -1,0 +1,56 @@
+# Get started with quartodown
+
+Source: [`vignettes/quartodown.qmd`](https://github.com/bjarkehautop/quartodown/blob/HEAD/vignettes/quartodown.qmd)
+
+quartodown builds a website for an R package with [Quarto](https://quarto.org/). This guide sets up a package, builds its site, and publishes it on GitHub Pages.
+
+## Set up
+
+From the root of your package, run:
+
+``` r
+quartodown::use_quartodown()
+```
+
+This writes `_quartodown/_quartodown.yml`, and adds the files the build generates to `.gitignore` and `.Rbuildignore`. `_quartodown.yml` is where you can [customize your site](https://bjarkehautop.github.io/quartodown/vignettes/customizing.html). If your package already has a `_pkgdown.yml`, see [Coming from pkgdown](https://bjarkehautop.github.io/quartodown/vignettes/customizing.html#coming-from-pkgdown) for how its settings carry over.
+
+## Build the site
+
+``` r
+quartodown::build_site()
+```
+
+`build_site()` builds the site into `docs/` and, in an interactive session, opens it in your browser. You can keep reading it during a rebuild, after which the page reloads if it changed, and `preview_site()` opens it again if you’ve closed it. Examples and vignettes run against your package’s current source.
+
+Two arguments make builds faster:
+
+- `build_site(devel = TRUE)` loads the package with `pkgload::load_all()` instead of installing it, which is useful while iterating.
+- `build_site(workers = 4)` builds with four processes, which helps most on sites with many pages. It needs the [mirai](https://mirai.r-lib.org/) package.
+
+The following is added to your site:
+
+- **Home page**: your `README.md`. Next to it, a sidebar links to the source code, the bug tracker and CRAN (if the package is there), and shows the license, citation and authors from `DESCRIPTION`. Any badges in your README (between `<!-- badges: start -->` and `<!-- badges: end -->`) are moved into the sidebar.
+- **Reference**: a page for each help topic in `man/`, plus an index page listing them all.
+- **Get started**: the vignette with the same name as your package, like this one.
+- **Articles**: all your other vignettes, including any in subfolders such as `vignettes/articles/`.
+- **Changelog**: your `NEWS.md`. Issue numbers like `#123` and GitHub usernames like `@user` become links.
+
+## Publish on GitHub Pages
+
+To build the site and deploy it to the `gh-pages` branch on every push, add a GitHub Actions workflow:
+
+``` r
+quartodown::use_quartodown_action()
+```
+
+This writes `.github/workflows/quartodown.yaml`. Commit and push it. Once its first run has created the `gh-pages` branch, go to the *Pages* section of your repository’s settings on GitHub and choose to deploy from that branch.
+
+## Learn more
+
+[Customizing your site](https://bjarkehautop.github.io/quartodown/vignettes/customizing.html) covers everything `_quartodown.yml` can change.
+
+[Gallery](https://bjarkehautop.github.io/quartodown/vignettes/articles/gallery.html) shows this site built with different settings, and the configuration behind each look.
+
+[Quarto features](https://bjarkehautop.github.io/quartodown/vignettes/articles/showcase.html) shows Quarto’s authoring features, such as callouts, tabsets and footnotes, on a quartodown site.
+
+[Technical details](https://bjarkehautop.github.io/quartodown/vignettes/articles/technical.html) explains how a build works.
