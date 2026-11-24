@@ -423,7 +423,10 @@ pre:has(> code:not(.sourceCode)) {
   background-color: $code-block-bg-color;
 }
 
-pre > code:not(.sourceCode) {
+// Quarto's `li code.sourceCode` rule also matches code blocks in lists, where
+// it would paint `$code-bg` over the block's background.
+pre > code:not(.sourceCode),
+pre > code.sourceCode {
   background-color: transparent;
 }
 
