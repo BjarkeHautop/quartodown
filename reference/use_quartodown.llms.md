@@ -51,9 +51,9 @@ write(
   file.path(pkg, "DESCRIPTION")
 )
 use_quartodown(pkg)
-#> ✔ Wrote /tmp/RtmpmUdugf/examplepkg191f307e7b4f/_quartodown/_quartodown.yml (edit this to group your functions).
-#> ✔ Added `_quarto/*` and `!_quarto/_freeze/` to /tmp/RtmpmUdugf/examplepkg191f307e7b4f/.gitignore.
-#> ✔ Added `^docs$`, `^_quarto$`, and `^_quartodown$` to /tmp/RtmpmUdugf/examplepkg191f307e7b4f/.Rbuildignore.
+#> ✔ Wrote /tmp/Rtmp0ZH4fR/examplepkg18f95e9e7488/_quartodown/_quartodown.yml (edit this to group your functions).
+#> ✔ Added `_quarto/*` and `!_quarto/_freeze/` to /tmp/Rtmp0ZH4fR/examplepkg18f95e9e7488/.gitignore.
+#> ✔ Added `^docs$`, `^_quarto$`, and `^_quartodown$` to /tmp/Rtmp0ZH4fR/examplepkg18f95e9e7488/.Rbuildignore.
 #> 
 #> Next steps:
 #> 1. Edit _quartodown/_quartodown.yml to group your functions the way you want.
